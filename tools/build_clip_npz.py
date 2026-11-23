@@ -68,7 +68,8 @@ def stand_qpos() -> np.ndarray:
     d = json.load(open(REPO / "F1_29DOF/mjcf/robot/f1/f1_stand.json"))
     q = np.zeros(36)
     q[2] = 0.588
-    q[3:7] = [1, 0, 0, 0]
+    # the CSV/motion array stores the root quaternion in xyzw order
+    q[3:7] = [0, 0, 0, 1]
     for i, n in enumerate(F1_JOINT_NAMES):
         q[7 + i] = d["joint_pos_urdf_order"][n]
     return q
@@ -88,10 +89,10 @@ def build_with_idle(motion: np.ndarray, fps_in: int, idle_s: float, blend_s: flo
     # root xy stays at the clip start; root z / quat blend from stand
     first = motion[0].copy()
     first[0:3] = [motion[0, 0], motion[0, 1], stand[2]]
-    first[3:7] = [1, 0, 0, 0]
+    first[3:7] = [0, 0, 0, 1]
     last = motion[-1].copy()
     last[0:3] = [motion[-1, 0], motion[-1, 1], stand[2]]
-    last[3:7] = [1, 0, 0, 0]
+    last[3:7] = [0, 0, 0, 1]
 
     pre = np.repeat(stand[None, :], n_idle, axis=0)
     pre[:, 0:2] = motion[0, 0:2]

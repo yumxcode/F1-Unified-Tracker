@@ -40,6 +40,22 @@ F1_XML = REPO / "whole_body_tracking/source/whole_body_tracking/whole_body_track
 FOOT_CORNERS = [(-0.0967, -0.0395, -0.0337), (0.1071, -0.0395, -0.0337),
                 (-0.0967, 0.0365, -0.0337), (0.1071, 0.0365, -0.0337)]
 
+# Ground-truth F1 PhysX joint order (TASK_20261105_507 / play_mujoco.py).
+# The policy obs and action are in this order; the npz stores F1_JOINT_NAMES.
+F1_PHYSX_JOINT_ORDER = [
+    "left_hip_pitch_joint", "lumbar_yaw_joint", "right_hip_pitch_joint",
+    "left_hip_roll_joint", "lumbar_roll_joint", "right_hip_roll_joint",
+    "left_hip_yaw_joint", "lumbar_pitch_joint", "right_hip_yaw_joint",
+    "left_knee_pitch_joint", "left_shoulder_pitch_joint", "right_shoulder_pitch_joint",
+    "right_knee_pitch_joint", "left_ankle_pitch_joint", "left_shoulder_roll_joint",
+    "right_shoulder_roll_joint", "right_ankle_pitch_joint", "left_ankle_roll_joint",
+    "left_shoulder_yaw_joint", "right_shoulder_yaw_joint", "right_ankle_roll_joint",
+    "left_elbow_pitch_joint", "right_elbow_pitch_joint",
+    "left_elbow_yaw_joint", "right_elbow_yaw_joint",
+    "left_wrist_pitch_joint", "right_wrist_pitch_joint",
+    "left_wrist_roll_joint", "right_wrist_roll_joint",
+]
+
 
 def build_obs(t, lib, data, joint_pos_px, joint_vel_px, last_action, default_pos,
               body_ids, anchor_idx, to_px):
@@ -63,7 +79,7 @@ def build_obs(t, lib, data, joint_pos_px, joint_vel_px, last_action, default_pos
         to_px(ref_jpos), to_px(ref_jvel),
         anchor_pos_b, rotmat_b[:, :2].flatten(),
         base_lin_vel, base_ang_vel,
-        to_px(joint_pos_px - default_pos), to_px(joint_vel_px), last_action,
+        to_px(joint_pos_px - default_pos), to_px(joint_vel_px), to_px(last_action),
         skill, np.array([contact[0], contact[1], flight], dtype=np.float32),
     ]).astype(np.float32)
     return obs_np, ref_body_pos, ref_body_quat, robot_anchor_pos, robot_anchor_quat, anchor_pos_b
@@ -93,12 +109,34 @@ def main() -> None:
           f"({(end-start)/50:.1f}s)")
 
     actor, normalizer, obs_dim, action_dim = pm.load_policy(str(args.checkpoint))
-    print(f"[policy] obs_dim={obs_dim}")
+    print(f"[policy] obs_dim={obs_dim} action_dim={action_dim}")
+    assert obs_dim == 167, f"policy obs_dim {obs_dim} != 167 (160 + 4 skill + 3 contact)"
+    assert action_dim == 29, f"policy action_dim {action_dim} != 29"
 
     model = mujoco.MjModel.from_xml_path(str(F1_XML))
     data = mujoco.MjData(model)
     joint_names_px = [str(x) for x in lib["joint_names"]]
     body_names = [str(x) for x in lib["body_names"]]
+    # npz column order (F1_JOINT_NAMES) -> policy PhysX order
+    assert set(joint_names_px) == set(F1_PHYSX_JOINT_ORDER), "joint name set mismatch"
+    npz_to_physx = np.array([joint_names_px.index(n) for n in F1_PHYSX_JOINT_ORDER])
+    physx_to_npz = np.argsort(npz_to_physx)
+
+    def to_px(v):
+        return v[npz_to_physx]
+
+    def from_px(v):
+        return v[physx_to_npz]
+
+    # boundary self-check: a one-hot action in PhysX order must move exactly
+    # the same-named joint in the npz/PD order
+    for k, name in enumerate(F1_PHYSX_JOINT_ORDER):
+        a = np.zeros(29, dtype=np.float32)
+        a[k] = 1.0
+        a_npz = from_px(a)
+        moved = np.where(a_npz != 0)[0]
+        assert len(moved) == 1 and joint_names_px[moved[0]] == name, (name, moved)
+    print("[perm] npz->PhysX self-check passed (29 joints, same-name mapping)")
     # map npz joint/body order to the MuJoCo model
     jid = {n: mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, n) for n in joint_names_px}
     assert all(v >= 0 for v in jid.values()), [k for k, v in jid.items() if v < 0]
@@ -146,12 +184,13 @@ def main() -> None:
         joint_vel = np.array([data.qvel[a] for a in dadr])
         obs_np, ref_body_pos, ref_body_quat, robot_anchor_pos, robot_anchor_quat, anchor_pos_b = \
             build_obs(t, lib, data, joint_pos, joint_vel, last_action, default_pos,
-                      bid, anchor_idx, lambda v: v)
+                      bid, anchor_idx, to_px)
         with torch.no_grad():
             action = actor(pm.normalize_obs(torch.from_numpy(obs_np).unsqueeze(0), normalizer)).squeeze(0).numpy().astype(np.float32)
         metrics["action_rate"].append(float(np.mean(np.abs(action - last_action))))
         last_action = action.copy()
-        target_pos = default_pos + action * action_scale
+        action_npz = from_px(action)
+        target_pos = default_pos + action_npz * action_scale
         for _ in range(pm.DECIMATION):
             jp = np.array([data.qpos[a] for a in qadr])
             jv = np.array([data.qvel[a] for a in dadr])

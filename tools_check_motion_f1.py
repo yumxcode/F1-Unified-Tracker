@@ -270,6 +270,10 @@ def main():
     prev = root_quat[0] / np.linalg.norm(root_quat[0])
     for i in range(1, len(root_quat)):
         q = root_quat[i] / np.linalg.norm(root_quat[i])
+        # canonicalise the sign (q and -q are the same rotation) before the
+        # per-frame continuity test, so a sign flip is not reported as a jump
+        if np.dot(prev, q) < 0.0:
+            q = -q
         if np.dot(prev, q) < 0.1:
             quat_ok = False
         prev = q
