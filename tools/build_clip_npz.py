@@ -152,16 +152,39 @@ def main() -> None:
     ap.add_argument("--input_fps", type=int, default=30)
     ap.add_argument("--idle_s", type=float, default=2.0)
     ap.add_argument("--blend_s", type=float, default=0.8)
+    ap.add_argument("--bvh", type=Path, default=None,
+                    help="source LAFAN BVH; use its contact schedule for foot_contact")
+    ap.add_argument("--bvh_offset", type=int, default=0)
     args = ap.parse_args()
 
     motion = np.loadtxt(args.csv, delimiter=",")
     assert motion.shape[1] == 36, motion.shape
+    T_orig = len(motion)
+    contact_in = None
+    if args.bvh is not None:
+        import sys as _sys
+        _sys.path.insert(0, str(REPO / "GMR"))
+        from general_motion_retargeting.utils.lafan1 import load_bvh_file
+        frames, _ = load_bvh_file(str(args.bvh), format="lafan1")
+        L = np.array([f["LeftFoot"][0] for f in frames])
+        Rf = np.array([f["RightFoot"][0] for f in frames])
+        vL = np.linalg.norm(np.diff(L, axis=0), axis=1)
+        vR = np.linalg.norm(np.diff(Rf, axis=0), axis=1)
+        cl = np.r_[vL < 0.02, False] & (L[:, 2] < 0.12)
+        cr = np.r_[vR < 0.02, False] & (Rf[:, 2] < 0.12)
+        c = np.stack([cl, cr], axis=1)[args.bvh_offset:args.bvh_offset + T_orig]
+        assert len(c) == T_orig, (len(c), T_orig)
+        n_idle = int(round(args.idle_s * args.input_fps))
+        n_blend = int(round(args.blend_s * args.input_fps))
+        contact_in = np.ones((len(motion) + 2 * n_idle + 2 * n_blend, 2), dtype=np.float32)
+        contact_in[n_idle + n_blend:n_idle + n_blend + T_orig] = c
     motion, idle_mask = build_with_idle(motion, args.input_fps, args.idle_s, args.blend_s)
     pos, quats, joints, out_dt = resample(motion, args.input_fps)
     T = len(pos)
     # resample the idle mask to the output frame count (nearest input frame)
     src = np.minimum((np.arange(T) / max(T - 1, 1) * (len(idle_mask) - 1)).astype(int), len(idle_mask) - 1)
     idle_mask = idle_mask[src]
+    contact_in = None if contact_in is None else contact_in[src]
     print(f"[clip] {args.name}: {len(motion)}f@{args.input_fps} -> {T}f@50 "
           f"(idle {int(idle_mask.sum())}f)")
 
@@ -216,6 +239,9 @@ def main() -> None:
 
     # idle frames: both feet planted by construction
     foot_contact[idle_mask > 0.5] = 1.0
+    if contact_in is not None:
+        foot_contact = contact_in.astype(np.float32)
+        foot_contact[idle_mask > 0.5] = 1.0
     # the stand quaternion is xyzw identity; catch a wxyz/xyzw convention mixup
     assert np.allclose(body_quat[0, 0], [1.0, 0.0, 0.0, 0.0], atol=1e-5), body_quat[0, 0]
 
