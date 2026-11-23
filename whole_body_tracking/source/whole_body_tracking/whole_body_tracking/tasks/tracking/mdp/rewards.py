@@ -93,7 +93,7 @@ def flight_contact_penalty(
     command: MotionCommand = env.command_manager.get_term(command_name)
     flight = command.contact_phase[:, 2]
     sensor = env.scene.sensors[sensor_cfg.name]
-    forces = sensor.data.net_contact_forces[:, sensor_cfg.body_ids, :]
+    forces = sensor.data.net_forces_w[:, sensor_cfg.body_ids, :]
     f = torch.norm(forces, dim=-1).sum(dim=-1)
     return torch.exp(-(flight * f) / std)
 

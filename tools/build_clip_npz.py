@@ -216,6 +216,8 @@ def main() -> None:
 
     # idle frames: both feet planted by construction
     foot_contact[idle_mask > 0.5] = 1.0
+    # the stand quaternion is xyzw identity; catch a wxyz/xyzw convention mixup
+    assert np.allclose(body_quat[0, 0], [1.0, 0.0, 0.0, 0.0], atol=1e-5), body_quat[0, 0]
 
     joint_vel = np.gradient(joints, out_dt, axis=0)
     body_lin_vel = np.gradient(body_pos, out_dt, axis=0)

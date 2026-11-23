@@ -257,7 +257,8 @@ def main() -> None:
     # ---- summary ---------------------------------------------------------
     n_entry = int(args.entry_s / pm.POLICY_DT)
     n_exit = int(args.exit_s / pm.POLICY_DT)
-    entry_ok = not fell and all(m == 0 for m in metrics["contact_mismatch"][:n_entry])
+    # entry success: no fall and contact mismatch <=1% of frames (Tier-B B6)
+    entry_ok = (not fell) and float(np.mean(metrics["contact_mismatch"][:n_entry]) / 2) <= 0.01
     robot_xy = np.array(metrics["robot_xy"])
     exit_drift = float(np.linalg.norm(robot_xy[-1] - robot_xy[max(0, len(robot_xy) - n_exit)]))
     exit_ok = (not fell) and exit_drift <= 0.05

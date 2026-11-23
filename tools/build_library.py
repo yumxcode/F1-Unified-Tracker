@@ -36,6 +36,8 @@ def main() -> None:
         assert [str(x) for x in d["body_names"]] == body_names, f"body order mismatch: {p}"
         assert [str(x) for x in d["joint_names"]] == joint_names, f"joint order mismatch: {p}"
         n = d["joint_pos"].shape[0]
+        assert np.allclose(d["body_quat_w"][0, 0], [1.0, 0.0, 0.0, 0.0], atol=1e-5), \
+            f"{p}: first-frame root quat {d['body_quat_w'][0, 0]} != identity"
         joint_pos.append(d["joint_pos"])
         joint_vel.append(d["joint_vel"])
         body_pos.append(d["body_pos_w"])
