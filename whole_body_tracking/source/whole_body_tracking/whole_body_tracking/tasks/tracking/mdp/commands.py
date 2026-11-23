@@ -339,18 +339,28 @@ class MotionCommand(CommandTerm):
             flat = clip * B + b
             self._current_bin_failed[:] = torch.bincount(flat, minlength=K * B).view(K, B).float()
 
-        # clip sampling: uniform over motion clips, with a fixed 15% share for
-        # idle (skill 0) clips so the policy sees enough entry/exit data.
+        # clip sampling: skill-balanced (walk/run/dance equal share), with a
+        # fixed 15% share for idle (skill 0) so the policy sees entry/exit data.
         skill = self.motion.skill_ids
         idle_idx = torch.where(skill == 0)[0]
+        nonidle_skills = torch.unique(skill[skill != 0])
+        n = len(env_ids)
         if idle_idx.numel() > 0:
-            nonidle = torch.where(skill != 0)[0]
-            use_idle = torch.rand(len(env_ids), device=self.device) < 0.15
-            clip_non = nonidle[torch.randint(0, nonidle.numel(), (len(env_ids),), device=self.device)]
-            clip_idle = idle_idx[torch.randint(0, idle_idx.numel(), (len(env_ids),), device=self.device)]
-            clip = torch.where(use_idle, clip_idle, clip_non)
+            use_idle = torch.rand(n, device=self.device) < 0.15
+            clip = torch.zeros(n, dtype=torch.long, device=self.device)
+            clip[use_idle] = idle_idx[torch.randint(0, idle_idx.numel(), (int(use_idle.sum()),), device=self.device)]
+            motion_mask = ~use_idle
+            if motion_mask.any():
+                m = int(motion_mask.sum())
+                skill_choice = nonidle_skills[torch.randint(0, nonidle_skills.numel(), (m,), device=self.device)]
+                for s in nonidle_skills.tolist():
+                    sm = skill_choice == s
+                    if sm.any():
+                        idx = torch.where(skill == s)[0]
+                        clip[motion_mask.nonzero(as_tuple=True)[0][sm]] = idx[
+                            torch.randint(0, idx.numel(), (int(sm.sum()),), device=self.device)]
         else:
-            clip = torch.randint(0, K, (len(env_ids),), device=self.device)
+            clip = torch.randint(0, K, (n,), device=self.device)
         probs = self.bin_failed_count[clip] + self.cfg.adaptive_uniform_ratio / float(B)
         probs = probs / probs.sum(dim=1, keepdim=True)
         bins = torch.multinomial(probs, 1, replacement=True).squeeze(1)

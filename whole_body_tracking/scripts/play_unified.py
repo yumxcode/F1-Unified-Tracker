@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import time
 from pathlib import Path
@@ -57,8 +58,8 @@ F1_PHYSX_JOINT_ORDER = [
 ]
 
 
-def build_obs(t, lib, data, joint_pos_px, joint_vel_px, last_action, default_pos,
-              body_ids, anchor_idx, to_px):
+def build_obs(t, lib, data, joint_pos_npz, joint_vel_npz, last_action, default_pos,
+              body_ids, anchor_idx, to_px, legacy_obs=False):
     ref_jpos = lib["joint_pos"][t]
     ref_jvel = lib["joint_vel"][t]
     ref_body_pos = lib["body_pos_w"][t]
@@ -75,13 +76,15 @@ def build_obs(t, lib, data, joint_pos_px, joint_vel_px, last_action, default_pos
     skill[int(lib["skill_ids"][lib["_clip_idx"]])] = 1.0
     contact = lib["foot_contact"][t]
     flight = (1.0 - contact[0]) * (1.0 - contact[1])
-    obs_np = np.concatenate([
+    parts = [
         to_px(ref_jpos), to_px(ref_jvel),
         anchor_pos_b, rotmat_b[:, :2].flatten(),
         base_lin_vel, base_ang_vel,
-        to_px(joint_pos_px - default_pos), to_px(joint_vel_px), to_px(last_action),
-        skill, np.array([contact[0], contact[1], flight], dtype=np.float32),
-    ]).astype(np.float32)
+        to_px(joint_pos_npz - default_pos), to_px(joint_vel_npz), last_action,
+    ]
+    if not legacy_obs:
+        parts += [skill, np.array([contact[0], contact[1], flight], dtype=np.float32)]
+    obs_np = np.concatenate(parts).astype(np.float32)
     return obs_np, ref_body_pos, ref_body_quat, robot_anchor_pos, robot_anchor_quat, anchor_pos_b
 
 
@@ -93,7 +96,9 @@ def main() -> None:
     ap.add_argument("--headless", action="store_true")
     ap.add_argument("--record", type=Path, default=None)
     ap.add_argument("--metrics", type=Path, default=None)
+    ap.add_argument("--json_out", type=Path, default=None)
     ap.add_argument("--max_steps", type=int, default=0, help="0 = full clip")
+    ap.add_argument("--legacy_obs", action="store_true", help="160-D obs (no skill/contact)")
     ap.add_argument("--entry_s", type=float, default=3.5)
     ap.add_argument("--exit_s", type=float, default=2.0)
     args = ap.parse_args()
@@ -110,10 +115,14 @@ def main() -> None:
 
     actor, normalizer, obs_dim, action_dim = pm.load_policy(str(args.checkpoint))
     print(f"[policy] obs_dim={obs_dim} action_dim={action_dim}")
-    assert obs_dim == 167, f"policy obs_dim {obs_dim} != 167 (160 + 4 skill + 3 contact)"
+    expected_obs = 160 if args.legacy_obs else 167
+    assert obs_dim == expected_obs, f"policy obs_dim {obs_dim} != {expected_obs}"
     assert action_dim == 29, f"policy action_dim {action_dim} != 29"
 
     model = mujoco.MjModel.from_xml_path(str(F1_XML))
+    # training uses sim dt 0.005 with decimation 4 (policy 50 Hz); the MJCF
+    # defaults to 0.001, which would make the PD loop 5x slower than training
+    model.opt.timestep = pm.SIM_DT
     data = mujoco.MjData(model)
     joint_names_px = [str(x) for x in lib["joint_names"]]
     body_names = [str(x) for x in lib["body_names"]]
@@ -142,18 +151,38 @@ def main() -> None:
     assert all(v >= 0 for v in jid.values()), [k for k, v in jid.items() if v < 0]
     qadr = np.array([model.jnt_qposadr[jid[n]] for n in joint_names_px])
     dadr = np.array([model.jnt_dofadr[jid[n]] for n in joint_names_px])
+    # actuator order is the MJCF joint order, NOT the npz joint order
+    act_for_joint = np.array([mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, f"motor_{n}")
+                              for n in joint_names_px])
+    assert all(a >= 0 for a in act_for_joint), [n for n, a in zip(joint_names_px, act_for_joint) if a < 0]
     bid = np.array([mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, n) for n in body_names])
     assert all(v >= 0 for v in bid), [n for n, b in zip(body_names, bid) if b < 0]
     anchor_idx = body_names.index("lumbar_pitch_link")
 
     default_pos, kp, kd, action_scale = pm.build_joint_arrays(joint_names_px)
 
-    # initial state: default stand at the clip's first reference frame
+    # Align MuJoCo joint dynamics with the IsaacLab training model: the F1 MJCF
+    # carries vendor damping/frictionloss and no armature, while training used
+    # zero damping/friction and IsaacLab-configured armature.
+    for n in joint_names_px:
+        for pat, _effort, arm, _kp, _kd in pm._F1_JOINT_CLASS:
+            if re.fullmatch(pat, n):
+                d = model.jnt_dofadr[jid[n]]
+                model.dof_armature[d] = arm
+                model.dof_damping[d] = 0.0
+                model.dof_frictionloss[d] = 0.0
+                break
+    print("[dynamics] F1 armature/damping aligned with IsaacLab training model")
+
+    # initial state: the reference frame at clip_start (idle stand for the
+    # unified clips; the reference pose for legacy single-clip libraries)
     mujoco.mj_resetData(model, data)
     data.qpos[0:3] = lib["body_pos_w"][start, 0]
     data.qpos[3:7] = lib["body_quat_w"][start, 0]
-    data.qpos[qadr] = default_pos
-    data.qvel[:] = 0.0
+    data.qpos[qadr] = lib["joint_pos"][start]
+    data.qvel[0:3] = lib["body_lin_vel_w"][start, 0]
+    data.qvel[3:6] = lib["body_ang_vel_w"][start, 0]
+    data.qvel[dadr] = lib["joint_vel"][start]
     mujoco.mj_forward(model, data)
 
     last_action = np.zeros(len(joint_names_px), dtype=np.float32)
@@ -163,6 +192,7 @@ def main() -> None:
         "robot_xy", "ref_xy", "skill",
     ]}
     fell = False
+    fall_step = None
     n_steps = (end - start) if args.max_steps <= 0 else min(args.max_steps, end - start)
     t0 = time.time()
     recorder = None
@@ -184,7 +214,7 @@ def main() -> None:
         joint_vel = np.array([data.qvel[a] for a in dadr])
         obs_np, ref_body_pos, ref_body_quat, robot_anchor_pos, robot_anchor_quat, anchor_pos_b = \
             build_obs(t, lib, data, joint_pos, joint_vel, last_action, default_pos,
-                      bid, anchor_idx, to_px)
+                      bid, anchor_idx, to_px, args.legacy_obs)
         with torch.no_grad():
             action = actor(pm.normalize_obs(torch.from_numpy(obs_np).unsqueeze(0), normalizer)).squeeze(0).numpy().astype(np.float32)
         metrics["action_rate"].append(float(np.mean(np.abs(action - last_action))))
@@ -199,8 +229,7 @@ def main() -> None:
                 eff, _, _ = pm._match_joint_params_auto(n)
                 tau[i] = np.clip(tau[i], -eff, eff)
             ctrl = np.zeros(model.nu)
-            for i, a in enumerate(dadr):
-                ctrl[i] = tau[i]
+            ctrl[act_for_joint] = tau
             data.ctrl[:] = ctrl
             mujoco.mj_step(model, data)
 
@@ -225,7 +254,7 @@ def main() -> None:
             Rm = data.xmat[b].reshape(3, 3)
             p = data.xpos[b]
             z = min((p + Rm @ np.array(c))[2] for c in FOOT_CORNERS)
-            robot_contact.append(z < 0.02)
+            robot_contact.append(z < 0.03)
         ref_contact = lib["foot_contact"][t] > 0.5
         mismatch = int(robot_contact[0] != ref_contact[0]) + int(robot_contact[1] != ref_contact[1])
         metrics["contact_mismatch"].append(mismatch)
@@ -244,8 +273,9 @@ def main() -> None:
                     slip = max(slip, v)
             metrics["slip"].append(slip)
 
-        if data.qpos[2] < 0.55 * pm.F1_INIT_HEIGHT:
+        if data.qpos[2] < 0.55 * pm.F1_INIT_HEIGHT and fall_step is None:
             fell = True
+            fall_step = step
         if recorder is not None:
             recorder[0].update_scene(data, camera=recorder[1])
             recorder[2].append_data(recorder[0].render())
@@ -257,15 +287,18 @@ def main() -> None:
     # ---- summary ---------------------------------------------------------
     n_entry = int(args.entry_s / pm.POLICY_DT)
     n_exit = int(args.exit_s / pm.POLICY_DT)
-    # entry success: no fall and contact mismatch <=1% of frames (Tier-B B6)
-    entry_ok = (not fell) and float(np.mean(metrics["contact_mismatch"][:n_entry]) / 2) <= 0.01
+    # entry success: no fall inside the entry window and contact mismatch <=1%
+    entry_ok = ((fall_step is None or fall_step >= n_entry)
+                and float(np.mean(metrics["contact_mismatch"][:n_entry]) / 2) <= 0.01)
     robot_xy = np.array(metrics["robot_xy"])
     exit_drift = float(np.linalg.norm(robot_xy[-1] - robot_xy[max(0, len(robot_xy) - n_exit)]))
-    exit_ok = (not fell) and exit_drift <= 0.05
+    exit_ok = (fall_step is None or fall_step < n_steps - n_exit) and exit_drift <= 0.05
     body_err = np.array(metrics["body_pos_err_rel"])
     success = (not fell) and float(body_err.max()) < 0.5
     out = {
         "clip": args.clip,
+        "checkpoint": str(args.checkpoint),
+        "library": str(args.library),
         "skill": int(lib["skill_ids"][ci]),
         "frames": n_steps,
         "seconds": round(n_steps / 50.0, 2),
@@ -287,6 +320,9 @@ def main() -> None:
         "wall_s": round(time.time() - t0, 1),
     }
     print(json.dumps(out, indent=2))
+    if args.json_out:
+        args.json_out.parent.mkdir(parents=True, exist_ok=True)
+        args.json_out.write_text(json.dumps(out, indent=2))
     if args.metrics:
         np.savez(args.metrics, **{k: np.array(v) for k, v in metrics.items() if not k.startswith("_")})
         print(f"[metrics] {args.metrics}")
