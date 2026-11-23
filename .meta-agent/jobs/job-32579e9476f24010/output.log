@@ -1,0 +1,35 @@
+/Users/yumx/code/Beyondminic-Weilai-X1/.venv/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+xrobotoolkit_sdk not found, skip for now. If you do not use XRobotStreamer, it's
+fine.
+XRobotStreamer is not installed. Please install xrobotoolkit_sdk to use this 
+feature.
+[src] 300 frames from dance1_subject3.bvh
+[GMR] Robot Degrees of Freedom (DoF) names and their order:
+[GMR] Robot Body names and their IDs:
+[GMR] Robot Motor (Actuator) names and their IDs:
+[v0_baseline] frame 0/300
+[v0_baseline] frame 100/300
+[v0_baseline] frame 200/300
+[v0_baseline] any_sat 100.0%  fails 0 | worst: right_wrist_roll 100%, right_shoulder_yaw 100%, right_elbow_pitch 100%, left_wrist_roll 100%, left_wrist_pitch 100%, right_wrist_pitch 92% | ROM<2%: left_wrist_pitch, left_wrist_roll, right_shoulder_yaw, right_elbow_pitch, right_wrist_roll
+[v1_soft_wrist] frame 0/300
+[v1_soft_wrist] frame 100/300
+[v1_soft_wrist] frame 200/300
+[v1_soft_wrist] any_sat 100.0%  fails 0 | worst: right_wrist_roll 100%, right_shoulder_yaw 100%, right_elbow_pitch 100%, left_wrist_roll 100%, left_wrist_pitch 100%, right_wrist_pitch 92% | ROM<2%: left_wrist_pitch, left_wrist_roll, right_shoulder_yaw, right_elbow_pitch, right_wrist_roll
+[v2_soft_arm] frame 0/300
+[v2_soft_arm] frame 100/300
+[v2_soft_arm] frame 200/300
+[v2_soft_arm] any_sat 100.0%  fails 0 | worst: right_wrist_pitch 100%, right_wrist_roll 100%, right_shoulder_roll 100%, left_wrist_pitch 97%, left_wrist_roll 97%, right_elbow_pitch 66% | ROM<2%: left_wrist_pitch, left_wrist_roll, right_shoulder_roll, right_wrist_pitch, right_wrist_roll
+Traceback (most recent call last):
+  File "/Users/yumx/code/Beyondminic-Weilai-X1/tools_arm_study_f1.py", line 217, in <module>
+    main()
+  File "/Users/yumx/code/Beyondminic-Weilai-X1/tools_arm_study_f1.py", line 195, in main
+    qpos = arm_relock(retargeter, qpos, retargeter.scaled_human_data, mj, mink)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yumx/code/Beyondminic-Weilai-X1/tools_arm_study_f1.py", line 112, in arm_relock
+    mink.SO3(np.eye(3)), target))
+    ^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 8, in __init__
+  File "/Users/yumx/code/Beyondminic-Weilai-X1/.venv/lib/python3.11/site-packages/mink/lie/so3.py", line 39, in __post_init__
+    raise ValueError(
+ValueError: Expeced wxyz to be a length 4 vector but got 3.

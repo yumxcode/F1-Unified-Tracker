@@ -1,0 +1,263 @@
+[
+  {
+    "id": "fnd_988820c6",
+    "kind": "confirmed",
+    "statement": "F1 与 X1 29 关节同名同序、上身逐字一致——X1 上身辨识增益可直接沿用，仅腿部需重新推导",
+    "applicability": "F1 URDF SYS-SPEC-0002-V1.1（commit c0e0ef6）；MuJoCo 3.13；X1 验证过的增益带宽带",
+    "evidenceExperimentIds": [
+      "exp_7f7653a7"
+    ],
+    "status": "active",
+    "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+    "createdAt": 1793867663757,
+    "updatedAt": 1793867663757
+  },
+  {
+    "id": "fnd_117b7fc1",
+    "kind": "confirmed",
+    "statement": "MuJoCo include 的 meshdir 相对主文件解析且对子路径文件名有前缀陷阱——扁平文件名布局（X1 配方）可完全规避",
+    "applicability": "F1 URDF SYS-SPEC-0002-V1.1（commit c0e0ef6）；MuJoCo 3.13；X1 验证过的增益带宽带",
+    "evidenceExperimentIds": [
+      "exp_7f7653a7"
+    ],
+    "status": "active",
+    "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+    "createdAt": 1793867663757,
+    "updatedAt": 1793867663757
+  },
+  {
+    "id": "fnd_f0eadc9b",
+    "kind": "confirmed",
+    "statement": "F1 MJCF 关节定义序（腿在前，URDF 序）与 X1 管线假设的列序（腰臂在前）不同——任何直接写 qpos 的工具必须显式按名重排列；列错位曾使门读错数据得出假通过/假失败",
+    "applicability": "F1 ik 配置（GMR vendored，本机）；LAFAN dance1_subject3；六项门限与 X1 门同口径",
+    "evidenceExperimentIds": [
+      "exp_9be24e0c"
+    ],
+    "status": "active",
+    "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+    "createdAt": 1793868585775,
+    "updatedAt": 1793868585775
+  },
+  {
+    "id": "fnd_5d68cca0",
+    "kind": "confirmed",
+    "statement": "F1 腕/右臂中性帧与 X1 差 90–180°，X1 标定值不可直接沿用；T1 转换重算 + 八面体贪婪标定后腕部误差 0.22 m 量级可用",
+    "applicability": "F1 ik 配置（GMR vendored，本机）；LAFAN dance1_subject3；六项门限与 X1 门同口径",
+    "evidenceExperimentIds": [
+      "exp_9be24e0c"
+    ],
+    "status": "active",
+    "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+    "createdAt": 1793868585775,
+    "updatedAt": 1793868585775
+  },
+  {
+    "id": "fnd_8ca4e9a2",
+    "kind": "confirmed",
+    "statement": "F1 的 IsaacLab PhysX 关节序是 URDF 树的 FIFO-BFS（同层肩先于膝/踝），与 X1 树的字母序变体不同——关节序不可从姊妹机型推断，需 probe 实测（TASK_20261105_507 ground truth）",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1 URDF）；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim",
+    "evidenceExperimentIds": [
+      "exp_599ede6b"
+    ],
+    "status": "active",
+    "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+    "createdAt": 1793880344672,
+    "updatedAt": 1793880344672
+  },
+  {
+    "id": "fnd_fca58496",
+    "kind": "confirmed",
+    "statement": "sim2sim 静态保持失败且 obs z-score 异常（cmd 段 -23σ）是关节序错配的可靠诊断信号；观测 z-score 对比训练归一化器可快速定位错位段",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1 URDF）；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim",
+    "evidenceExperimentIds": [
+      "exp_599ede6b"
+    ],
+    "status": "active",
+    "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+    "createdAt": 1793880344672,
+    "updatedAt": 1793880344672
+  },
+  {
+    "id": "fnd_7af304ab",
+    "kind": "ruled_out",
+    "statement": "LAFAN1 dance 系列不存在可过 F1 六项量化门的\"根跨空间移动\"窗口：其高位移段全部由翻滚/跳跃/地板动作构成（root z std 0.24~2.6、z 波动 ±2~6m），7 个 top 位移窗口重定向全部大面积违规（穿地 -0.03~-0.22m、腕-躯干穿插 -0.04~-0.07m），375 个统计窗口中 0 个同时满足 z 平稳（std≤0.22）+净位移≥2.5m；已验证干净窗 dance1_subject3 [0,689) 为原地舞蹈（净位移 0.23m，z std 0.107）。移动舞蹈源需换数据族（CMU 137 或 GVHMR）。",
+    "applicability": "LAFAN1 dance 系列全部 BVH；F1/X1 GMR 重定向六项量化门（穿地 -0.015m / 自碰撞 0.005m 硬阈）；根跨空间移动的舞蹈源需求",
+    "evidenceExperimentIds": [
+      "exp_710c7bcb"
+    ],
+    "status": "stale",
+    "sourceTaskId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad:g1",
+    "createdAt": 1793888124171,
+    "updatedAt": 1794055346666,
+    "staleReason": "其统计部分（'375 窗口 0 个满足 z 平稳+位移≥2.5m'）被 tools_scan_ground_windows.py 的通道误读污染：该工具把 LAFAN BVH 原始 MOTION 第 3 通道当高度，root yaw 丰富段落会产生虚假 z 波动（dance2_subject3 [4350,5100) raw z_std=1.81/z_min=-4.75 vs GMR FK 帧 z_std=0.051/位移 4.0m）。v4 用 GMR FK 帧口径（tools_scan_dance_sources.py，即重定向实际输入）重扫：dance2_subject3 [4300,4900) 存在 z 平稳+位移 2.7~4.3m+flat 87~90%+tiptoe<5%+armV 1.10~1.25 的窗口。其重定向实测部分（7 个 top 位移窗口大面积违规）仍有效——那些窗口 flat 47~75% 确实差。待 v4 重定向八门实测后定稿。"
+  },
+  {
+    "id": "fnd_0836c33c",
+    "kind": "confirmed",
+    "statement": "F1 管线（GMR 重定向+六门→BeyondMimic 训练→sim2sim）对根跨空间移动的舞蹈源成立，但需要全量 anchor 终止：基类 z-only 终止允许训练水平滞后 0.47m，sim2sim 经 anchor_pos_b OOD 正反馈放大至 2.2m（位移保持 42%）；改全量 0.5m 终止后位移保持 97%、全局锚误差 0.115m，代价仅 joint err 0.476→0.502 rad 与 reward 23.3→22.2。",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；CMU 137 族 ASF/AMC 源（tools_amc_to_lafan_frames.py 适配器）；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim；全量 anchor 终止 0.5m 仅在 F1FlatEnvCfg（X1/G1 未动）",
+    "evidenceExperimentIds": [
+      "exp_710c7bcb"
+    ],
+    "status": "active",
+    "sourceTaskId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad:g1",
+    "createdAt": 1793903850628,
+    "updatedAt": 1793903850628
+  },
+  {
+    "id": "fnd_9d695b42",
+    "kind": "confirmed",
+    "statement": "CMU 137 族（风格化行走，如 Graceful Lady Walk）是 LAFAN 舞蹈无法提供的中\"根跨空间移动且可过六门\"的舞蹈源：1193f@120fps，人根净位移 4.73m 近直线，root z std 0.018（LAFAN 干净窗 0.107），重定向六门一次通过且门限余量健康。",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；CMU 137 族 ASF/AMC 源（tools_amc_to_lafan_frames.py 适配器）；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim；全量 anchor 终止 0.5m 仅在 F1FlatEnvCfg（X1/G1 未动）",
+    "evidenceExperimentIds": [
+      "exp_710c7bcb"
+    ],
+    "status": "active",
+    "sourceTaskId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad:g1",
+    "createdAt": 1793903850628,
+    "updatedAt": 1793903850628
+  },
+  {
+    "id": "fnd_2922525d",
+    "kind": "confirmed",
+    "statement": "F1 舞蹈手臂僵硬的第一根因是重定向层：缩放手目标贴臂可达边界（p95 0.415 vs reach 0.421 m）导致整身 IK 顶死臂关节（腕 ROM 0%）；肩 FK 重锚+0.92 reach clamp+posture 重解+臂限位 clamp 0.06 可将 sat 100%→0% 且不影响腿/脚（非臂关节 0 漂移）。软化 IK 权重对此无效。",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；GMR 重定向管线（bvh_lafan1_to_f1.json + arm_relock）；LAFAN/CMU 源；gradmotion IsaacLab 2.1.0；MuJoCo 3.13 sim2sim；八门门限（flat 90% @10°/8°、arm sat 10%、腕 ROM 2%）",
+    "evidenceExperimentIds": [
+      "exp_3d00709b"
+    ],
+    "status": "active",
+    "sourceTaskId": "88ea19c0-698d-4b01-8335-203aded72dd6:g1",
+    "createdAt": 1794031694028,
+    "updatedAt": 1794031694028
+  },
+  {
+    "id": "fnd_4828e7e7",
+    "kind": "confirmed",
+    "statement": "LAFAN 舞蹈库内手臂丰富度与脚步干净度强负相关（armV 1.3+ 的窗口全是翻滚/跳跃 flat<73%）；脚步干净+手臂丰富的两全窗口在 dance2_subject1 前段（[255,706)：flat 98.1%、tiptoe 1.1%、armV 1.05）。",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；GMR 重定向管线（bvh_lafan1_to_f1.json + arm_relock）；LAFAN/CMU 源；gradmotion IsaacLab 2.1.0；MuJoCo 3.13 sim2sim；八门门限（flat 90% @10°/8°、arm sat 10%、腕 ROM 2%）",
+    "evidenceExperimentIds": [
+      "exp_3d00709b"
+    ],
+    "status": "active",
+    "sourceTaskId": "88ea19c0-698d-4b01-8335-203aded72dd6:g1",
+    "createdAt": 1794031694028,
+    "updatedAt": 1794031694028
+  },
+  {
+    "id": "fnd_6a2c12cc",
+    "kind": "confirmed",
+    "statement": "数据侧修复可传导到策略层：参考动作手臂饱和消除后，同配方重训的 sim2sim 手臂误差 0.2986→0.1724 rad（−42%），臂/腿误差比 2.56→1.73，且手臂动作丰富度翻倍（源 armV 0.50→1.05）的情况下实现。",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；GMR 重定向管线（bvh_lafan1_to_f1.json + arm_relock）；LAFAN/CMU 源；gradmotion IsaacLab 2.1.0；MuJoCo 3.13 sim2sim；八门门限（flat 90% @10°/8°、arm sat 10%、腕 ROM 2%）",
+    "evidenceExperimentIds": [
+      "exp_3d00709b"
+    ],
+    "status": "active",
+    "sourceTaskId": "88ea19c0-698d-4b01-8335-203aded72dd6:g1",
+    "createdAt": 1794031694028,
+    "updatedAt": 1794031694028
+  },
+  {
+    "id": "fnd_a1120dd4",
+    "kind": "confirmed",
+    "statement": "LAFAN 库内“手臂丰富×位移明显×脚底干净”的兼得窗口存在且唯一：dance2_subject1 [345,795) 膝点（源 flat 95.0/travel 1.82m/armV 1.14）；扫描级候选 dance2s3 [4300,4900) 虽三项指标兼得但过不了八门（源 flat 天花板 90.2%→重定向 89.5/85.7%，且右腕-torso 穿透 5.2cm）",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；GMR 重定向管线 + 八门；LAFAN/CMU 源；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim；全锚点 0.5m 终止",
+    "evidenceExperimentIds": [
+      "exp_3d108120"
+    ],
+    "status": "active",
+    "sourceTaskId": "82f46477-d253-4c75-9553-13f15641f41d:g1",
+    "createdAt": 1794062927306,
+    "updatedAt": 1794062927306
+  },
+  {
+    "id": "fnd_0bbd4015",
+    "kind": "confirmed",
+    "statement": "v4 管线（tools_lift_ground_f1.py 掐头+局部 root-z lift + 全锚点 0.5m 终止）可交付移动舞策略：5 圈零跌倒、位移保持 91.6%（1.099/1.199m/圈）、anchor 误差 0.0531m 优于 v3 的 0.0553/0.0461 量级、xy 跟踪 p95 0.103m",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；GMR 重定向管线 + 八门；LAFAN/CMU 源；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim；全锚点 0.5m 终止",
+    "evidenceExperimentIds": [
+      "exp_3d108120"
+    ],
+    "status": "active",
+    "sourceTaskId": "82f46477-d253-4c75-9553-13f15641f41d:g1",
+    "createdAt": 1794062927306,
+    "updatedAt": 1794062927306
+  },
+  {
+    "id": "fnd_32de93c0",
+    "kind": "ruled_out",
+    "statement": "“手臂误差不劣于 v3×1.1”在更难任务上不成立：v4 arm err 0.2123（+23%），归因为“边走边持臂”的全身协调（与参考手臂速度负相关 corr -0.52，bottom 分位 0.331 vs top 0.151 rad），非手臂幅度或数据饱和问题（arm sat 0%）；仍优于 v1 饱和基线 0.2986（-29%）",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；GMR 重定向管线 + 八门；LAFAN/CMU 源；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim；全锚点 0.5m 终止",
+    "evidenceExperimentIds": [
+      "exp_3d108120"
+    ],
+    "status": "active",
+    "sourceTaskId": "82f46477-d253-4c75-9553-13f15641f41d:g1",
+    "createdAt": 1794062927306,
+    "updatedAt": 1794062927306
+  },
+  {
+    "id": "fnd_d8a9b24e",
+    "kind": "confirmed",
+    "statement": "fnd_7af304ab 的“LAFAN 无 z 平稳+位移≥2.5m 窗口”统计被 raw BVH 通道误读污染（pit_94a45937）；GMR FK 帧口径下存在多个此类窗口，但其中绝大多数仍过不了八门硬约束（脚底/自碰撞）——结论方向对、证据链错，已在实测口径下重立",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；GMR 重定向管线 + 八门；LAFAN/CMU 源；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim；全锚点 0.5m 终止",
+    "evidenceExperimentIds": [
+      "exp_3d108120"
+    ],
+    "status": "active",
+    "sourceTaskId": "82f46477-d253-4c75-9553-13f15641f41d:g1",
+    "createdAt": 1794062927306,
+    "updatedAt": 1794062927306
+  },
+  {
+    "id": "fnd_19c8fac2",
+    "kind": "confirmed",
+    "statement": "hip roll 内收的根因在重定向层而非源或训练层：GMR 腿缩放 0.689 使脚位置目标间距（0.270m）窄于 F1 髋宽（0.309m），pos-500 脚任务把双脚拉进髋线内侧（80% 帧），源的宽站姿（gap/hipW 1.91）被压缩到 0.96；训练策略层无内收漂移（v4 回放甚至比参考更外展 -9.4°）",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；GMR 重定向管线（bvh_lafan1_to_f1.json + stance_widen hook）；LAFAN dance2_subject1 [345,795)；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim",
+    "evidenceExperimentIds": [
+      "exp_27f4783d"
+    ],
+    "status": "active",
+    "sourceTaskId": "fa2596d9-7e57-427c-a845-e4dc97583b42:g1",
+    "createdAt": 1794173160109,
+    "updatedAt": 1794173160109
+  },
+  {
+    "id": "fnd_65a74145",
+    "kind": "confirmed",
+    "statement": "scaled 脚目标沿骨盆额状轴每侧外撑 0.075m（--stance_widen）可恢复站姿开度且不破坏舞蹈内容：29 关节轨迹相关性全≥0.987、root 位移逐帧保持（1.246/1.247m），hip roll 均值转为对称外展 +6.49°/-7.82°，踝 roll 反向补偿保证脚底平贴",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；GMR 重定向管线（bvh_lafan1_to_f1.json + stance_widen hook）；LAFAN dance2_subject1 [345,795)；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim",
+    "evidenceExperimentIds": [
+      "exp_27f4783d"
+    ],
+    "status": "active",
+    "sourceTaskId": "fa2596d9-7e57-427c-a845-e4dc97583b42:g1",
+    "createdAt": 1794173160109,
+    "updatedAt": 1794173160109
+  },
+  {
+    "id": "fnd_e79b0428",
+    "kind": "confirmed",
+    "statement": "数据侧站姿开度修复传导到策略层：重训后回放双腿内收帧 12.8%（参考）→0.9%（新参考）→0.0%（策略执行），回放脚距 0.384→0.479m（1.55×髋宽），xy 跟踪 p95 -39%、anchor err -23%，稳定性指标全面不劣于 v4 且多数更优",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；GMR 重定向管线（bvh_lafan1_to_f1.json + stance_widen hook）；LAFAN dance2_subject1 [345,795)；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim",
+    "evidenceExperimentIds": [
+      "exp_27f4783d"
+    ],
+    "status": "active",
+    "sourceTaskId": "fa2596d9-7e57-427c-a845-e4dc97583b42:g1",
+    "createdAt": 1794173160109,
+    "updatedAt": 1794173160109
+  },
+  {
+    "id": "fnd_a28d4516",
+    "kind": "ruled_out",
+    "statement": "已排除：源舞蹈内收假说（源大腿外展 +5.3°/+7.0°、双腿内收帧 1.1%）；策略训练引入内收假说（v4 回放 unified drift -9.4° 为外展方向）",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；GMR 重定向管线（bvh_lafan1_to_f1.json + stance_widen hook）；LAFAN dance2_subject1 [345,795)；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim",
+    "evidenceExperimentIds": [
+      "exp_27f4783d"
+    ],
+    "status": "active",
+    "sourceTaskId": "fa2596d9-7e57-427c-a845-e4dc97583b42:g1",
+    "createdAt": 1794173160109,
+    "updatedAt": 1794173160109
+  }
+]

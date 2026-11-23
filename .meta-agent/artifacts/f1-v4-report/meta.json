@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "f1-v4-report",
+  "title": "F1 舞蹈 v4 报告",
+  "kind": "markdown",
+  "createdAt": "2026-11-07T14:51:08.339Z",
+  "updatedAt": "2026-11-07T14:51:08.339Z",
+  "latestVersion": 1,
+  "versions": [
+    {
+      "version": 1,
+      "createdAt": "2026-11-07T14:51:08.339Z",
+      "bytes": 16326,
+      "sessionId": "82f46477-d253-4c75-9553-13f15641f41d"
+    }
+  ]
+}

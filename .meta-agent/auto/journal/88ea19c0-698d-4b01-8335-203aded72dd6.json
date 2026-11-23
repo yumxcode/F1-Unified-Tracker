@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "88ea19c0-698d-4b01-8335-203aded72dd6",
+  "entries": [
+    {
+      "kind": "decision",
+      "text": "继续在现有管线上推进，不回退。",
+      "reason": "已有 4 个 confirmed 实验（资产审计/kp-kd、GMR 重定向+六门、训练 v1、CMU 移动舞蹈 v2）构成一条已验证管线，前提（F1 URDF c0e0ef6、IsaacLab 2.1.0 镜像、MuJoCo 3.13）均未变化，fnd 结论无一失效；用户要求的\"重选源+强化脚部/手臂质量门+重训\"是在该管线上的质量升级，回退到初始状态会丢弃已验证的关节序/增益/终止配方等昂贵结论。新增维度（脚底姿态门、手臂质量门）为增量强化，不改写既有六门。",
+      "source": "reset_audit",
+      "goalRevision": 1,
+      "id": "jr_7fce2c7d",
+      "at": 1794022453128
+    },
+    {
+      "kind": "progress",
+      "text": "基线诊断完成（tools_diag_foot_f1.py）：cmu137_24 参考动作触地帧 sole pitch +24~27°/roll -25~-30°，flat 0%（踮脚+外翻坐实）；dance_f1 脚部 flat 96-98% 尚可但手臂严重顶死（腕关节恒 22.3° 全程钉死、右肘 pitch 100% 贴下限、右肩 yaw 69%/roll 64% 贴限位）——手臂僵硬根因=重定向 IK 末端权重+标定偏差，非训练侧。",
+      "goalRevision": 1,
+      "id": "jr_eac49c14",
+      "at": 1794022667182
+    },
+    {
+      "kind": "progress",
+      "text": "选段定案 dance2_subject1 [255,706)：源 flat 98.1%/tiptoe 1.1%/armV 1.05（两倍于 v1）；重定向（arm_relock c3.0_r0.92+臂 clamp 0.06 配方）八门全 PASS（脚 flat 96/100%、arm sat 0%、腕 ROM 解锁 9.6-78.5%）。修复配方三轮迭代：权重软化无效（根因=手目标贴可达边界 p95 0.415 vs reach 0.421）→re-anchor+clamp+posture 重解有效→臂限位 clamp 0.06 物理保证。",
+      "goalRevision": 1,
+      "id": "jr_f0e0f72f",
+      "at": 1794023962832
+    },
+    {
+      "kind": "key_op",
+      "text": "v3 训练就绪配置（充值后直接使用）：账号任一号池账号（需余额），project PRO_20261105_080（talare）或新建，startScript=gm-run Beyondminic-Weilai-X1/whole_body_tracking/scripts/entry_f1_train.py --task=Tracking-Flat-F1-v0 --motion_file motions/dance2s1_arm_f1.npz --headless --num_envs 4096 --max_iterations 5000，goodsId ESKU000001，image BJX00000028/V000127，代码 commit f71335c。训练完成后：play_mujoco --robot f1 --checkpoint <model> --motion motions/dance2s1_arm_f1.npz --max_steps <5×750×50/50=3750 步@50fps policy> 对比 v1 基线（arm 0.2986 / leg 0.1166 rad）。",
+      "goalRevision": 1,
+      "id": "jr_1a376cb8",
+      "at": 1794024845689
+    },
+    {
+      "kind": "progress",
+      "text": "v3 训练启动成功：TASK_20261107_132（gifahim182，PRO_20261107_014），5000 iter ETA ~96min，代码 f71335c。坑：新账号去掉 personalDataPath 才能挂 ESKU000001。观察点：ee_body_pos 终止率早期 851（末端位置终止主导）。",
+      "goalRevision": 1,
+      "id": "jr_e3f217df",
+      "at": 1794025647208
+    },
+    {
+      "kind": "artifact",
+      "text": "v3 最终交付：模型（sha 0059705a）、参考/回放/对比视频、sim2sim 指标 npz、八门质量 JSON、最终报告页面。",
+      "artifacts": [
+        "trained_models/dance_f1_v3_model_4999.pt",
+        "renders/dance2s1_arm_compare.mp4",
+        "renders/dance2s1_arm_playback.mp4",
+        "renders/dance2s1_arm_f1_reference.mp4",
+        "whole_body_tracking/motions/sim2sim_v3_armfoot.npz",
+        "whole_body_tracking/motions/dance2s1_arm_f1.npz",
+        ".meta-agent/artifacts/f1-v3/v2.html"
+      ],
+      "goalRevision": 1,
+      "id": "jr_cfe342cb",
+      "at": 1794031815470
+    }
+  ]
+}

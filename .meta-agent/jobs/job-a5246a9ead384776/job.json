@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-a5246a9ead384776",
+  "name": "render-v2-playback",
+  "command": ".venv/bin/python whole_body_tracking/scripts/play_mujoco.py --robot f1 --headless --checkpoint trained_models/dance_f1_travel_v2_model_4999.pt --motion whole_body_tracking/motions/cmu137_24_f1.npz --max_steps 1491 --record cmu137_24_playback.mp4 > /tmp/render_playback.log 2>&1; tail -4 /tmp/render_playback.log",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad",
+  "idempotencyKey": "render-playback-v2",
+  "createdAt": 1793903744931,
+  "deadlineAt": 1793907344931,
+  "outputs": [
+    "cmu137_24_playback.mp4"
+  ],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "28a74673-1cba-4d91-84b4-41604a9452a9",
+  "launchOwner": {
+    "pid": 50516,
+    "startToken": "五 11月/ 6 02:34:39 2026"
+  },
+  "pid": 50748,
+  "startToken": "五 11月/ 6 02:35:44 2026"
+}

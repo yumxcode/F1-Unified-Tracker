@@ -1,0 +1,148 @@
+{
+  "id": "exp_599ede6b",
+  "title": "F1 BeyondMimic 舞蹈训练 v1（gradmotion，full obs）",
+  "status": "concluded",
+  "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+  "sessionId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65",
+  "createdAt": 1793868990639,
+  "updatedAt": 1793880344672,
+  "objective": "F1 首次 BeyondMimic 舞蹈训练（Tracking-Flat-F1-v0，gradmotion 4090D）能否达到与 X1 相当的收敛水平？",
+  "hypothesis": "用 X1 验证过的 BeyondMimic 配方（4096 env、5000 iter、full obs）在 F1 上同样收敛到可跟舞的水平（finalReward ≥25、ep len ≥450、error_body_pos ≤0.07）",
+  "falsificationCondition": "训练崩溃/不收敛（reward 平台 <10 或 episode 长期 <200），或收敛后 sim2sim 倒塌",
+  "prediction": "finalReward ~28-32，episode_length ~500，error_body_pos ~0.05-0.07，runtime ~1.6h（对齐 X1 v10/v11）",
+  "decisionBranches": [
+    {
+      "condition": "finalReward ≥ 25 且 episode_length ≥ 450",
+      "next": "下载 4999 checkpoint，本地 sim2sim 5 循环"
+    },
+    {
+      "condition": "训练发散或不收敛",
+      "next": "回查 npz 体序/关节序与增益，修复后重提"
+    },
+    {
+      "condition": "收敛但 sim2sim 不稳定",
+      "next": "对比 X1 调kp/kd 或增益带，短程续训"
+    }
+  ],
+  "base": {
+    "kind": "continue_from",
+    "ref": "dance_f1_train.npz (all gates pass) + training config (commit bbf543c)",
+    "fromExperimentId": "exp_9be24e0c"
+  },
+  "controlExperimentId": "exp_7f7653a7",
+  "changes": [
+    {
+      "key": "机器人",
+      "to": "F1 29DOF（新 URDF/npz/增益）",
+      "from": "X1 v10/v11 全观测配方（X1 上验证）"
+    },
+    {
+      "key": "动作",
+      "to": "dance_f1_train.npz 689f@30",
+      "from": "dance_x1_train.npz 389f@30"
+    }
+  ],
+  "events": [
+    {
+      "kind": "launch",
+      "text": "gradmotion 训练任务已启动：beyondmimic-f1-dance-v1（PRO_20261105_080，账号 talare7232/userId 4717，ESKU000001 4090D，isaac-lab 2.1.0）。startScript: gm-run Beyondminic-Weilai-X1/whole_body_tracking/scripts/entry_f1_train.py --task=Tracking-Flat-F1-v0 --motion_file motions/dance_f1_train.npz --headless --num_envs 4096 --max_iterations 5000。代码 commit bbf543c。坑：该资源不支持 /personal 挂载，已去除。",
+      "jobRef": "TASK_20261105_423",
+      "evidence": [
+        "TASK_20261105_423 status 3, start 2026-11-05 17:02:19"
+      ],
+      "at": 1793869374369
+    },
+    {
+      "kind": "incident",
+      "text": "F1 Isaac URDF 网格引用错误：构建器把 mesh 文件名重写为扁平名（供 MJCF meshdir 用），但 IsaacLab URDF 转换器按 URDF 相对路径解析（X1 的 Isaac URDF 用 ../meshes/ 前缀）——机器人 prim 无任何 rigid body，训练启动即崩。修复：Isaac 变体输出 ../meshes/<name> 相对路径。",
+      "evidence": [
+        "TASK_20261105_423 日志 17:05: ValueError: No contact sensors added to the prim /World/envs/env_0/Robot — no rigid bodies"
+      ],
+      "at": 1793869735295
+    },
+    {
+      "kind": "effectiveness_check",
+      "text": "v1c 训练生效：资产加载成功（URDF 路径修复 ab927f1 之前的 9132f03）+ setup.py INSTALL_REQUIRES 清空后平台自动安装不再升级 numpy。iteration 1.25s，ETA 1:39:46。两次前置失败已归因：v1（TASK_423）Isaac URDF 网格路径；v1b（TASK_427）平台对 setup.py 自动 pip install -e 无 --no-deps → onnxscript → numpy 2.2.6 破坏 isaac；另 talare7232 余额耗尽切换 jiyow52926。",
+      "jobRef": "TASK_20261105_430 (v1c, account jiyow52926/4718, PRO_20261105_081)",
+      "evidence": [
+        "TASK_20261105_430 status 3, iter 344/5000, mean reward 0.72 rising, ep len 19.4 rising, error_body_pos 0.0988"
+      ],
+      "at": 1793871423443
+    },
+    {
+      "kind": "note",
+      "text": "F1 v1c 训练完成：finalReward 35.3（X1 v10/v11 为 31.8/31.5），episode 长度 483-500，error_body_pos 0.053-0.055（X1 0.058-0.062）——优于 X1 基线。预注册分支命中：finalReward≥25 且 ep≥450。",
+      "jobRef": "TASK_20261105_430",
+      "evidence": [
+        "TASK_20261105_430 status 5, 17:27:15-19:12:15 (1h45m), final reward 35.33/36.56, ep len 483/500, error_body_pos 0.055/0.053"
+      ],
+      "at": 1793878082635
+    }
+  ],
+  "results": [
+    {
+      "metrics": {
+        "anchor_err_m": 0.1201,
+        "anchor_rel_body_err_m": 0.0553,
+        "body_err_m": 0.1303,
+        "finalReward": 35.33,
+        "joint_err_rad": 0.2012,
+        "min_base_z_m": 0.568,
+        "note": "X1 v10 baseline: body 0.121/joint 0.272/anchor-rel 0.058/min_z 0.511",
+        "sim2sim_loops": 5,
+        "steps": 5735,
+        "task_id": "TASK_20261105_430",
+        "training_runtime_s": 6300
+      },
+      "gates": [
+        {
+          "gate": "finalReward >= 25",
+          "value": "35.3-36.6",
+          "pass": true
+        },
+        {
+          "gate": "episode_length >= 450",
+          "value": "483-500",
+          "pass": true
+        },
+        {
+          "gate": "sim2sim 5 loops no fall",
+          "value": "fall_detected=false, min_base_z 0.568",
+          "pass": true
+        },
+        {
+          "gate": "sim2sim joint err vs X1 (0.272)",
+          "value": "0.201 rad",
+          "pass": true
+        },
+        {
+          "gate": "sim2sim anchor-rel body err vs X1 (0.058)",
+          "value": "0.055 m",
+          "pass": true
+        }
+      ],
+      "evidence": [
+        "trained_models/dance_f1_v1_model_4999.pt",
+        "whole_body_tracking/scripts/play_mujoco.py (commit d4ed554)",
+        "/tmp/f1_probe2.npz (obs z-score dump)"
+      ],
+      "at": 1793880322081
+    }
+  ],
+  "protocolWarnings": [
+    "相对对照 exp_7f7653a7 的改动数为 3（含起点差异），不是单变量。起点与对照不同（例如接续对照的产物继续运行），这本身计为一项改动。",
+    "续接链深度 2：该结果建立在 2 次接续之上，作为最终交付前需从零复现确认。",
+    "命中分支「finalReward≥25 且 ep≥450 → sim2sim 通过」不在预注册的决策分支中。"
+  ],
+  "conclusion": {
+    "verdict": "confirmed",
+    "summary": "F1 BeyondMimic 舞蹈训练+sim2sim 全部通过：TASK_20261105_430 训练 5000 iter（finalReward 35.3，ep 483-500，error_body_pos 0.055）；model_4999 sim2sim 5 循环 5735 步零跌倒（joint err 0.201 rad、anchor 相对误差 0.055 m，均优于/持平 X1 基线 0.272/0.058）。关键修复：PhysX 关节序用 gradmotion probe 实测。commits bbf543c/9132f03/ab927f1/d4ed554。",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1 URDF）；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim",
+    "branchHit": "finalReward≥25 且 ep≥450 → sim2sim 通过",
+    "at": 1793880344672,
+    "findingIds": [
+      "fnd_8ca4e9a2",
+      "fnd_fca58496"
+    ]
+  }
+}

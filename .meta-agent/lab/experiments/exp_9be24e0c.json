@@ -1,0 +1,95 @@
+{
+  "id": "exp_9be24e0c",
+  "title": "F1 GMR 重定向（dance1_subject3 → dance_f1_train.csv）+ 质量门",
+  "status": "concluded",
+  "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+  "sessionId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65",
+  "createdAt": 1793868552015,
+  "updatedAt": 1793868585775,
+  "objective": "F1 GMR 重定向能否产出通过量化质量门的训练动作？",
+  "hypothesis": "按 X1 配方（T1 转换 + 中性 FK + 标定）可为 F1 生成可用 ik 配置；dance1_subject3 存在 ≥600 帧的干净窗口且六项硬门全过",
+  "falsificationCondition": "六项硬门任一不通过；或列序错位等映射 bug 导致门读错数据",
+  "prediction": "六项硬门全 pass；干净窗口 ≥ 20 s",
+  "base": {
+    "kind": "continue_from",
+    "ref": "F1 assets + ik configs (commit c92a10e)",
+    "fromExperimentId": "exp_7f7653a7"
+  },
+  "changes": [
+    {
+      "key": "F1 GMR 重定向",
+      "to": "ik 配置（上身沿用 X1 标定、腕部/右臂重算+八面体标定）+ dance1_subject3 重定向 + 质量门",
+      "from": "无 F1 重定向配置"
+    }
+  ],
+  "events": [],
+  "results": [
+    {
+      "metrics": {
+        "frames": 689,
+        "fps": 30,
+        "source": "downloads/lafan1/dance1_subject3.bvh window [0,689)",
+        "wrist_calibration_err_m": 0.2249,
+        "wrist_velocity_violations_after_column_fix": 5
+      },
+      "gates": [
+        {
+          "gate": "ground_penetration >= -0.015 m",
+          "value": -0.0144,
+          "pass": true
+        },
+        {
+          "gate": "self_penetration >= 0.005 m",
+          "value": 0.0693,
+          "pass": true
+        },
+        {
+          "gate": "joint_limits violations = 0",
+          "value": 0,
+          "pass": true
+        },
+        {
+          "gate": "joint_velocities exceeding = 0",
+          "value": 0,
+          "pass": true
+        },
+        {
+          "gate": "root_height in [0.35,1.0]",
+          "value": "[0.544,0.606]",
+          "pass": true
+        },
+        {
+          "gate": "continuity",
+          "value": "true",
+          "pass": true
+        },
+        {
+          "gate": "clean window >= 600 frames",
+          "value": "689 frames (23.0 s)",
+          "pass": true
+        }
+      ],
+      "evidence": [
+        "whole_body_tracking/motions/csv/dance_f1_train.csv",
+        "whole_body_tracking/motions/quality_dance_f1_train.json",
+        "whole_body_tracking/motions/quality_dance1_subject3_f1.json",
+        "F1_29DOF/mjcf/render_retarget_grid.png"
+      ],
+      "at": 1793868566588
+    }
+  ],
+  "protocolWarnings": [
+    "未声明对照实验（controlExperimentId），无法核对单变量。"
+  ],
+  "conclusion": {
+    "verdict": "confirmed",
+    "summary": "F1 GMR 重定向完成：列序 bug 修复后六项硬门全过（穿地 -0.0144m / 自碰撞 0.069m / 限位 0 / 速度 0 / 高度带 / 连续），干净窗口 [0,689)=23s 提取为 dance_f1_train.csv，渲染目检动作真实。commit 8438929。",
+    "applicability": "F1 ik 配置（GMR vendored，本机）；LAFAN dance1_subject3；六项门限与 X1 门同口径",
+    "branchHit": "六项硬门全过，窗口 689 帧 ≥ 预注 600",
+    "at": 1793868585775,
+    "findingIds": [
+      "fnd_f0eadc9b",
+      "fnd_5d68cca0"
+    ]
+  }
+}

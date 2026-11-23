@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "taskId": "task_26c72fc17437df80be06dc9ae2800237",
+  "sourceSessionId": "7ff7cd9d-4375-4a0a-b902-ca00a95f4ecd",
+  "goalRevision": 1,
+  "revision": 1,
+  "status": "pending",
+  "evidence": [
+    {
+      "reviewId": "review_623a165fa1dc419f7da498c7ae914402",
+      "outcome": "passed",
+      "conclusion": "通过。当前契约(rev2)的关键目标全部达成并有证据：(1)基于 x1_armature_pd.md 方案B辨识参数(armature/kp/kd, kd≤8)完成重训——训练配置 robots/x1.py 与 sim2sim 表 play_mujoco.py 已按 md 逐关节换入新值并保持同步(commit 06856fd，diff 逐值核对一致；本仓库 tracking 栈无 armature/PD 增益随机化事件，md 第2节不适用，env 保持与基线一致属合理裁量)；(2)远端 gradmotion 训练 TASK_20261016_065 5000 iter 完成(17:23 启动→18:56 status Completed, model_4999.pt 上传成功)；(3)新模型已下载(MD5 与 v10 模型不同，确系新权重)且本地 sim2sim 5 loops 指标与基线一致：body 0.127 vs 0.121 / joint 0.2806 vs 0.272 / anchor 0.1022 vs 0.103 / min_z 0.510 vs 0.511 / 双方均无跌倒(差异≤5%)，满足'sim2sim指标和之前一致'；假设的证伪条件(fall 或 body_err 明显劣化)未发生；(4)台账/证据文件已更新并 commit(4eeb4b1)+push 到 origin/main。放松项：①8h park(修订指令)为等待动作，无法从仓库产物复核其时长，采信工作记录，且其后所有网络依赖操作(远端训练、git push)均成功佐证网络已恢复；②最终训练标量(reward 31.53/ep_len 500)取自台账，执行记录仅含中途日志+Completed 状态，但本任务验收标准是 sim2sim 对齐，已有直接运行证据；③真机部署(rl_x1.yaml, md 第4节)不在本目标范围内，仅作为遗留建议记录。",
+      "unfinished": [],
+      "evidence": [
+        "[verify:d2c10889-217c-4bc5-b84f-9814e05c2064] THIS_ROUND.diff：本轮新增 trained_models/dance_x1_v11_model_4999.pt(6768482 字节)为最终交付模型",
+        "[verify:40a11dee-8440-470d-83b3-a462f469243f] x1_armature_pd.md:20-137 辨识参数方案B(armature/kp/kd, kd≤8, effort/velocity 不变)，是本轮重训的参数来源",
+        "[verify:d7ff36f3-2f96-40dc-8118-a3364c389af6] git diff 9aa1021→HEAD robots/x1.py：训练执行器换为辨识值(hip_pitch 65/8/0.208、knee 85/8/0.273、lumbar_pitch 100/8/0.012、ankle/arms 逐关节)，与 md 一致",
+        "[verify:60eaee1f-2f0b-436a-9d0a-29d693afef74] git log 确认 HEAD=4eeb4b1(含 06856fd 参数提交)；play_mujoco.py:109-124 现行 sim2sim 关节表 (effort,armature,kp,kd) 已同步为辨识参数，与训练配置一致",
+        "[verify:3fbd2bdd-28ef-472a-8447-a470d4844b11] md5 对比：v11 模型 027c4f4d… ≠ v10 模型 33c67cd3…(确系新权重非复制)；.gm/task_x1.yaml@9aa1021 记录 v10 基线 sim2sim body 0.121/joint 0.272；tracking_env_cfg.py:159-181 仅含 material/joint_default_pos/rigid_body_com 随机化(无 armature/PD 随机化，md 第2节不适用)；flat_env_cfg.py:4,13 引用 X1_CYLINDER_CFG(远端训练用修改后配置)",
+        "[exec:36] TASK_20261016_065 在 gradmotion 创建并启动成功(2026-10-16 17:23:37，Started successfully)",
+        "[exec:42] gm task info：TASK_20261016_065 'status updated to: Completed, ret:True' 且 'PT file (model_4999.pt) uploaded successfully'(18:56:50)——5000 iter 远端重训完成",
+        "[exec:44] 下载 checkpoint 4999 → trained_models/dance_x1_v11_model_4999.pt(6768482 字节，与快照内文件一致)",
+        "[exec:45] 下载后运行 play_mujoco.py sim2sim 5 loops(3235 步) exit=0：body 0.127/joint 0.2806/anchor 0.1022/min_z 0.51/fall_detected=false，与 v10 基线(body 0.121/joint 0.272/anchor 0.103/min_z 0.511/fall false)一致，差异≤5%且均无跌倒",
+        "[exec:47]/[exec:48] 台账+证据文件 commit 4eeb4b1(2 files, +55/-32) 并 git push 成功(06856fd..4eeb4b1 main)"
+      ],
+      "terminal": true,
+      "keyPath": [
+        "sim2sim 验证必须同步更新 rollout 脚本的 armature/PD 表(本例 play_mujoco.py:109-124)并与训练 cfg 逐值对齐，否则测的是旧动力学 [verify:60eaee1f]",
+        "训练后用 md5 对比新旧 checkpoint，快速排除'下载了同一文件/复制旧模型'的假完成 [verify:3fbd2bdd]"
+      ],
+      "pitfalls": [
+        "账号余额不足(exec:34, 1002056)导致任务启动失败，需 account-pool 换号后重试——远端平台任务应预设账号轮换 [exec:34]",
+        "在单次 bash 里 sleep 180 触发 179s 超时被杀；长等待应拆分轮询或用 exec_session 轮询 write_stdin [exec:39]"
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "reviewId": "review_623a165fa1dc419f7da498c7ae914402",
+      "outcome": "passed",
+      "conclusion": "通过。当前契约(rev2)的关键目标全部达成并有证据：(1)基于 x1_armature_pd.md 方案B辨识参数(armature/kp/kd, kd≤8)完成重训——训练配置 robots/x1.py 与 sim2sim 表 play_mujoco.py 已按 md 逐关节换入新值并保持同步(commit 06856fd，diff 逐值核对一致；本仓库 tracking 栈无 armature/PD 增益随机化事件，md 第2节不适用，env 保持与基线一致属合理裁量)；(2)远端 gradmotion 训练 TASK_20261016_065 5000 iter 完成(17:23 启动→18:56 status Completed, model_4999.pt 上传成功)；(3)新模型已下载(MD5 与 v10 模型不同，确系新权重)且本地 sim2sim 5 loops 指标与基线一致：body 0.127 vs 0.121 / joint 0.2806 vs 0.272 / anchor 0.1022 vs 0.103 / min_z 0.510 vs 0.511 / 双方均无跌倒(差异≤5%)，满足'sim2sim指标和之前一致'；假设的证伪条件(fall 或 body_err 明显劣化)未发生；(4)台账/证据文件已更新并 commit(4eeb4b1)+push 到 origin/main。放松项：①8h park(修订指令)为等待动作，无法从仓库产物复核其时长，采信工作记录，且其后所有网络依赖操作(远端训练、git push)均成功佐证网络已恢复；②最终训练标量(reward 31.53/ep_len 500)取自台账，执行记录仅含中途日志+Completed 状态，但本任务验收标准是 sim2sim 对齐，已有直接运行证据；③真机部署(rl_x1.yaml, md 第4节)不在本目标范围内，仅作为遗留建议记录。",
+      "unfinished": [],
+      "evidence": [
+        "[verify:d2c10889-217c-4bc5-b84f-9814e05c2064] THIS_ROUND.diff：本轮新增 trained_models/dance_x1_v11_model_4999.pt(6768482 字节)为最终交付模型",
+        "[verify:40a11dee-8440-470d-83b3-a462f469243f] x1_armature_pd.md:20-137 辨识参数方案B(armature/kp/kd, kd≤8, effort/velocity 不变)，是本轮重训的参数来源",
+        "[verify:d7ff36f3-2f96-40dc-8118-a3364c389af6] git diff 9aa1021→HEAD robots/x1.py：训练执行器换为辨识值(hip_pitch 65/8/0.208、knee 85/8/0.273、lumbar_pitch 100/8/0.012、ankle/arms 逐关节)，与 md 一致",
+        "[verify:60eaee1f-2f0b-436a-9d0a-29d693afef74] git log 确认 HEAD=4eeb4b1(含 06856fd 参数提交)；play_mujoco.py:109-124 现行 sim2sim 关节表 (effort,armature,kp,kd) 已同步为辨识参数，与训练配置一致",
+        "[verify:3fbd2bdd-28ef-472a-8447-a470d4844b11] md5 对比：v11 模型 027c4f4d… ≠ v10 模型 33c67cd3…(确系新权重非复制)；.gm/task_x1.yaml@9aa1021 记录 v10 基线 sim2sim body 0.121/joint 0.272；tracking_env_cfg.py:159-181 仅含 material/joint_default_pos/rigid_body_com 随机化(无 armature/PD 随机化，md 第2节不适用)；flat_env_cfg.py:4,13 引用 X1_CYLINDER_CFG(远端训练用修改后配置)",
+        "[exec:36] TASK_20261016_065 在 gradmotion 创建并启动成功(2026-10-16 17:23:37，Started successfully)",
+        "[exec:42] gm task info：TASK_20261016_065 'status updated to: Completed, ret:True' 且 'PT file (model_4999.pt) uploaded successfully'(18:56:50)——5000 iter 远端重训完成",
+        "[exec:44] 下载 checkpoint 4999 → trained_models/dance_x1_v11_model_4999.pt(6768482 字节，与快照内文件一致)",
+        "[exec:45] 下载后运行 play_mujoco.py sim2sim 5 loops(3235 步) exit=0：body 0.127/joint 0.2806/anchor 0.1022/min_z 0.51/fall_detected=false，与 v10 基线(body 0.121/joint 0.272/anchor 0.103/min_z 0.511/fall false)一致，差异≤5%且均无跌倒",
+        "[exec:47]/[exec:48] 台账+证据文件 commit 4eeb4b1(2 files, +55/-32) 并 git push 成功(06856fd..4eeb4b1 main)"
+      ],
+      "terminal": true,
+      "keyPath": [
+        "sim2sim 验证必须同步更新 rollout 脚本的 armature/PD 表(本例 play_mujoco.py:109-124)并与训练 cfg 逐值对齐，否则测的是旧动力学 [verify:60eaee1f]",
+        "训练后用 md5 对比新旧 checkpoint，快速排除'下载了同一文件/复制旧模型'的假完成 [verify:3fbd2bdd]"
+      ],
+      "pitfalls": [
+        "账号余额不足(exec:34, 1002056)导致任务启动失败，需 account-pool 换号后重试——远端平台任务应预设账号轮换 [exec:34]",
+        "在单次 bash 里 sleep 180 触发 179s 超时被杀；长等待应拆分轮询或用 exec_session 轮询 write_stdin [exec:39]"
+      ]
+    }
+  ],
+  "attempts": [
+    {
+      "id": "review_623a165fa1dc419f7da498c7ae914402",
+      "state": "completed",
+      "note": "recorded"
+    }
+  ],
+  "taskContract": {
+    "schemaVersion": "1",
+    "revision": 2,
+    "goalRevision": 1,
+    "goal": "继续推进X129DOF的舞蹈训练，经过之前X1的sim2real,形成了新的辨识参数，见x1_armature_pd.md，请基于新的惯量和kp kd以及其他辨识出来的参数进行重新训练，sim2sim指标和之前一致。注：远端训练使用gradmotion进行，长周期观测用timer park。",
+    "amendments": [
+      {
+        "revision": 2,
+        "instruction": "先parker 8h，网络维修。"
+      }
+    ]
+  },
+  "extraction": {
+    "state": "idle",
+    "reason": "terminal",
+    "throughReviewId": "review_623a165fa1dc419f7da498c7ae914402",
+    "requestedAt": 1792149016888,
+    "extractedThroughReviewId": "review_623a165fa1dc419f7da498c7ae914402"
+  },
+  "updatedAt": 1792149077605,
+  "card": {
+    "title": "X1 29DOF舞蹈策略：sim2real辨识参数(armature/kp/kd)重训并sim2sim对齐基线",
+    "task": "基于 X1 前期 sim2real 形成的辨识参数文件 x1_armature_pd.md 方案B（逐关节 armature/kp/kd，kd≤8，effort/velocity 不变），重训 X1 29DOF 舞蹈跟踪策略，要求 sim2sim 指标与旧基线一致。做法：将辨识参数同时换入训练配置 robots/x1.py 与 sim2sim 评测脚本 play_mujoco.py（commit 06856fd），env 随机化保持与基线一致以干净对比；远端 gradmotion 训练 5000 iter（TASK_20261016_065），训练期间 timer park 长周期观测；下载 model_4999 后本地 sim2sim 5 loops：body 0.127/joint 0.281/anchor 0.102/min_z 0.510、无跌倒，与 v10 基线（0.121/0.272/0.103/0.511）差异≤5%，验收通过。运行前因网络维修 park 8h（契约修订项）。",
+    "scope": "覆盖『辨识参数注入→远端重训→sim2sim 对齐基线』闭环：训练/评测两侧参数同步、远端训练任务管理、checkpoint 下载与校验、本地 sim2sim 评测、台账与证据提交。不含真机部署（rl_x1.yaml kp/kd 写入仅作遗留建议）、不含 AMP 栈的 armature/PD 随机化改造。",
+    "applicability": [
+      "需将 sim2real 辨识参数（armature/kp/kd 等）同时注入训练与评测两侧的仿真训练任务",
+      "使用 gradmotion 等远端平台提交训练、轮询状态、取回 checkpoint 的工作流",
+      "以『重训后与基线 sim2sim 指标对齐（差异≤5%、无跌倒）』为验收标准的场景",
+      "跟踪栈（无 armature/PD 随机化事件）的 Isaac 实验室类仓库；AMP 栈建议需另行核实",
+      "X1 29DOF 人体 dance/motion 跟踪策略训练"
+    ],
+    "capabilities": [
+      "已验证：X1 29DOF 舞蹈跟踪策略换入辨识参数（重 armature + kd≤8）后重训 5000 iter，sim2sim 全指标与基线一致（差异≤5%、无跌倒），辨识假设成立",
+      "已验证：训练 cfg（robots/x1.py）与 sim2sim 评测关节表（play_mujoco.py (effort,armature,kp,kd)）逐值同步的参数注入流程",
+      "已验证：gradmotion 远端任务创建/启动/完成/下载 checkpoint 闭环（模型 6768482 字节落盘）",
+      "已验证：MD5 对比新旧 checkpoint 排除『下载同一文件/复制旧模型』的假完成"
+    ],
+    "limitations": [
+      "仅本地 sim2sim（Mujoco rollout）验证，未做真机部署；真机 kp/kd 按 md 第4节顺序表写入 rl_x1.yaml 为遗留建议，未执行",
+      "训练标量（reward 31.53/ep_len 500/err_body 0.0623）取自台账，非本轮直接复测；验收以 sim2sim 直接运行结果为准",
+      "8h park（网络维修）等待时长无法从仓库产物复核，验收时采信工作记录（其后远端训练与 push 成功佐证恢复）",
+      "结论限于该跟踪栈（无 armature/PD 随机化事件）；AMP 栈或其他仓库泛化需另行验证",
+      "仅验证单个 dance 动作、单次训练；对其他动作/机器人/超参未验证；『差异≤5%』为本任务判据而非通用标准"
+    ],
+    "keyPath": [
+      "参数来源唯一化：以 md 方案B为准，逐关节换入训练 cfg robots/x1.py，diff 逐值核对 [verify:d7ff36f3]",
+      "两侧同步：sim2sim rollout 脚本的 (effort,armature,kp,kd) 关节表与训练 cfg 逐值对齐，否则验证测的是旧动力学 [verify:60eaee1f]",
+      "干净对比：先确认仓库随机化事件清单（本仓库仅 material/joint_default_pos/com，无 armature/PD 随机化），env 保持与基线一致 [verify:3fbd2bdd]",
+      "远端训练：gradmotion 建任务启动（启动失败先查账号余额并 account-pool 换号重试），timer park 轮询至 status=Completed 且 model_4999.pt 上传成功 [exec:36,42]",
+      "校验后评测：MD5 对比新旧 checkpoint 确认新权重；下载后本地 play_mujoco.py 5 loops 与基线逐指标对比（差异≤5%、无跌倒）[verify:3fbd2bdd][exec:45]",
+      "收尾：更新台账/证据文件并 commit+push（06856fd→4eeb4b1），平台 note/tag 同步 [exec:47,48]"
+    ],
+    "pitfalls": [
+      "只改训练 cfg 不改 rollout/评测脚本参数表 → sim2sim 实际跑旧动力学，验证失真；必须两侧逐值同步并 diff 核对",
+      "远端平台账号余额不足（错误码 1002056）导致任务启动失败；预设 account-pool 换号后重试，勿反复撞同一账号 [exec:34]",
+      "单次 bash 内 sleep 180 会触发约 179s 超时被杀；长等待应拆分为轮询或用 exec_session write_stdin 轮询 [exec:39]",
+      "辨识文档中的建议可能只适用特定栈：本例 md 第2节（armature/PD 随机化）仅适用 AMP 栈，tracking 栈不适用，照搬会破坏与基线的干净对比",
+      "训练收尾标量（reward/ep_len）可能只存在于台账而非执行记录；结论性指标应取自可复现的直接运行（如 sim2sim 评测）"
+    ],
+    "tags": [
+      "sim2real",
+      "辨识参数",
+      "armature",
+      "PD增益",
+      "sim2sim",
+      "gradmotion",
+      "X1",
+      "人形机器人",
+      "舞蹈跟踪",
+      "策略重训"
+    ]
+  },
+  "contentHash": "b4b898112c5b16eb46bba093667dad95a1f638558d2c0291c478a5f7111e27eb"
+}

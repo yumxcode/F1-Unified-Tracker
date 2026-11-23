@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "wakeId": "auto-wake-b5e60333aaf3",
+  "sessionId": "88ea19c0-698d-4b01-8335-203aded72dd6",
+  "projectDir": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "fireAt": 1794027757527,
+  "reason": "v3 训练中途健康检查（35min 后）：确认 reward 上升、ee_body_pos 终止率下降趋势，防止训练跑偏浪费整轮。",
+  "checkpoint": {
+    "account": "id=63 gifahim182 userId 4752",
+    "check": "1) taskStatus 应为 3（running）或 5（finished）；2) 日志尾部 reward/error_body_pos/ee_body_pos 终止率趋势（早期 ee_body_pos 851 偏高，若中期仍高需评估）；3) 若 failed 读错误日志排查",
+    "next_after_midcheck": "若正常：再挂 ~60min timer 到训练完成 → 下载 model_4999（gm task model list → policUrlDown curl）→ sim2sim（play_mujoco --robot f1 --checkpoint trained_models/dance_f1_v3_model_4999.pt --motion whole_body_tracking/motions/dance2s1_arm_f1.npz --max_steps 3750 --dump_metrics ...）→ 对比 v1 基线 arm 0.2986/leg 0.1166 → 对比视频+参考视频 hstack → git 提交 → lab_notebook record_result+conclude → 最终报告（present_artifact id=f1-v3 更新）",
+    "task_id": "TASK_20261107_132"
+  },
+  "goal": "优化 F1 29DOF 舞蹈训练（仓库 ~/code/Beyondminic-Weilai-X1，main 分支）。\n\n背景问题：\n1. 现阶段选的舞蹈重定向后视频里脚步是踮脚或侧脚（虽然训练完 sim2sim 落地脚尚可，但参考动作本身脚部姿态不对）；\n2. 现有策略手臂动作僵硬、跟踪不好。\n\n目标与要求：\n1. 重新审核并选择策略舞蹈源动作：基于 F1 29DOF 的物理结构、关节运动范围（URDF/MJCF limits）与既往审计结论（F1_AUDIT.md、六道质量门经验），挑选同时包含清晰步伐（正常落地、不踮脚不侧脚）和丰富手臂动作、且可被 F1 结构稳定复现的舞蹈片段；给出选段理由与关节可达性核对。\n2. 在以往重定向管线基础上严格要求重定向质量：手臂、脚步、脚底板（sole 接触姿态）跟踪质量要高——落地帧脚底放平、脚尖不内翻外翻、手臂关节在限位内且动作连贯；沿用/强化 tools_check_motion_f1、脚部诊断（tools_diag_foot）与六道质量门做验收，不达标不进入训练。\n3. 训练与验证：本地 Mac 只做轻量校验，训练和大规模验证全部提交 gradmotion 平台；训练完成后跑 sim2sim，输出对比视频与跟踪指标（手臂跟踪误差、脚底接触/滑移指标），确认手臂僵硬与脚部姿态问题改善。\n\n约束：重定向与验收脚本改动留在仓库内并 git 提交；长周期训练观测用 timer/轮询方式 park 等待，不阻塞；产出最终报告（选段依据、重定向质量指标、训练曲线、sim2sim 视频与指标、遗留问题）。",
+  "goalRevision": 1,
+  "checkpointRevision": 39,
+  "historyMessageCount": 319,
+  "historyFingerprint": "16777232:5460418:836003:1794025657429941231:1794025657429941231:Infinity:67108864",
+  "runtime": {
+    "sessionDir": "/Users/yumx/.weixin-bot/weixin-bot/personal-agent/runtime-sessions",
+    "configFile": "/Users/yumx/.meta-agent/glm_config.json"
+  },
+  "status": "done",
+  "attempts": 1,
+  "createdAt": 1794025657527,
+  "updatedAt": 1794027789187,
+  "claim": {
+    "owner": "yumxdeMac-mini.local#97140",
+    "token": "e83abca5-007b-4635-b9a3-a6449c6e90c7",
+    "claimedAt": 1794027758706,
+    "expiresAt": 1794028388714
+  }
+}

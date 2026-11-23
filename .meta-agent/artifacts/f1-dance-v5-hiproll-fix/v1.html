@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F1 舞蹈 v5 内收修复报告</title>
+<style id="ma-base-theme">/* Layout: one centred reading column (960px, 1280px with .ma-wide); summary first, detail after. */
+:root {
+  color-scheme: dark;
+  --ma-bg: #0f1115;
+  --ma-surface: #161a20;
+  --ma-surface-2: #1d222a;
+  --ma-border: #2a3039;
+  --ma-border-strong: #3b434f;
+  --ma-text: #e6e9ee;
+  --ma-text-2: #b9c0ca;
+  --ma-muted: #8a93a0;
+  --ma-accent: #7aa7ff;
+  --ma-accent-soft: #1a2640;
+  --ma-on-accent: #0b1222;
+  --ma-good: #4cc38a; --ma-good-soft: #13291f;
+  --ma-warn: #e5a443; --ma-warn-soft: #2e2511;
+  --ma-bad: #f27a6e;  --ma-bad-soft: #341b1b;
+  --ma-c1: #7aa7ff; --ma-c2: #f2a25c; --ma-c3: #4fc1b2; --ma-c4: #e57fb0; --ma-c5: #b39af5; --ma-c6: #c3d36b;
+  --ma-shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .28);
+
+  --ma-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", system-ui, sans-serif;
+  --ma-font-display: var(--ma-font-sans);
+  --ma-font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, "JetBrains Mono", "Cascadia Code", Consolas, "Liberation Mono", monospace;
+  --ma-step--1: 13px; --ma-step-0: 15px; --ma-step-1: 17px; --ma-step-2: 20px; --ma-step-3: 24px; --ma-step-4: 30px;
+  --ma-measure: 70ch;
+  --ma-radius: 10px;
+  --ma-radius-sm: 6px;
+  --ma-gutter: clamp(16px, 4vw, 32px);
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --ma-bg: #f5f6f8;
+  --ma-surface: #ffffff;
+  --ma-surface-2: #eef1f5;
+  --ma-border: #dde2e8;
+  --ma-border-strong: #c7ced8;
+  --ma-text: #161a20;
+  --ma-text-2: #3d4550;
+  --ma-muted: #677180;
+  --ma-accent: #2f62d8;
+  --ma-accent-soft: #e5ecfb;
+  --ma-on-accent: #ffffff;
+  --ma-good: #1a7f52; --ma-good-soft: #e2f3ea;
+  --ma-warn: #a8640a; --ma-warn-soft: #fbf0dc;
+  --ma-bad: #c0362c;  --ma-bad-soft: #f9e3e1;
+  --ma-c1: #2f62d8; --ma-c2: #d9772f; --ma-c3: #23927f; --ma-c4: #c04a85; --ma-c5: #7b5cc7; --ma-c6: #6f7f1f;
+  --ma-shadow: 0 1px 2px rgba(22, 26, 32, .06), 0 6px 20px rgba(22, 26, 32, .06);
+}
+@media (prefers-color-scheme: light) {
+  :root[data-theme="auto"] {
+  color-scheme: light;
+  --ma-bg: #f5f6f8;
+  --ma-surface: #ffffff;
+  --ma-surface-2: #eef1f5;
+  --ma-border: #dde2e8;
+  --ma-border-strong: #c7ced8;
+  --ma-text: #161a20;
+  --ma-text-2: #3d4550;
+  --ma-muted: #677180;
+  --ma-accent: #2f62d8;
+  --ma-accent-soft: #e5ecfb;
+  --ma-on-accent: #ffffff;
+  --ma-good: #1a7f52; --ma-good-soft: #e2f3ea;
+  --ma-warn: #a8640a; --ma-warn-soft: #fbf0dc;
+  --ma-bad: #c0362c;  --ma-bad-soft: #f9e3e1;
+  --ma-c1: #2f62d8; --ma-c2: #d9772f; --ma-c3: #23927f; --ma-c4: #c04a85; --ma-c5: #7b5cc7; --ma-c6: #6f7f1f;
+  --ma-shadow: 0 1px 2px rgba(22, 26, 32, .06), 0 6px 20px rgba(22, 26, 32, .06);
+}
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--ma-bg);
+  color: var(--ma-text);
+  font-family: var(--ma-font-sans);
+  font-size: var(--ma-step-0);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection { background: var(--ma-accent-soft); }
+.ma-page { max-width: 960px; margin: 0 auto; padding-inline: var(--ma-gutter); padding-block: 48px 80px; }
+.ma-page.ma-wide { max-width: 1280px; }
+@media (max-width: 640px) { .ma-page { padding-block: 28px 56px; } }
+
+/* Type */
+h1, h2, h3, h4 { color: var(--ma-text); font-family: var(--ma-font-display); line-height: 1.3; font-weight: 650; letter-spacing: -0.01em; margin: 2em 0 .6em; text-wrap: balance; }
+h1 { font-size: var(--ma-step-4); line-height: 1.2; letter-spacing: -0.02em; margin-top: 0; }
+h2 { font-size: var(--ma-step-3); }
+h3 { font-size: var(--ma-step-1); }
+h4 { font-size: var(--ma-step-0); color: var(--ma-text-2); }
+p, ul, ol, dl, blockquote { max-width: var(--ma-measure); }
+p, ul, ol, dl, table, pre, blockquote, figure { margin: 0 0 1em; }
+ul, ol { padding-left: 1.4em; }
+li + li { margin-top: .25em; }
+li > ul, li > ol { margin: .25em 0 0; }
+li::marker { color: var(--ma-muted); }
+li.ma-task { list-style: none; margin-left: -1.25em; }
+li.ma-task > input[type=checkbox] { margin: 0 .45em 0 0; vertical-align: -1px; accent-color: var(--ma-accent); }
+a { color: var(--ma-accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--ma-accent) 40%, transparent); text-underline-offset: 3px; }
+a:hover { text-decoration-color: currentColor; }
+strong { font-weight: 650; color: var(--ma-text); }
+small, .ma-muted { color: var(--ma-muted); }
+hr { border: 0; border-top: 1px solid var(--ma-border); margin: 2.5em 0; }
+img, svg, video, canvas { max-width: 100%; height: auto; }
+code, kbd, samp, pre { font-family: var(--ma-font-mono); font-size: .88em; }
+:not(pre) > code { background: var(--ma-surface-2); padding: .12em .4em; border-radius: 4px; }
+kbd { border: 1px solid var(--ma-border-strong); border-bottom-width: 2px; border-radius: 4px; padding: 0 .35em; }
+pre { background: var(--ma-surface-2); border-radius: var(--ma-radius-sm); padding: 14px 16px; overflow-x: auto; line-height: 1.55; }
+pre code { background: none; padding: 0; font-size: inherit; }
+blockquote { margin-left: 0; padding-left: 1em; border-left: 2px solid var(--ma-border-strong); color: var(--ma-text-2); }
+.ma-eyebrow { font-size: var(--ma-step--1); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ma-muted); }
+.ma-header { margin-bottom: 32px; }
+.ma-header h1 { margin-bottom: .25em; }
+.ma-subtitle { color: var(--ma-muted); font-size: var(--ma-step-0); max-width: var(--ma-measure); }
+
+/* Tables: numbers line up; wide tables scroll inside their own box. */
+table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.ma-table-wrap { overflow-x: auto; margin: 0 0 1.25em; border: 1px solid var(--ma-border); border-radius: var(--ma-radius-sm); }
+.ma-table-wrap > table { margin: 0; }
+th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--ma-border); vertical-align: top; }
+th { font-weight: 600; font-size: var(--ma-step--1); color: var(--ma-text-2); background: var(--ma-surface-2); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: color-mix(in srgb, var(--ma-surface-2) 60%, transparent); }
+td.num, th.num, .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+figure { margin-inline: 0; }
+figcaption { color: var(--ma-muted); font-size: var(--ma-step--1); margin-top: .6em; }
+details { border: 1px solid var(--ma-border); border-radius: var(--ma-radius-sm); padding: .55em .9em; margin: 0 0 1em; background: var(--ma-surface); }
+summary { cursor: pointer; font-weight: 600; }
+details[open] > summary { margin-bottom: .5em; }
+
+/* Objects: a card marks ONE thing as separate — use it by role, not on every block. */
+.ma-card { background: var(--ma-surface); border: 1px solid var(--ma-border); border-radius: var(--ma-radius); padding: 18px 20px; margin: 0 0 16px; min-width: 0; }
+.ma-card.ma-raised { box-shadow: var(--ma-shadow); }
+.ma-card > :last-child { margin-bottom: 0; }
+.ma-card > h2:first-child, .ma-card > h3:first-child { margin-top: 0; }
+.ma-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); margin: 0 0 20px; }
+.ma-grid > * { min-width: 0; margin: 0; }
+/* KPI rows pack tighter: 2×2 on a phone, one row on a desktop. */
+.ma-grid:has(> .ma-kpi) { grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); }
+.ma-kpi { background: var(--ma-surface); border: 1px solid var(--ma-border); border-radius: var(--ma-radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
+.ma-kpi-label { color: var(--ma-muted); font-size: var(--ma-step--1); }
+.ma-kpi-value { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.25; }
+.ma-kpi-value small { font-size: .55em; font-weight: 500; color: var(--ma-muted); margin-left: .2em; }
+.ma-kpi-delta { font-size: var(--ma-step--1); font-variant-numeric: tabular-nums; color: var(--ma-muted); }
+.ma-up { color: var(--ma-good); } .ma-down { color: var(--ma-bad); }
+
+/* State: badges and callouts carry semantic colour, independent of the accent. */
+.ma-badge { display: inline-flex; align-items: center; gap: .3em; font-size: 12px; line-height: 1.7; padding: 0 .6em; border-radius: 999px; background: var(--ma-surface-2); color: var(--ma-text-2); white-space: nowrap; vertical-align: middle; }
+.ma-badge.good { background: var(--ma-good-soft); color: var(--ma-good); }
+.ma-badge.warn { background: var(--ma-warn-soft); color: var(--ma-warn); }
+.ma-badge.bad  { background: var(--ma-bad-soft);  color: var(--ma-bad); }
+.ma-badge.info { background: var(--ma-accent-soft); color: var(--ma-accent); }
+.ma-callout { border-radius: var(--ma-radius-sm); padding: 12px 16px; margin: 0 0 1.25em; background: var(--ma-accent-soft); border: 1px solid color-mix(in srgb, var(--ma-accent) 28%, transparent); max-width: none; }
+.ma-callout.good { background: var(--ma-good-soft); border-color: color-mix(in srgb, var(--ma-good) 30%, transparent); }
+.ma-callout.warn { background: var(--ma-warn-soft); border-color: color-mix(in srgb, var(--ma-warn) 30%, transparent); }
+.ma-callout.bad  { background: var(--ma-bad-soft);  border-color: color-mix(in srgb, var(--ma-bad) 30%, transparent); }
+.ma-callout > :last-child { margin-bottom: 0; }
+.ma-callout-title { display: block; font-weight: 650; margin-bottom: .2em; }
+
+/* Charts and diagrams */
+.ma-chart { margin: 0 0 1.25em; }
+.ma-chart svg { display: block; width: 100%; height: auto; overflow: visible; color: var(--ma-text-2); font-family: var(--ma-font-sans); }
+.ma-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--ma-step--1); color: var(--ma-text-2); margin: 0 0 8px; }
+.ma-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.ma-legend i { width: 10px; height: 10px; border-radius: 2px; background: currentColor; display: inline-block; }
+.ma-center { display: flex; justify-content: center; align-items: flex-start; overflow-x: auto; }
+.ma-mermaid { background: var(--ma-surface); border: 1px solid var(--ma-border); border-radius: var(--ma-radius); padding: 16px; text-align: center; overflow-x: auto; margin: 0 0 1.25em; }
+pre.mermaid { background: transparent; padding: 0; margin: 0; }
+.ma-prose > :first-child { margin-top: 0; }
+
+/* Behaviour */
+:focus-visible { outline: 2px solid var(--ma-accent); outline-offset: 2px; border-radius: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media print {
+  body { background: #fff; color: #000; }
+  .ma-card, .ma-kpi { box-shadow: none; break-inside: avoid; }
+}</style>
+</head>
+<body>
+<main class="ma-page">
+<article class="ma-prose"><h1 id="f1-舞蹈-v5-hip-roll-内收修复确认报告">F1 舞蹈 v5 —— hip roll 内收修复确认报告</h1>
+<div class="ma-subtitle">F1 29DOF · LAFAN dance2_subject1 [345,795) · 2026-11-09 · exp_27f4783d = confirmed</div>
+<h2 id="根因-重定向-bug-非源舞蹈-非训练层">根因：重定向 bug（非源舞蹈、非训练层）</h2>
+<p>三层审计证据链（z-up FK 额状面口径）：</p>
+<div class="ma-table-wrap"><table><thead><tr><th>层</th><th>关键测量</th><th>结论</th></tr></thead><tbody><tr><td>源（人）</td><td>大腿外展 +5.3°/+7.0°，脚距/髋宽 <strong>1.91</strong>，双腿同内收帧 1.1%</td><td>不内收</td></tr><tr><td>重定向 v4</td><td>hip roll 均值贴零（−0.07°/−0.62°），脚距/髋宽 <strong>0.96</strong>，同内收帧 12.87%</td><td><strong>内收引入处</strong></td></tr><tr><td>策略回放 v4</td><td>内收漂移 −9.4°（比参考更外展），同内收帧 7.1%</td><td>无漂移，忠实跟踪内收数据</td></tr></tbody></table></div>
+<p><strong>机制</strong>：GMR 腿缩放 0.689 把人站姿压到脚距 0.270m，<strong>窄于 F1 髋宽 0.309m</strong>（F1 髋宽/身高 0.52 vs 人 0.12）。IK 脚位置任务（权重 500）在 <strong>80% 帧把双脚拉进髋线内侧</strong>，源宽站姿被压扁。</p>
+<p><strong>修复</strong>：<code>tools_bvh_to_csv_f1.py --stance_widen 0.075</code> —— scaled 脚目标沿骨盆额状轴每侧外撑 75mm。舞蹈内容逐帧保持（29 关节相关性 ≥0.987、root 位移 1.246/1.247m），踝 roll 反向补偿（−6.5°/+6.0°）保证脚底平贴。<strong>未换舞、未降任何验收门槛，并新增第 9 门（站姿开度）只加严</strong>。</p>
+<h2 id="v4-内收-v5-修复-核心对比">v4（内收）→ v5（修复）核心对比</h2>
+<div class="ma-grid">
+<div class="ma-kpi"><div class="ma-kpi-label">参考 hip roll L/R 均值</div><div class="ma-kpi-value">+6.5<small>°</small> / −7.8<small>°</small></div><div class="ma-kpi-delta ma-up">v4 贴零 → 对称外展</div></div>
+<div class="ma-kpi"><div class="ma-kpi-label">策略双腿同内收帧</div><div class="ma-kpi-value">0.0<small>%</small></div><div class="ma-kpi-delta ma-up">v4 7.1% → 0</div></div>
+<div class="ma-kpi"><div class="ma-kpi-label">回放双脚间距</div><div class="ma-kpi-value">0.479<small>m</small></div><div class="ma-kpi-delta ma-up">1.55× 髋宽（v4 1.24×）</div></div>
+<div class="ma-kpi"><div class="ma-kpi-label">sim2sim 跌倒</div><div class="ma-kpi-value">0<small>/5 圈</small></div><div class="ma-kpi-delta ma-up">与 v4 持平</div></div>
+</div>
+<div class="ma-table-wrap"><table><thead><tr><th>指标</th><th>v4</th><th>v5</th><th>判定（预注册门）</th></tr></thead><tbody><tr><td>重定向九门</td><td>八门过 / gate9 ✗</td><td><strong>九门全过</strong></td><td>✓</td></tr><tr><td>站姿开度 gap/hipW（mean / p5）</td><td>0.945 / 0.477</td><td><strong>1.266 / 0.845</strong></td><td>✓（≥1.15 / ≥0.70）</td></tr><tr><td>参考双腿同内收帧</td><td>12.87%</td><td><strong>1.13%</strong></td><td>✓（≤3%）</td></tr><tr><td>训练 reward（5000 iter）</td><td>32.74</td><td>32.77</td><td>✓（≥30）</td></tr><tr><td>joint err (rad)</td><td>0.1467</td><td>0.1518</td><td>✓（≤0.1614）</td></tr><tr><td>anchor err (m)</td><td>0.0531</td><td><strong>0.0411</strong></td><td>✓（−23%）</td></tr><tr><td>body pos err (m)</td><td>0.0624</td><td><strong>0.0513</strong></td><td>✓（−18%）</td></tr><tr><td>xy 跟踪 p95 (m)</td><td>0.103</td><td><strong>0.063</strong></td><td>✓（−39%）</td></tr><tr><td>位移保持率</td><td>91.6%</td><td>90.8%</td><td>✓（≥87%）</td></tr><tr><td>arm err (rad)</td><td>0.2123</td><td>0.2236</td><td>记录（+5.3%，遗留项）</td></tr></tbody></table></div>
+<p>预注册证伪条件（跌倒 / joint err 超限 / 开度未达标）<strong>无一命中</strong>。</p>
+<h2 id="训练与交付">训练与交付</h2>
+<ul>
+<li>gradmotion 任务：<strong>TASK_20261108_088</strong>（gifahim182，v4 同配方 4096 envs × 5000 iter，91.5 min；jiyow52926 余额不足，空任务 087 已删）</li>
+<li>模型：<code>trained_models/dance_f1_v5_model_4999.pt</code> · 动作：<code>dance2s1_ta_w75_f1.npz</code></li>
+<li>工具入库：<code>--stance_widen</code>（重定向修复）、gate 9（站姿开度门，v4 反例校准）、<code>--dump_joints</code>（关节轨迹审计）</li>
+<li>提交：<code>6207e62</code>（修复+九门+动作）→ <code>4d509c2</code>（模型+指标+报告），已推送 origin/main</li>
+<li>视频：<code>renders/dance2s1_w75_reference.mp4</code>（参考）/ <code>dance2s1_w75_playback.mp4</code>（策略回放）</li>
+</ul>
+<div class="ma-callout good"><strong class="ma-callout-title">结论</strong>hip roll 内收 = 重定向 IK 脚目标过窄（缩放几何与 F1 宽髋不匹配）。stance_widen 0.075 修复后参考与策略两层内收均消除（策略层 0.0% 双腿内收帧），站姿开度 1.55× 髋宽，稳定性与跟踪精度全面不劣于 v4 且多数更优。</div></article>
+</main>
+</body>
+</html>

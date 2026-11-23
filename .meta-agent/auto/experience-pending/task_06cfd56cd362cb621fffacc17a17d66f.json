@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "taskId": "task_06cfd56cd362cb621fffacc17a17d66f",
+  "sourceSessionId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65",
+  "goalRevision": 1,
+  "revision": 1,
+  "status": "pending",
+  "evidence": [
+    {
+      "reviewId": "review_3d06755c2d3b745304a362f7af9f73ce",
+      "outcome": "passed",
+      "conclusion": "三项契约目标均已完成并在 main 分支推送（HEAD 7de2c766b69b，工作区 clean，0 提交未推送）。(1) 审计+kp/kd：F1_AUDIT.md 完成结构/质量/几何审计（29 关节与 X1 同名同序、上身逐字一致、腿部全新 130/241.9/218.4 Nm、总质量 35.03 kg），f1_kp_kd.json 给出全关节 kp/kd/armature 及验证（焊接基座 3° 扰动收敛最大下垂 1.23° PASS；自由站立门经 X1 基线标定判无效并如实记录）；f1_serial.xml timestep=0.001、29 个 F1 力矩限位执行器、stand keyframe，训练配置 robots/f1.py 增益与 json 完全一致。(2) GMR 重定向：LAFAN dance1_subject3 提取 23s 干净窗口 [0,689)，quality_dance_f1_train.json 六项量化门全过且阈值明确（穿地 -0.0144m≥-0.015、自碰撞 0.0693m≥0.005、限位 0 违例、速度 0 超限、高度 0.544–0.606⊂[0.35,1.0]、连续性通过）——量化阈值即通过标准；独立复核 npz：1147 帧@50fps、29 关节、30 body PhysX BFS 序、全体 body 最小 z=0.024m（无穿地）、数据有限。(3) 训练+sim2sim：gradmotion TASK_20261105_430（4090D、IsaacLab 2.1.0、4096env、5000iter）finalReward 35.33（>X1 基线 31.75），checkpoint dance_f1_v1_model_4999.pt 已提交且 MD5 与 X1 各 checkpoint 均不同；sim2sim 经 PhysX 关节序探针（TASK_20261105_507）实测修复后 5 循环 5735 步零跌倒（fall_detected=false、min_base_z 0.568、joint err 0.2012 rad 优于 X1 0.272），playback 5735 帧（=5×1147）、compare 2294 帧（=2×1147）经宿主命令记录核验，playback 网格 10 格跨全 rollout 直立触地。放松的非关键细节：F1 原始训练日志尾未以文本工件入库（指标在 .gm/task_f1.yaml 与 d4ed554/7de2c76 提交说明，功能性证据足以补偿）；trained_models/training_evidence.txt 为 G1 时期遗留（易混淆但不影响契约）；GMR 工具链按设计 gitignore 本地化而其输出与检查工具已入库；报告页发布不在仓库内可验且非验收条件。",
+      "unfinished": [],
+      "evidence": [
+        "[verify:8dc2fdeb-0c2a-4ce4-a253-faab6991583d] F1_AUDIT.md §4 kp/kd 定稿表（髋70/60/90、膝90、踝60/45 等）+ 验证段：焊接基座 1.23° PASS、kd·dt/I<0.8；f1_kp_kd.json validation 同口径——支持目标1",
+        "[verify:9bb368ae-423f-4305-b2b1-0a3cb1653025] robots/f1.py 训练增益 hip 70/60/90、knee 90，damping 8/8/2/6 与 f1_kp_kd.json 一致（审计结果进入训练）；三个 model_4999.pt MD5 互不相同（3ec7c3e0/33c67cd3/027c4f4d）证明 F1 checkpoint 非复制",
+        "[verify:c6d5690d-1ad5-4c52-89d0-a1502b50a9d3] f1_serial.xml 含 timestep=\"0.001\" 且 model pt 为独立 zip 包——支持目标1资产修订到位",
+        "[verify:3e025571-48fb-4e2a-91b2-a4ccbfea820f] quality_dance_f1_train.json 六门 overall_pass=True（ground -0.0144/-0.015、self_pen 0.0693/0.005、limits 0、vel []、height 0.544–0.606∈[0.35,1.0]、continuity）+ 独立复核 npz（1147帧@50fps、29关节、30body、min_body_z 0.024 无穿地、base_z 0.546–0.606）+ csv 689 行——支持目标2 含量化通过标准",
+        "[verify:0598927f-9c31-443d-aea0-e3754c8d65bb] 7de2c76 提交含 .gm/task_f1.yaml、model_4999.pt、3 个 mp4、playback 网格；d4ed554 提交说明记录 sim2sim 5 循环 5735 步 fall_detected=false、min_base_z 0.568、joint err 0.201 rad；git status 0 行未提交——支持目标3 与交付完整",
+        "[verify:d57c278c-4d2a-4d7a-9c29-65ef05c82a60] task_f1.yaml results（finalReward 35.33、ep 483.38、error_body_pos 0.055）与 sim2sim 段（5 loops/5735 steps、fall_detected false、min_base_z 0.568）；playback 网格 6400x1440=10 格、各格前景 y 跨 464–542px 且触地（719）——支持训练指标与全程直立稳定",
+        "[exec:280] exit=0 编辑后：playback frames=5735（=5×1147）——sim2sim 5 循环完整回放",
+        "[exec:283] exit=0 编辑后：compare frames=2294（=2×1147）——对比视频有效",
+        "[exec:286] exit=0 编辑后：push 成功 d4ed554..7de2c76 main→origin——全部交付已推送"
+      ],
+      "terminal": true,
+      "keyPath": [
+        "关节序不可从姊妹机型推断：执行者用 gradmotion 探针任务（probe_f1_order.py 打印 robot.joint_names）取得 PhysX FIFO-BFS 真值后再修 sim2sim 排列（d4ed554），由 0.2s 崩溃变为 5 循环零跌倒；观测 z-score 异常段定位错位的方法可复用 [verify:0598927f]",
+        "增益验收门用同基线标定：自由站立 PD-hold 门先用 X1 模型+X1 已验证增益复跑，X1 也倒下即判门无效（改用焊接基座机械保形门 1.23° PASS），避免把策略职责误判为增益缺陷 [verify:8dc2fdeb]"
+      ],
+      "pitfalls": [
+        "100MB 级 mp4 直推会被 pre-receive hook 拒绝（[exec:284] exit=1）；ffmpeg 重编码到 ~50MB 后推送成功 [exec:286]——交付前应先估算仓库体积",
+        "trained_models/training_evidence.txt 为 G1 时期遗留（2026-08-06、G1 路径），易被误读为 F1 训练证据；F1 原始日志尾未入库，指标仅存 .gm/task_f1.yaml 与提交说明——建议补 f1_training_evidence.txt"
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "reviewId": "review_3d06755c2d3b745304a362f7af9f73ce",
+      "outcome": "passed",
+      "conclusion": "三项契约目标均已完成并在 main 分支推送（HEAD 7de2c766b69b，工作区 clean，0 提交未推送）。(1) 审计+kp/kd：F1_AUDIT.md 完成结构/质量/几何审计（29 关节与 X1 同名同序、上身逐字一致、腿部全新 130/241.9/218.4 Nm、总质量 35.03 kg），f1_kp_kd.json 给出全关节 kp/kd/armature 及验证（焊接基座 3° 扰动收敛最大下垂 1.23° PASS；自由站立门经 X1 基线标定判无效并如实记录）；f1_serial.xml timestep=0.001、29 个 F1 力矩限位执行器、stand keyframe，训练配置 robots/f1.py 增益与 json 完全一致。(2) GMR 重定向：LAFAN dance1_subject3 提取 23s 干净窗口 [0,689)，quality_dance_f1_train.json 六项量化门全过且阈值明确（穿地 -0.0144m≥-0.015、自碰撞 0.0693m≥0.005、限位 0 违例、速度 0 超限、高度 0.544–0.606⊂[0.35,1.0]、连续性通过）——量化阈值即通过标准；独立复核 npz：1147 帧@50fps、29 关节、30 body PhysX BFS 序、全体 body 最小 z=0.024m（无穿地）、数据有限。(3) 训练+sim2sim：gradmotion TASK_20261105_430（4090D、IsaacLab 2.1.0、4096env、5000iter）finalReward 35.33（>X1 基线 31.75），checkpoint dance_f1_v1_model_4999.pt 已提交且 MD5 与 X1 各 checkpoint 均不同；sim2sim 经 PhysX 关节序探针（TASK_20261105_507）实测修复后 5 循环 5735 步零跌倒（fall_detected=false、min_base_z 0.568、joint err 0.2012 rad 优于 X1 0.272），playback 5735 帧（=5×1147）、compare 2294 帧（=2×1147）经宿主命令记录核验，playback 网格 10 格跨全 rollout 直立触地。放松的非关键细节：F1 原始训练日志尾未以文本工件入库（指标在 .gm/task_f1.yaml 与 d4ed554/7de2c76 提交说明，功能性证据足以补偿）；trained_models/training_evidence.txt 为 G1 时期遗留（易混淆但不影响契约）；GMR 工具链按设计 gitignore 本地化而其输出与检查工具已入库；报告页发布不在仓库内可验且非验收条件。",
+      "unfinished": [],
+      "evidence": [
+        "[verify:8dc2fdeb-0c2a-4ce4-a253-faab6991583d] F1_AUDIT.md §4 kp/kd 定稿表（髋70/60/90、膝90、踝60/45 等）+ 验证段：焊接基座 1.23° PASS、kd·dt/I<0.8；f1_kp_kd.json validation 同口径——支持目标1",
+        "[verify:9bb368ae-423f-4305-b2b1-0a3cb1653025] robots/f1.py 训练增益 hip 70/60/90、knee 90，damping 8/8/2/6 与 f1_kp_kd.json 一致（审计结果进入训练）；三个 model_4999.pt MD5 互不相同（3ec7c3e0/33c67cd3/027c4f4d）证明 F1 checkpoint 非复制",
+        "[verify:c6d5690d-1ad5-4c52-89d0-a1502b50a9d3] f1_serial.xml 含 timestep=\"0.001\" 且 model pt 为独立 zip 包——支持目标1资产修订到位",
+        "[verify:3e025571-48fb-4e2a-91b2-a4ccbfea820f] quality_dance_f1_train.json 六门 overall_pass=True（ground -0.0144/-0.015、self_pen 0.0693/0.005、limits 0、vel []、height 0.544–0.606∈[0.35,1.0]、continuity）+ 独立复核 npz（1147帧@50fps、29关节、30body、min_body_z 0.024 无穿地、base_z 0.546–0.606）+ csv 689 行——支持目标2 含量化通过标准",
+        "[verify:0598927f-9c31-443d-aea0-e3754c8d65bb] 7de2c76 提交含 .gm/task_f1.yaml、model_4999.pt、3 个 mp4、playback 网格；d4ed554 提交说明记录 sim2sim 5 循环 5735 步 fall_detected=false、min_base_z 0.568、joint err 0.201 rad；git status 0 行未提交——支持目标3 与交付完整",
+        "[verify:d57c278c-4d2a-4d7a-9c29-65ef05c82a60] task_f1.yaml results（finalReward 35.33、ep 483.38、error_body_pos 0.055）与 sim2sim 段（5 loops/5735 steps、fall_detected false、min_base_z 0.568）；playback 网格 6400x1440=10 格、各格前景 y 跨 464–542px 且触地（719）——支持训练指标与全程直立稳定",
+        "[exec:280] exit=0 编辑后：playback frames=5735（=5×1147）——sim2sim 5 循环完整回放",
+        "[exec:283] exit=0 编辑后：compare frames=2294（=2×1147）——对比视频有效",
+        "[exec:286] exit=0 编辑后：push 成功 d4ed554..7de2c76 main→origin——全部交付已推送"
+      ],
+      "terminal": true,
+      "keyPath": [
+        "关节序不可从姊妹机型推断：执行者用 gradmotion 探针任务（probe_f1_order.py 打印 robot.joint_names）取得 PhysX FIFO-BFS 真值后再修 sim2sim 排列（d4ed554），由 0.2s 崩溃变为 5 循环零跌倒；观测 z-score 异常段定位错位的方法可复用 [verify:0598927f]",
+        "增益验收门用同基线标定：自由站立 PD-hold 门先用 X1 模型+X1 已验证增益复跑，X1 也倒下即判门无效（改用焊接基座机械保形门 1.23° PASS），避免把策略职责误判为增益缺陷 [verify:8dc2fdeb]"
+      ],
+      "pitfalls": [
+        "100MB 级 mp4 直推会被 pre-receive hook 拒绝（[exec:284] exit=1）；ffmpeg 重编码到 ~50MB 后推送成功 [exec:286]——交付前应先估算仓库体积",
+        "trained_models/training_evidence.txt 为 G1 时期遗留（2026-08-06、G1 路径），易被误读为 F1 训练证据；F1 原始日志尾未入库，指标仅存 .gm/task_f1.yaml 与提交说明——建议补 f1_training_evidence.txt"
+      ]
+    }
+  ],
+  "attempts": [
+    {
+      "id": "review_3d06755c2d3b745304a362f7af9f73ce",
+      "state": "completed",
+      "note": "recorded"
+    }
+  ],
+  "taskContract": {
+    "schemaVersion": "1",
+    "revision": 1,
+    "goalRevision": 1,
+    "goal": "F1 29DOF 舞蹈训练（仓库 ~/code/Beyondminic-Weilai-X1，main 分支）：\n1. 审计 F1_29DOF 资产，确定合适的 kp/kd；\n2. 建立 F1 的 GMR 重定向，动作合理、无穿模、无穿地，给出量化通过标准；\n3. Beyondminic 完成训练并完成 sim2sim，能稳定进行舞蹈动作。\n本地为 Mac 不做训练，验证与训练全部在 gradmotion；长周期观测用 timer park。",
+    "amendments": []
+  },
+  "extraction": {
+    "state": "idle",
+    "reason": "terminal",
+    "throughReviewId": "review_3d06755c2d3b745304a362f7af9f73ce",
+    "requestedAt": 1793882050653,
+    "extractedThroughReviewId": "review_3d06755c2d3b745304a362f7af9f73ce"
+  },
+  "updatedAt": 1793882197892,
+  "card": {
+    "title": "跨人形机型 RL 全身跟踪：关节序实测与验收门基线标定",
+    "oneLiner": "姊妹机型不能沿用已验证关节序与验收门：上平台用最小探针实测关节序作唯一事实；新门先在已知良好基线跑通，不过则修门或对齐仿真上下文，再调参数。",
+    "task": "在人形全身运动跟踪 RL 流水线中，为某机型的姊妹型号（29DOF，腿为新设计）完成舞蹈训练全链路：资产审计并定 kp/kd；动捕舞蹈经 GMR 重定向，23s 窗口六项量化门全过；IsaacLab 4096 env 训 5000 iter（finalReward 35.33）；sim2sim 经关节序探针实测修复后 5 循环 5735 步零跌倒。终态 passed，交付推送 main。",
+    "scope": "覆盖：跨机型迁移 sim2sim 部署链路时的物理引擎关节序确认与边界映射方法；为新型号整定 PD 增益时新建验收门的基线标定流程；动捕重定向结果的量化门设计。不覆盖：RL 超参调优、真机部署、动作生成本身。",
+    "applicability": [
+      "把已验证的 sim2sim 播放/部署链路迁移到结构近似的兄弟型号（URDF/MJCF 改动腿或臂）时；症状为播放瞬间崩溃或动作明显错乱。",
+      "在 IsaacLab/PhysX 等平台为新机型整定 PD 增益、需要新建站立保持或机械保形类验收门时。",
+      "对动捕重定向产物需要可复现的质量判定（穿地、自碰撞、限位、连续性），而非主观目检时。"
+    ],
+    "principles": [
+      "关节序以平台实测为唯一事实：用 1 env、无训练的裸 InteractiveScene 探针打印 joint_names/body_names（经 gym.make 包装的 env 可能缺内部句柄而报错），按打印值写死观测/动作边界映射；数据文件一律存关节名并按名重排，不按位次拷贝。",
+      "新验收门先标定后使用：在已知良好基线（姊妹机型模型+已验证增益）上复跑；基线也不过则判门无效，或先对齐仿真上下文（timestep、armature 等一次只改一个变量）再重试，避免把策略职责或上下文缺陷误判为增益不足。",
+      "增益定稿前做数值稳定性自检：逐关节校验 kd·dt/I < 0.8（阻尼、仿真步长、关节等效惯量）；需要隔离增益质量与平衡策略职责时，用焊接基座扰动测下垂角的机械保形门代替自由站立门。",
+      "重定向质量用量化门定义通过标准：根高度区间、穿地深度、自碰撞最小距离、限位违例数、速度超限、连续性各设显式阈值并输出 JSON 门禁；对转换产物独立复核帧数、关节序与最小身体高度。"
+    ],
+    "pitfalls": [
+      "现象：沿用姊妹机型已验证的 PhysX 关节序，sim2sim 数步内崩溃。原因：PhysX 关节序随 URDF 树子元素顺序生成，姊妹机型也会在膝/肩、踝/肩等槽位互换。规避：训练前与部署前各跑一次探针，以实测名序重排；观测 z-score 异常段可辅助定位错位槽位。",
+      "现象：新建站立验收门连续 UNSTABLE，随即进入 kp/kd 调参循环。原因：门从未在基线上验证，且仿真上下文缺已验证配置（步长、armature），阻尼稳定性判据也超限。规避：先让基线过门；塌倒但关节误差小、基座塌得低，更像倾倒或接触失稳而非刚度不足。"
+    ],
+    "limitations": [
+      "sim2sim 仅为 MuJoCo→PhysX 回放验证（5 循环零跌倒），未做真机部署验证。",
+      "GMR 重定向工具链按设计本地化未入库，仅转换产物 npz 与质检输出入库，跨仓库复用需自建工具链。",
+      "训练原始日志未入库，指标存于任务 yaml 与提交说明；仓库中还有姊妹机型时期的同名训练证据文件，读取时注意区分。"
+    ],
+    "outcome": "终态 passed：kp/kd 定稿（焊接基座扰动最大下垂 1.23° PASS）；重定向 23s 窗口六项量化门全过（1147 帧@50fps、最小身体高度 0.024m）；训练 finalReward 35.33；sim2sim 实测关节序修复后 5 循环 5735 步零跌倒，全部交付推送 main。",
+    "details": [
+      {
+        "path": "F1_29DOF/F1_AUDIT.md",
+        "why": "资产审计与 kp/kd 定稿依据，含焊接基座门验证方法"
+      },
+      {
+        "path": "F1_29DOF/f1_kp_kd.json",
+        "why": "全关节 kp/kd/armature 与稳定性校验数值"
+      },
+      {
+        "path": "whole_body_tracking/motions/quality_dance_f1_train.json",
+        "why": "重定向六项量化门阈值与结果，量化门设计范例"
+      },
+      {
+        "path": ".gm/task_f1.yaml",
+        "why": "训练与 sim2sim 指标记录，含零跌倒数据"
+      },
+      {
+        "path": "dance_f1_playback.mp4",
+        "why": "关节序修复后完整回放的稳定性证据"
+      }
+    ],
+    "tags": [
+      "人形机器人",
+      "sim2sim",
+      "IsaacLab",
+      "PhysX关节序",
+      "PD增益整定",
+      "GMR运动重定向",
+      "验收门标定",
+      "URDF/MJCF"
+    ]
+  },
+  "contentHash": "9bb242874a76ab549bc7b186fae6279120490689c72e5cb4d0ae801066e5283a",
+  "source": {
+    "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+    "remote": "git@github.com:yumxcode/Beyondminic-Weilai-X1.git",
+    "branch": "main",
+    "commit": "7de2c766b69b002efd8857be518364e2e7320d43"
+  }
+}

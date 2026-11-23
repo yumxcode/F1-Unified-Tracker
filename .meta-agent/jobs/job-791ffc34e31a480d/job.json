@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-791ffc34e31a480d",
+  "name": "f1-compare-video",
+  "command": "cd /Users/yumx/code/Beyondminic-Weilai-X1 && .venv/bin/python /tmp/make_compare.py",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65",
+  "idempotencyKey": "f1-compare-video-v1",
+  "createdAt": 1793881089017,
+  "outputs": [
+    "dance_f1_compare.mp4"
+  ],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "119698ea-0e06-4281-a472-fd393bbe9d98",
+  "launchOwner": {
+    "pid": 36602,
+    "startToken": "四 11月/ 5 20:16:24 2026"
+  },
+  "pid": 36784,
+  "startToken": "四 11月/ 5 20:18:09 2026"
+}

@@ -1,0 +1,50 @@
+[motion] 1147 frames @ 50.0 fps, loops=5
+[loop] 1/5 done (1147/5735)
+[loop] 2/5 done (2294/5735)
+[loop] 3/5 done (3441/5735)
+[loop] 4/5 done (4588/5735)
+[loop] 5/5 done (5735/5735)
+[saved] dance_f1_reference.mp4 (5735 frames)
+[mjcf] Auto-detected: /Users/yumx/code/Beyondminic-Weilai-X1/whole_body_tracking/source/whole_body_tracking/whole_body_tracking/assets/f1/mjcf/f1_flat.xml
+[mjoco] Model loaded: 36 qpos, 35 qvel, 29 actuators
+[mjoco] DOF joints (29): ['left_hip_pitch_joint', 'left_hip_roll_joint', 'left_hip_yaw_joint', 'left_knee_pitch_joint', 'left_ankle_pitch_joint', 'left_ankle_roll_joint', 'right_hip_pitch_joint', 'right_hip_roll_joint', 'right_hip_yaw_joint', 'right_knee_pitch_joint', 'right_ankle_pitch_joint', 'right_ankle_roll_joint', 'lumbar_yaw_joint', 'lumbar_roll_joint', 'lumbar_pitch_joint', 'left_shoulder_pitch_joint', 'left_shoulder_roll_joint', 'left_shoulder_yaw_joint', 'left_elbow_pitch_joint', 'left_elbow_yaw_joint', 'left_wrist_pitch_joint', 'left_wrist_roll_joint', 'right_shoulder_pitch_joint', 'right_shoulder_roll_joint', 'right_shoulder_yaw_joint', 'right_elbow_pitch_joint', 'right_elbow_yaw_joint', 'right_wrist_pitch_joint', 'right_wrist_roll_joint']
+[dynamics] F1 armature/damping aligned with IsaacLab training model
+[ctrl] actuator map ok (first: left_hip_pitch_joint -> act 0)
+[mjoco] Default pos: [-0.2915  0.      0.      0.45   -0.1585  0.     -0.2915  0.      0.
+  0.45   -0.1585  0.      0.      0.      0.      0.      0.      0.
+  0.      0.      0.      0.      0.      0.      0.      0.      0.
+  0.      0.    ]
+[mjoco] KP range: [15.00, 100.00]
+[mjoco] Action scale range: [0.1250, 1.2133]
+[motion] Loaded: 1147 frames, fps=50.0
+[motion] joint_pos shape: (1147, 29), body_pos_w shape: (1147, 30, 3)
+[motion] joint columns remapped by name (npz order -> MJCF order)
+[motion] body order from npz: 30 bodies
+[motion] Anchor body 'lumbar_pitch_link': npz_idx=9, mj_id=16
+[policy] Actor MLP: 160 → [512, 256, 128] → 29
+[policy] 4 linear layers
+[policy] Empirical normalization: count=100003840
+[policy] obs_dim=160, action_dim=29
+[init] Robot initialized at reference frame 0: pos=[-0.485 -1.192  0.602]
+[obs] layout: full (obs_dim=160, full=160, wse=154)
+[perm] F1 PhysX<->MuJoCo joint order active
+[obs] Expected obs dim: 160 (policy expects 160)
+[record] 1280x720 @ 50fps -> dance_f1_playback.mp4
+[playback] motion looped (reset to frame 0, as in training episode reset)
+[playback] motion looped (reset to frame 0, as in training episode reset)
+[playback] motion looped (reset to frame 0, as in training episode reset)
+[playback] motion looped (reset to frame 0, as in training episode reset)
+[playback] motion looped (reset to frame 0, as in training episode reset)
+[record] Video saved: dance_f1_playback.mp4 (5735 frames)
+
+[sim2sim] {
+  "robot": "f1",
+  "steps": 5735,
+  "wall_s": 179.0,
+  "mean_body_pos_err_m": 0.1303,
+  "mean_body_pos_err_anchor_rel_m": 0.0553,
+  "mean_joint_pos_err_rad": 0.2012,
+  "mean_anchor_pos_err_m": 0.1201,
+  "min_base_z_m": 0.568,
+  "fall_detected": false
+}

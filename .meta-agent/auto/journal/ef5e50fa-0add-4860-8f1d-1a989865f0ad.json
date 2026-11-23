@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad",
+  "entries": [
+    {
+      "kind": "decision",
+      "text": "继续现有项目进展（不回退）。本任务=换一段有整体位移的舞蹈源，复用已跑通的 F1 管线（GMR→量化门→BeyondMimic 训练→sim2sim）。",
+      "reason": "任务契约=换有整体位移的舞蹈源+复用已跑通 F1 管线。三个已结论实验（exp_7f7653a7 资产/kp-kd、exp_9be24e0c GMR 重定向+六门、exp_599ede6b 训练+sim2sim）与当前目标完全一致，管线无叠补丁。逐环节核实位移兼容性：(1) GMR 全局 IK，base_link pos 权重 100，根 xy 按 root scale 保留；(2) tools_csv_to_npz_f1_local.py 存全局 body_pos_w；(3) MotionCommand._resample_command 把机器人 root 写到参考全局位置+env_origins，跟踪误差为全局量——训练天然支持位移动作；(4) play_mujoco.py L660-663 明确为 travel motions 设计（init root at ref frame-0，记录 robot_xy/ref_xy）。旧结论前提（URDF c0e0ef6、增益、GMR 配置、gradmotion 4090D）均未变。故继续推进，仅换源动作并重跑管线。",
+      "source": "reset_audit",
+      "goalRevision": 1,
+      "id": "jr_9448fe49",
+      "at": 1793887330137
+    },
+    {
+      "kind": "key_op",
+      "text": "gradmotion 训练任务 TASK_20261105_558 已启动（beyondmimic-f1-travel-cmu137，F1 移动舞蹈 CMU 137_24，5000 iter）。坑：ESKU000001 资源不支持 personalDataPath，edit 去掉后 run 成功。预期时长 ~105 分钟（参照 TASK_20261105_430）。",
+      "goalRevision": 1,
+      "id": "jr_b1e6d091",
+      "at": 1793890241700
+    },
+    {
+      "kind": "decision",
+      "text": "F1 移动舞蹈 v2：anchor 终止从 z-only 0.25m 改为全量 0.5m（治 sim2sim 位移跟踪 42% 的根因），重训 5000 iter。",
+      "reason": "sim2sim 显示 5 循环零跌倒但每循环位移保持仅 1.54/3.70m（42%），循环内滞后累积 2.2m。z-score 诊断排除观测/物理错位（无爆炸段），anchor_pos_b p95 3.9σ 的 OOD 是滞后的果（正反馈）。根因在训练目标：基类 anchor 终止是 z-only 0.25m（水平滞后不剪枝），训练终态全局 error_anchor_pos 0.47m 印证策略学到\"允许滞后\"。移动舞蹈要求水平位移被跟踪，把 F1 终止改为全量 bad_anchor_pos 0.5m（滞后 13% 容差），强迫剪枝压力作用于水平跟随。单变量改动，不碰 reward 权重；全新训练（终止条件变化，续训会带旧习惯）。",
+      "source": "self",
+      "goalRevision": 1,
+      "id": "jr_ecef2f88",
+      "at": 1793896956025
+    },
+    {
+      "kind": "artifact",
+      "text": "F1 移动舞蹈交付物：v2 模型（97% 位移保持）、v1 对照模型、参考/回放/对照三视频、双门质量 JSON、sim2sim 指标 npz×2、CMU 适配器工具×2、平台任务记录。commit 04a0a63 已推送。",
+      "artifacts": [
+        "trained_models/dance_f1_travel_v2_model_4999.pt",
+        "trained_models/dance_f1_travel_model_4999.pt",
+        "whole_body_tracking/motions/cmu137_24_f1.npz",
+        "whole_body_tracking/motions/sim2sim_cmu137_24_v2_metrics.npz",
+        "whole_body_tracking/motions/sim2sim_cmu137_24_metrics.json.npz",
+        "whole_body_tracking/motions/quality_cmu137_24_f1_csv.json",
+        "whole_body_tracking/motions/quality_cmu137_24_f1_npz.json",
+        "cmu137_24_reference.mp4",
+        "cmu137_24_playback.mp4",
+        "cmu137_24_compare.mp4",
+        ".gm/task_f1.yaml",
+        "tools_amc_to_lafan_frames.py",
+        "tools_amc_csv_f1.py"
+      ],
+      "goalRevision": 1,
+      "id": "jr_d67dfa25",
+      "at": 1793903924638
+    }
+  ]
+}

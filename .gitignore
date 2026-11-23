@@ -1,0 +1,29 @@
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.python/
+
+# local caches / scratch
+.tmp/
+.pip-cache/
+.gmhome/
+.gm/
+
+# large local assets not needed for training
+GMR/
+F1_29DOF/meshes/
+data/raw/
+data/clips/
+data/curated/
+data/curated_umr/
+
+# media
+*.mp4
+renders/
+trained_models/
+downloads/
+
+# os
+.DS_Store

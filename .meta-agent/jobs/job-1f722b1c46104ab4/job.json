@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-1f722b1c46104ab4",
+  "name": "sim2sim-v4",
+  "command": "cd ~/code/Beyondminic-Weilai-X1 && .venv/bin/python whole_body_tracking/scripts/play_mujoco.py --robot f1 --headless --checkpoint trained_models/dance_f1_v4_model_4999.pt --motion whole_body_tracking/motions/dance2s1_ta_f1.npz --max_steps 3685 --dump_metrics whole_body_tracking/motions/sim2sim_v4_travelarm.npz 2>&1 | tail -30",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "82f46477-d253-4c75-9553-13f15641f41d",
+  "idempotencyKey": "v4-sim2sim-travelarm",
+  "createdAt": 1794062683806,
+  "outputs": [
+    "whole_body_tracking/motions/sim2sim_v4_travelarm.npz"
+  ],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "03b58561-a04b-479c-a268-619970e91d82",
+  "launchOwner": {
+    "pid": 10607,
+    "startToken": "六 11月/ 7 22:33:33 2026"
+  },
+  "pid": 10989,
+  "startToken": "六 11月/ 7 22:44:43 2026"
+}

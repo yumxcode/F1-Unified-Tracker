@@ -1,0 +1,60 @@
+[
+  {
+    "id": "pit_78f68ee5",
+    "category": "infra",
+    "symptom": "工作区内执行 gm auth whoami / gm auth status 报 create config dir failed: mkdir ~/Library/Application Support/gradmotion: operation not permitted，任何 gm 命令退出非 0",
+    "rootCause": "gm CLI 默认把配置写到 ~/Library/Application Support/gradmotion，工作区沙箱禁止该路径；keychain 也被沙箱挡住",
+    "workaround": "命令统一以 HOME=\"$PWD/.gmhome\" GM_API_KEY=\"$(account-pool get ...)\" gm ... 形式运行：HOME 重定向让 gm 使用工作区内 .gmhome/Library/Application Support/gradmotion/config.yaml（上轮会话已建），GM_API_KEY 环境变量提供鉴权（优先级 keychain > env > config，但沙箱内 keychain 不可达）",
+    "evidence": [
+      "HOME 重定向前：mkdir ~/Library/Application Support/gradmotion: operation not permitted",
+      ".gmhome/Library/Application Support/gradmotion/config.yaml 已由上轮会话建好"
+    ],
+    "status": "open",
+    "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+    "createdAt": 1793865260709,
+    "updatedAt": 1793865260709
+  },
+  {
+    "id": "pit_ff303af5",
+    "category": "platform",
+    "symptom": "训练任务在资产阶段后崩溃：ValueError: No contact sensors ... no rigid bodies（v1）与 numpy 升级后 isaac-sim 崩溃（v1b）",
+    "rootCause": "gradmotion harness 对仓库内检测到的 setup.py 自动执行 pip install -e（无 --no-deps），setup.py 的 onnxscript 依赖链拉高 numpy",
+    "workaround": "把仓库 setup.py 的 INSTALL_REQUIRES 置空（镜像已提供全部运行时依赖）；训练包一律用 pip install -e --no-deps 且依赖声明不放 setup.py",
+    "evidence": [
+      "/tmp/v1b_main.log 行313: Obtaining file:///...whole_body_tracking 后带依赖解析（wandb>=0.19->whole_body_tracking==0.1.0），Collecting numpy 2.2.6；镜像 numpy 1.26.4"
+    ],
+    "status": "fixed",
+    "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+    "createdAt": 1793871423489,
+    "updatedAt": 1793871423489
+  },
+  {
+    "id": "pit_b0e6c735",
+    "category": "infra",
+    "symptom": "新 gradmotion 账号创建任务后 run 报 1002xxx「该算力资源无法挂载个人存储，请更换前台商品或取消挂载个人存储」，taskStatus 停在 0",
+    "rootCause": "老账号任务带 personalDataPath=/personal 是旧前台商品配置；新账号对应的前台商品（ESKU000001）不支持个人存储挂载",
+    "workaround": "新建任务 JSON 省略 taskBaseInfo.personalDataPath 字段即可正常启动",
+    "evidence": [
+      "TASK_20261107_131 run 报错该算力资源无法挂载个人存储；TASK_20261107_132 去掉后 success"
+    ],
+    "status": "open",
+    "sourceTaskId": "88ea19c0-698d-4b01-8335-203aded72dd6:g1",
+    "createdAt": 1794031694073,
+    "updatedAt": 1794031694073
+  },
+  {
+    "id": "pit_94a45937",
+    "category": "eval_tool",
+    "symptom": "tools_scan_ground_windows.py 报告 dance2_subject3 [4350,5100) z_std=1.81/z_min=-4.75（似翻滚跳跃段），但 GMR FK 帧同窗口 z_std=0.051，实为平稳移动舞段",
+    "rootCause": "LAFAN1 BVH root 平移通道与旋转通道的组合语义：root 每帧 yaw 大幅旋转时，raw 第 3 通道包含旋转耦合分量，直接当高度会误报翻滚/跳跃（z_std 虚高 1.8+）；GMR load_bvh_file 的 FK 世界坐标才是真实高度",
+    "workaround": "任何 root z/位移统计一律用 GMR load_bvh_file 的 FK 帧（tools_scan_dance_sources.py 口径），不要用 BVH raw MOTION 通道；z_min≥1.15 校准仅对 dance1_subject3 类 root yaw 平稳素材成立",
+    "evidence": [
+      "/tmp/scan_d2s3_15s.json",
+      "/tmp/scan_lafan_dance.json"
+    ],
+    "status": "open",
+    "sourceTaskId": "82f46477-d253-4c75-9553-13f15641f41d:g1",
+    "createdAt": 1794055346704,
+    "updatedAt": 1794055346704
+  }
+]

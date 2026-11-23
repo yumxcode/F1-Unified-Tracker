@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-4e9942f7e4ef4f18",
+  "name": "sim2sim-f1-travel-v2",
+  "command": ".venv/bin/python whole_body_tracking/scripts/play_mujoco.py --robot f1 --headless --checkpoint trained_models/dance_f1_travel_v2_model_4999.pt --motion whole_body_tracking/motions/cmu137_24_f1.npz --max_steps 2485 --dump_metrics whole_body_tracking/motions/sim2sim_cmu137_24_v2_metrics.npz > /tmp/sim2sim_v2.log 2>&1; tail -32 /tmp/sim2sim_v2.log",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad",
+  "idempotencyKey": "sim2sim-f1-travel-v2",
+  "createdAt": 1793903714278,
+  "deadlineAt": 1793907314278,
+  "outputs": [
+    "whole_body_tracking/motions/sim2sim_cmu137_24_v2_metrics.npz"
+  ],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "54b38e2a-9587-4755-b62e-bef46c9b365b",
+  "launchOwner": {
+    "pid": 50516,
+    "startToken": "五 11月/ 6 02:34:39 2026"
+  },
+  "pid": 50669,
+  "startToken": "五 11月/ 6 02:35:14 2026"
+}

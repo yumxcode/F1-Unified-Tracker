@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "1.0",
+  "wakeId": "auto-wake-de266373f6a5",
+  "sessionId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65",
+  "projectDir": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "fireAt": 1793878034622,
+  "reason": "F1 训练 TASK_20261105_430 运行中（iter 344/5000，ETA ~1h40m）。110 分钟后检查训练完成状态并取结果。",
+  "checkpoint": {
+    "account": "jiyow52926 (id=59, userId 4718)",
+    "done_steps": "F1审计+kp/kd(4fc083b); GMR重定向六门全过(8438929); npz+训练配置(bbf543c); URDF路径修复(9132f03); setup.py修复(ab927f1)",
+    "motion": "dance_f1_train.npz 1147f@50fps",
+    "next": "查任务状态; 若完成→下载model_4999→本地sim2sim 5循环→渲染交付; 若未完成→继续观测",
+    "project": "PRO_20261105_081",
+    "task_id": "TASK_20261105_430",
+    "task_name": "beyondmimic-f1-dance-v1c",
+    "training_iters": "5000, iter_time 1.25s, started 17:27:15"
+  },
+  "goal": "F1 29DOF 舞蹈训练（仓库 ~/code/Beyondminic-Weilai-X1，main 分支）：\n1. 审计 F1_29DOF 资产，确定合适的 kp/kd；\n2. 建立 F1 的 GMR 重定向，动作合理、无穿模、无穿地，给出量化通过标准；\n3. Beyondminic 完成训练并完成 sim2sim，能稳定进行舞蹈动作。\n本地为 Mac 不做训练，验证与训练全部在 gradmotion；长周期观测用 timer park。",
+  "goalRevision": 1,
+  "checkpointRevision": 39,
+  "historyMessageCount": 539,
+  "historyFingerprint": "16777232:5338105:1242671:1793871434530254651:1793871434530254651:Infinity:67108864",
+  "runtime": {
+    "sessionDir": "/Users/yumx/.weixin-bot/weixin-bot/personal-agent/runtime-sessions",
+    "configFile": "/Users/yumx/.meta-agent/glm_config.json"
+  },
+  "status": "done",
+  "attempts": 1,
+  "createdAt": 1793871434623,
+  "updatedAt": 1793880693551,
+  "claim": {
+    "owner": "yumxdeMac-mini.local#33856",
+    "token": "76daf0ae-5050-4e1b-b225-74a653fcec86",
+    "claimedAt": 1793878035574,
+    "expiresAt": 1793881275732
+  }
+}

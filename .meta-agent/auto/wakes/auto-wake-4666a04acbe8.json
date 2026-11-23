@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0",
+  "wakeId": "auto-wake-4666a04acbe8",
+  "sessionId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65",
+  "projectDir": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "fireAt": 1793881111850,
+  "reason": "对比视频渲染完成后提交全部交付物并出最终报告 — waiting until job job-791ffc34e31a480d finishes",
+  "checkpoint": {
+    "waitCondition": {
+      "kind": "job",
+      "jobId": "job-791ffc34e31a480d"
+    },
+    "waitTarget": "local"
+  },
+  "goal": "F1 29DOF 舞蹈训练（仓库 ~/code/Beyondminic-Weilai-X1，main 分支）：\n1. 审计 F1_29DOF 资产，确定合适的 kp/kd；\n2. 建立 F1 的 GMR 重定向，动作合理、无穿模、无穿地，给出量化通过标准；\n3. Beyondminic 完成训练并完成 sim2sim，能稳定进行舞蹈动作。\n本地为 Mac 不做训练，验证与训练全部在 gradmotion；长周期观测用 timer park。",
+  "goalRevision": 1,
+  "checkpointRevision": 55,
+  "historyMessageCount": 698,
+  "historyFingerprint": "16777232:5338105:1502572:1793881106018227668:1793881106018227668:Infinity:67108864",
+  "runtime": {
+    "sessionDir": "/Users/yumx/.weixin-bot/weixin-bot/personal-agent/runtime-sessions",
+    "configFile": "/Users/yumx/.meta-agent/glm_config.json"
+  },
+  "status": "done",
+  "attempts": 1,
+  "createdAt": 1793881106133,
+  "updatedAt": 1793882197950,
+  "claim": {
+    "owner": "yumxdeMac-mini.local#36914",
+    "token": "e4f18eca-b2a0-4a67-9a78-650013015533",
+    "claimedAt": 1793881112116,
+    "expiresAt": 1793882792150
+  }
+}

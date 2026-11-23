@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "taskId": "task_197842d2cac1f8963656cec22ab57b51",
+  "sourceSessionId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad",
+  "goalRevision": 1,
+  "revision": 1,
+  "status": "pending",
+  "evidence": [
+    {
+      "reviewId": "review_187a608f6402881ab157b99b1a3e939b",
+      "outcome": "passed",
+      "conclusion": "关键目标与关键路径全部完成并经独立取证验证。(1) 换有整体位移的舞蹈源：选 CMU 137_24 Graceful Lady Walk（属目标明确允许的 CMU 137 族），快照 npz 实测根净位移 3.696m/9.9s、root z std 0.016（跨空间移动且贴地行走），LAFAN 排除有量化依据（fnd_7af304ab，高位移段全是翻滚/跳跃）；新写 342 行 ASF/AMC→LAFAN 语义适配器 + 205 行 CSV 工具，复用已跑通的 GMR IK 重定向链路。(2) 量化门：CSV 级（299f@30fps）与 npz 级（497f@50fps）六项门（穿地 -0.0124/-0.015、自碰撞 0.0716/0.005、限位 0、速度 0、高度带、连续性）overall_pass=true。(3) gradmotion 训练：v1 TASK_20261105_558 定位 42% 位移保持根因后，v2 TASK_20261106_006（唯一改动=全量 anchor 终止 0.5m，代码落地 flat_env_cfg.py:26-27 + bad_anchor_pos 全量 3D norm）5000 iter 完成（status 5，reward 22.2，error_anchor_pos 0.20），v2 模型 sha256 与 gradmotion 下载记录字节级一致。(4) sim2sim：2485 步（5×497）零跌倒（min_base_z 0.556），每循环位移保持 3.60/3.70m=97%（v1 42%），anchor err mean 0.115m（v1 1.27m），指标 npz 已入库。(5) 对照视频 reference/playback/compare（1491 帧=3 循环 ref|policy hstack）全部新渲染（md5 与旧视频互异），compare 大小与合成命令输出精确一致。(6) .gm/task_f1.yaml travel_dance 段完整登记，commit 04a0a63 推送成功且 HEAD=origin/main（宿主工作区事实：0 未推送提交）。放松项（非关键）：a) v2 sim2sim 关节误差 mean 0.50 rad 高于 v1 静止舞蹈 0.20 rad——行走动作摆幅更大所致，契约未设该硬阈值且 yaml 如实记录，核心指标零跌倒+位移保持达标；b) timer park 未在仓库/命令记录中留痕，长周期观测实际由 gm task info 轮询完成（exec:125→1848 iter、exec:126→4999 完成），属流程工具偏好且训练观测结果已达成；c) 生成 sim2sim npz 的 play_mujoco 原始命令不在宿主采集窗口（窗口仅 exec:119-133），但其产物为 2485 步完整时间序列、编辑后 exit=0 的分析命令 [exec:128] 与本审核独立复算逐项吻合、playback 视频同为该运行渲染，证据链充分。本轮快照 git diff 为空是因为全部工作已提交于 04a0a63（快照基线即交付状态），非工作缺失。",
+      "unfinished": [],
+      "evidence": [
+        "[verify:c7a34b40-e485-4f78-8764-8153e460e584] 快照 cmu137_24_f1.npz 独立计算：497帧@50fps、29 关节、根净位移 3.696m（路径 6.17m）、root z std 0.0156——证明源动作有跨空间整体位移且为 29DOF",
+        "[verify:62c3ce3d-393e-4252-9d09-01544a728759] [verify:6969da45-d248-4df8-9d48-2844a4740d84] 六项量化门 JSON（npz 级与 CSV 级）均 overall_pass=true，含阈值记录（ground -0.015m、self_pen 0.005m）",
+        "[verify:9a3dfe42-0b36-48e6-8851-d0fb4e1a88cf] [verify:1ae1baca-7bac-4ab8-809c-b03a0e8eed9f] 新适配器 tools_amc_to_lafan_frames.py(342行 ASF/AMC 解析+FK+LAFAN 对齐) + tools_amc_csv_f1.py(205行) + 中间产物 motions/csv/cmu137_24_f1.csv——证明 GMR 重定向管线复用而非绕过",
+        "[exec:123] [exec:125] [exec:126] gradmotion TASK_20261106_006（beyondmimic-f1-travel-cmu137-v2）：exec:126 编辑后 exit=0 显示 status 5、4999/5000 iter、error_anchor_pos 0.19-0.20——v2 训练在 gradmotion 完整跑完（v1 TASK_20261105_558 status 5 同见 exec:123）",
+        "[verify:3b24edca-bbc6-4fb7-82cc-af77e562e8b3] 快照 v2 模型 sha256=0b9804e0…与 [exec:127]（编辑后 exit=0）gradmotion 模型下载记录 sha256 逐字节一致；v1 模型 sha=74016eab…与 .gm/task_f1.yaml 记录一致——交付模型即训练产物",
+        "[verify:09e17261-1d80-4c91-80de-9e44df411456] [verify:0d7f00e8-80b1-46b3-9ca1-6dc9a68cff8d] flat_env_cfg.py:26-27 终止改为 bad_anchor_pos threshold 0.5，terminations.py:18-20 bad_anchor_pos 为全量 3D norm——v2 关键改动真实落地代码",
+        "[verify:7869d211-372e-4d3b-956c-5c606aff14f1] sim2sim 指标 npz 独立复算：v2 共 2485=5×497 步、每循环 3.60/3.70m(97%)、min_base_z 0.556(零跌倒)、anchor err mean 0.115/max 0.203；v1 对照 42%、min_base_z 0.570——与 [exec:128]（编辑后 exit=0）输出逐项吻合",
+        "[verify:af86107f-49c7-4675-a890-6a0010b86753] 三段 cmu137_24 视频 md5 互异且异于旧 LAFAN 视频（新渲染非复制）；compare.mp4 大小 66898713 字节与 [exec:130]（编辑后 exit=0）imageio 合成输出精确一致，1491 帧=3 循环 ref|playback",
+        "[verify:8f1b3440-9ab2-4f7e-a53a-6002d706e014] .gm/task_f1.yaml travel_dance 段完整登记（line96 travel_dance、line117 TASK_20261106_006、line126-127 fall_detected: false + travel_retention 97%）",
+        "[verify:8f1b3440-9ab2-4f7e-a53a-6002d706e014] [exec:132] 交付入库：commit 04a0a63 含 v2 模型(6768482B)/指标 npz(180968B)/三视频/task_f1.yaml(+50行)，exec:132 编辑后 exit=0 push f90f8e4..04a0a63，快照 HEAD=04a0a63、宿主工作区事实 0 个未推送提交——推送完成"
+      ],
+      "terminal": true,
+      "keyPath": [
+        "移动舞蹈训练中 z-only anchor 终止会让水平滞后在训练中逃逸剪枝、并在 sim2sim 被 OOD anchor_pos_b 反馈放大（v1 位移保持 42%）；改全量 anchor norm 终止（0.5m≈片段位移 13%）后一次重训即达 97%——终止条件须与目标自由度对齐（[verify:09e17261-1d80-4c91-80de-9e44df411456] + [verify:7869d211-372e-4d3b-956c-5c606aff14f1] v1/v2 对照）",
+        "用模型 sha256 把仓库交付物与远程训练平台下载记录对齐（[verify:3b24edca-bbc6-4fb7-82cc-af77e562e8b3] vs [exec:127]），再配合编辑后 exit=0 的指标分析命令，可在原始运行命令不在采集窗口时仍构成完整证据链"
+      ],
+      "pitfalls": [
+        "LAFAN 舞蹈系列全部高位移窗口由翻滚/跳跃/地板动作构成，重定向无法过穿地/自碰撞硬门（fnd_7af304ab）；选源应先扫根 z std 与穿地面再投入重定向——执行者改选 CMU 137 族一次过六门且余量健康（[verify:6969da45-d248-4df8-9d48-2844a4740d84]）"
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "reviewId": "review_187a608f6402881ab157b99b1a3e939b",
+      "outcome": "passed",
+      "conclusion": "关键目标与关键路径全部完成并经独立取证验证。(1) 换有整体位移的舞蹈源：选 CMU 137_24 Graceful Lady Walk（属目标明确允许的 CMU 137 族），快照 npz 实测根净位移 3.696m/9.9s、root z std 0.016（跨空间移动且贴地行走），LAFAN 排除有量化依据（fnd_7af304ab，高位移段全是翻滚/跳跃）；新写 342 行 ASF/AMC→LAFAN 语义适配器 + 205 行 CSV 工具，复用已跑通的 GMR IK 重定向链路。(2) 量化门：CSV 级（299f@30fps）与 npz 级（497f@50fps）六项门（穿地 -0.0124/-0.015、自碰撞 0.0716/0.005、限位 0、速度 0、高度带、连续性）overall_pass=true。(3) gradmotion 训练：v1 TASK_20261105_558 定位 42% 位移保持根因后，v2 TASK_20261106_006（唯一改动=全量 anchor 终止 0.5m，代码落地 flat_env_cfg.py:26-27 + bad_anchor_pos 全量 3D norm）5000 iter 完成（status 5，reward 22.2，error_anchor_pos 0.20），v2 模型 sha256 与 gradmotion 下载记录字节级一致。(4) sim2sim：2485 步（5×497）零跌倒（min_base_z 0.556），每循环位移保持 3.60/3.70m=97%（v1 42%），anchor err mean 0.115m（v1 1.27m），指标 npz 已入库。(5) 对照视频 reference/playback/compare（1491 帧=3 循环 ref|policy hstack）全部新渲染（md5 与旧视频互异），compare 大小与合成命令输出精确一致。(6) .gm/task_f1.yaml travel_dance 段完整登记，commit 04a0a63 推送成功且 HEAD=origin/main（宿主工作区事实：0 未推送提交）。放松项（非关键）：a) v2 sim2sim 关节误差 mean 0.50 rad 高于 v1 静止舞蹈 0.20 rad——行走动作摆幅更大所致，契约未设该硬阈值且 yaml 如实记录，核心指标零跌倒+位移保持达标；b) timer park 未在仓库/命令记录中留痕，长周期观测实际由 gm task info 轮询完成（exec:125→1848 iter、exec:126→4999 完成），属流程工具偏好且训练观测结果已达成；c) 生成 sim2sim npz 的 play_mujoco 原始命令不在宿主采集窗口（窗口仅 exec:119-133），但其产物为 2485 步完整时间序列、编辑后 exit=0 的分析命令 [exec:128] 与本审核独立复算逐项吻合、playback 视频同为该运行渲染，证据链充分。本轮快照 git diff 为空是因为全部工作已提交于 04a0a63（快照基线即交付状态），非工作缺失。",
+      "unfinished": [],
+      "evidence": [
+        "[verify:c7a34b40-e485-4f78-8764-8153e460e584] 快照 cmu137_24_f1.npz 独立计算：497帧@50fps、29 关节、根净位移 3.696m（路径 6.17m）、root z std 0.0156——证明源动作有跨空间整体位移且为 29DOF",
+        "[verify:62c3ce3d-393e-4252-9d09-01544a728759] [verify:6969da45-d248-4df8-9d48-2844a4740d84] 六项量化门 JSON（npz 级与 CSV 级）均 overall_pass=true，含阈值记录（ground -0.015m、self_pen 0.005m）",
+        "[verify:9a3dfe42-0b36-48e6-8851-d0fb4e1a88cf] [verify:1ae1baca-7bac-4ab8-809c-b03a0e8eed9f] 新适配器 tools_amc_to_lafan_frames.py(342行 ASF/AMC 解析+FK+LAFAN 对齐) + tools_amc_csv_f1.py(205行) + 中间产物 motions/csv/cmu137_24_f1.csv——证明 GMR 重定向管线复用而非绕过",
+        "[exec:123] [exec:125] [exec:126] gradmotion TASK_20261106_006（beyondmimic-f1-travel-cmu137-v2）：exec:126 编辑后 exit=0 显示 status 5、4999/5000 iter、error_anchor_pos 0.19-0.20——v2 训练在 gradmotion 完整跑完（v1 TASK_20261105_558 status 5 同见 exec:123）",
+        "[verify:3b24edca-bbc6-4fb7-82cc-af77e562e8b3] 快照 v2 模型 sha256=0b9804e0…与 [exec:127]（编辑后 exit=0）gradmotion 模型下载记录 sha256 逐字节一致；v1 模型 sha=74016eab…与 .gm/task_f1.yaml 记录一致——交付模型即训练产物",
+        "[verify:09e17261-1d80-4c91-80de-9e44df411456] [verify:0d7f00e8-80b1-46b3-9ca1-6dc9a68cff8d] flat_env_cfg.py:26-27 终止改为 bad_anchor_pos threshold 0.5，terminations.py:18-20 bad_anchor_pos 为全量 3D norm——v2 关键改动真实落地代码",
+        "[verify:7869d211-372e-4d3b-956c-5c606aff14f1] sim2sim 指标 npz 独立复算：v2 共 2485=5×497 步、每循环 3.60/3.70m(97%)、min_base_z 0.556(零跌倒)、anchor err mean 0.115/max 0.203；v1 对照 42%、min_base_z 0.570——与 [exec:128]（编辑后 exit=0）输出逐项吻合",
+        "[verify:af86107f-49c7-4675-a890-6a0010b86753] 三段 cmu137_24 视频 md5 互异且异于旧 LAFAN 视频（新渲染非复制）；compare.mp4 大小 66898713 字节与 [exec:130]（编辑后 exit=0）imageio 合成输出精确一致，1491 帧=3 循环 ref|playback",
+        "[verify:8f1b3440-9ab2-4f7e-a53a-6002d706e014] .gm/task_f1.yaml travel_dance 段完整登记（line96 travel_dance、line117 TASK_20261106_006、line126-127 fall_detected: false + travel_retention 97%）",
+        "[verify:8f1b3440-9ab2-4f7e-a53a-6002d706e014] [exec:132] 交付入库：commit 04a0a63 含 v2 模型(6768482B)/指标 npz(180968B)/三视频/task_f1.yaml(+50行)，exec:132 编辑后 exit=0 push f90f8e4..04a0a63，快照 HEAD=04a0a63、宿主工作区事实 0 个未推送提交——推送完成"
+      ],
+      "terminal": true,
+      "keyPath": [
+        "移动舞蹈训练中 z-only anchor 终止会让水平滞后在训练中逃逸剪枝、并在 sim2sim 被 OOD anchor_pos_b 反馈放大（v1 位移保持 42%）；改全量 anchor norm 终止（0.5m≈片段位移 13%）后一次重训即达 97%——终止条件须与目标自由度对齐（[verify:09e17261-1d80-4c91-80de-9e44df411456] + [verify:7869d211-372e-4d3b-956c-5c606aff14f1] v1/v2 对照）",
+        "用模型 sha256 把仓库交付物与远程训练平台下载记录对齐（[verify:3b24edca-bbc6-4fb7-82cc-af77e562e8b3] vs [exec:127]），再配合编辑后 exit=0 的指标分析命令，可在原始运行命令不在采集窗口时仍构成完整证据链"
+      ],
+      "pitfalls": [
+        "LAFAN 舞蹈系列全部高位移窗口由翻滚/跳跃/地板动作构成，重定向无法过穿地/自碰撞硬门（fnd_7af304ab）；选源应先扫根 z std 与穿地面再投入重定向——执行者改选 CMU 137 族一次过六门且余量健康（[verify:6969da45-d248-4df8-9d48-2844a4740d84]）"
+      ]
+    }
+  ],
+  "attempts": [
+    {
+      "id": "review_187a608f6402881ab157b99b1a3e939b",
+      "state": "completed",
+      "note": "recorded"
+    }
+  ],
+  "taskContract": {
+    "schemaVersion": "1",
+    "revision": 1,
+    "goalRevision": 1,
+    "goal": "F1 29DOF 移动舞蹈训练（仓库 ~/code/Beyondminic-Weilai-X1，main 分支）：换一段有整体位移的舞蹈源动作（不要求每步迈很大，但根要有跨空间移动，LAFAN 舞蹈变体/CMU 137 族/GVHMR 视频重建均可），复用已跑通的 F1 管线（GMR 重定向+量化门 → Beyondminic 训练 → sim2sim），交付新训练模型、sim2sim 指标与对照视频。训练在 gradmotion，长周期观测用 timer park。",
+    "amendments": []
+  },
+  "extraction": {
+    "state": "idle",
+    "reason": "terminal",
+    "throughReviewId": "review_187a608f6402881ab157b99b1a3e939b",
+    "requestedAt": 1793904397352,
+    "extractedThroughReviewId": "review_187a608f6402881ab157b99b1a3e939b"
+  },
+  "updatedAt": 1793904515280,
+  "card": {
+    "title": "仿人机器人移动舞蹈模仿：锚点终止设计与动捕源预筛",
+    "oneLiner": "终止条件必须覆盖任务要求的所有自由度：位移任务只用 z 向锚定终止会放走水平漂移，sim2sim 中被观测反馈放大；改全量锚点误差范数终止一次重训即达标。",
+    "task": "在 Beyondminic 人形管线中为 29DOF 仿人机器人更换带整体位移的舞蹈源动作：新写 ASF/AMC→LAFAN 语义适配器把 CMU 行走片段重定向过六项量化门，强化学习训练后 sim2sim 验证并交付模型、指标与对照视频。首版用 z 向锚定终止，零跌倒但位移保持 42%；定位根因后唯一改动是把终止条件改为全量锚点误差，重训一次即零跌倒且位移保持 97%，终态 passed。",
+    "scope": "覆盖：动捕源预筛、跨骨架（ASF/AMC→LAFAN 语义）重定向与量化门、全身跟踪 RL 的终止条件设计、sim2sim 位移与跌倒评估。不覆盖：视频重建类源（GVHMR 等）、实机部署、非双足或无位移任务的适用性。",
+    "applicability": [
+      "带整体位移的模仿跟踪任务（locomotion-tracking、舞蹈行走），观测含锚点位置误差：若训练零跌倒但 sim2sim 位移保持明显偏低，优先检查终止条件是否只约束了竖直方向。",
+      "从 LAFAN、CMU 等动捕库为低自由度双足骨架选源，且重定向后有穿地/自碰撞/限位硬门时：先用根位移与根 z 波动做预筛，再投入适配。",
+      "训练产物由远程平台生成、交付需自证一致性时：用哈希比对把仓库模型与平台下载记录对齐。"
+    ],
+    "principles": [
+      "终止条件与任务目标自由度对齐：跟踪位移类任务的锚点终止必须覆盖水平分量（用锚点位置误差的全量 3D 范数判终止），阈值按片段位移量级设定；否则策略会学会在不触发剪枝的前提下水平滞后，训练指标虚高。",
+      "动捕选源先廉价预筛再投入适配：扫描候选窗口的根净位移、根 z 波动（贴地程度）与动作类型，行走类片段比杂技类（翻滚/跳跃）更易通过穿地与自碰撞硬门，避免整轮重定向返工。",
+      "远程平台训练时的交付自检：下载模型后与平台记录做哈希逐字节比对，指标产物用可独立复算的分析命令核对时间序列，确保交付物确为该次训练产物。"
+    ],
+    "pitfalls": [
+      "现象：训练全程零跌倒，sim2sim 却位移保持骤降、行为发散。原因：z 向锚定终止放走水平滞后，漂移使策略观测中的锚点相对位置超出训练分布，误差被反馈放大。规避：终止改锚点误差全量范数，一次重训即可恢复。",
+      "现象：LAFAN 等舞蹈库的高位移窗口重定向过不了穿地/自碰撞门。原因：其位移由翻滚、跳跃、地板动作产生，与双足行走骨架约束冲突。规避：改选贴地行走类片段（如 CMU 行走族），一次过门且余量健康。"
+    ],
+    "limitations": [
+      "结论由仿真内 sim2sim（连续多循环行走，零跌倒）支撑，未做实机验证；行走摆幅大导致 sim2sim 关节误差高于静止舞蹈基线，契约无该硬阈值、未针对优化。",
+      "终止阈值量级与位移保持结果基于单一行走片段验证，泛化到其他位移幅度或步态未经检验。"
+    ],
+    "outcome": "终态 passed：所选行走片段根净位移约 3.7m/9.9s、贴地，重定向一次过六项量化门；唯一改动（锚点终止改全量 3D 范数）重训后，sim2sim 零跌倒，每循环位移保持 3.60/3.70m（97%，改前 42%），锚点误差均值 0.115m；交付模型哈希与远程训练记录一致，模型、指标与三段对照视频已入库并推送。",
+    "details": [
+      {
+        "path": "tools_amc_to_lafan_frames.py",
+        "why": "ASF/AMC 解析+FK+LAFAN 语义对齐适配器，可复用跨骨架重定向做法"
+      },
+      {
+        "path": "tools_amc_csv_f1.py",
+        "why": "CSV 级量化门工具，含穿地/自碰撞/限位等六项门"
+      },
+      {
+        "path": "whole_body_tracking/motions/cmu137_24_f1.npz",
+        "why": "重定向后的 29DOF 50fps 动作，可复算根位移与贴地性"
+      },
+      {
+        "path": "whole_body_tracking/motions/sim2sim_cmu137_24_v2_metrics.npz",
+        "why": "sim2sim 全时序指标，可复算位移保持与跌倒统计"
+      },
+      {
+        "path": "whole_body_tracking/motions/quality_cmu137_24_f1_npz.json",
+        "why": "npz 级六项量化门结果与阈值记录"
+      },
+      {
+        "path": ".gm/task_f1.yaml",
+        "why": "任务登记：模型、指标、结论汇总，含位移舞蹈段"
+      }
+    ],
+    "tags": [
+      "全身跟踪强化学习",
+      "sim2sim",
+      "Beyondminic",
+      "LAFAN",
+      "CMU 动捕",
+      "GMR 重定向",
+      "锚点误差终止",
+      "位移漂移"
+    ]
+  },
+  "contentHash": "84a02119ba29256556b6437c5c1afc8264dcf3daca7376eef0f2e6f7c8b09495",
+  "source": {
+    "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+    "remote": "git@github.com:yumxcode/Beyondminic-Weilai-X1.git",
+    "branch": "main",
+    "commit": "04a0a63a87b0a4680cde4433f90ab2d508f28f1e"
+  }
+}

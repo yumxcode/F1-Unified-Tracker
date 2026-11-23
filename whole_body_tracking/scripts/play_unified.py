@@ -1,0 +1,256 @@
+#!/usr/bin/env python3
+"""Sim2sim playback of the unified F1 tracker from a standing start to a stop.
+
+Unlike play_mujoco.py (which loops a single clip and resets to frame 0), this
+script evaluates one clip of the multi-clip library through the full contract
+protocol:
+
+    3 s idle stand -> 0.5 s settle -> motion -> 2 s stop hold
+
+It never resets the reference mid-episode and never loops.  It reports entry,
+in-motion and exit success separately, plus tracking / contact / slip / flight
+metrics.
+
+Usage:
+    python whole_body_tracking/scripts/play_unified.py \
+        --library motions/f1_unified_library.npz \
+        --checkpoint trained_models/unified_model_XXXX.pt \
+        --clip walk1_subject1 --headless --metrics out.npz
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import time
+from pathlib import Path
+
+import numpy as np
+import torch
+import mujoco
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO = SCRIPT_DIR.parents[1]
+sys.path.insert(0, str(SCRIPT_DIR))
+import play_mujoco as pm  # noqa: E402
+
+pm._ROBOT = "f1"
+
+F1_XML = REPO / "whole_body_tracking/source/whole_body_tracking/whole_body_tracking/assets/f1/mjcf/f1_flat.xml"
+FOOT_CORNERS = [(-0.0967, -0.0395, -0.0337), (0.1071, -0.0395, -0.0337),
+                (-0.0967, 0.0365, -0.0337), (0.1071, 0.0365, -0.0337)]
+
+
+def build_obs(t, lib, data, joint_pos_px, joint_vel_px, last_action, default_pos,
+              body_ids, anchor_idx, to_px):
+    ref_jpos = lib["joint_pos"][t]
+    ref_jvel = lib["joint_vel"][t]
+    ref_body_pos = lib["body_pos_w"][t]
+    ref_body_quat = lib["body_quat_w"][t]
+    robot_anchor_pos = data.xpos[body_ids[anchor_idx]].copy()
+    robot_anchor_quat = data.xquat[body_ids[anchor_idx]].copy()
+    anchor_pos_b, anchor_quat_b = pm.subtract_frame_transform(
+        robot_anchor_pos, robot_anchor_quat,
+        ref_body_pos[anchor_idx], ref_body_quat[anchor_idx])
+    rotmat_b = pm.quat_to_rotmat(anchor_quat_b)
+    base_lin_vel = pm.quat_rotate_inv(data.qpos[3:7], data.qvel[0:3].copy())
+    base_ang_vel = data.qvel[3:6].copy()
+    skill = np.zeros(4, dtype=np.float32)
+    skill[int(lib["skill_ids"][lib["_clip_idx"]])] = 1.0
+    contact = lib["foot_contact"][t]
+    flight = (1.0 - contact[0]) * (1.0 - contact[1])
+    obs_np = np.concatenate([
+        to_px(ref_jpos), to_px(ref_jvel),
+        anchor_pos_b, rotmat_b[:, :2].flatten(),
+        base_lin_vel, base_ang_vel,
+        to_px(joint_pos_px - default_pos), to_px(joint_vel_px), last_action,
+        skill, np.array([contact[0], contact[1], flight], dtype=np.float32),
+    ]).astype(np.float32)
+    return obs_np, ref_body_pos, ref_body_quat, robot_anchor_pos, robot_anchor_quat, anchor_pos_b
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--library", type=Path, required=True)
+    ap.add_argument("--checkpoint", type=Path, required=True)
+    ap.add_argument("--clip", type=str, required=True)
+    ap.add_argument("--headless", action="store_true")
+    ap.add_argument("--record", type=Path, default=None)
+    ap.add_argument("--metrics", type=Path, default=None)
+    ap.add_argument("--max_steps", type=int, default=0, help="0 = full clip")
+    ap.add_argument("--entry_s", type=float, default=3.5)
+    ap.add_argument("--exit_s", type=float, default=2.0)
+    args = ap.parse_args()
+
+    lib = dict(np.load(args.library, allow_pickle=True))
+    clip_names = [str(x) for x in lib["clip_names"]]
+    if args.clip not in clip_names:
+        raise SystemExit(f"clip {args.clip!r} not in library; available: {clip_names}")
+    ci = clip_names.index(args.clip)
+    lib["_clip_idx"] = ci
+    start, end = int(lib["clip_start"][ci]), int(lib["clip_end"][ci])
+    print(f"[unified] clip {args.clip} [{start},{end}) skill {int(lib['skill_ids'][ci])} "
+          f"({(end-start)/50:.1f}s)")
+
+    actor, normalizer, obs_dim, action_dim = pm.load_policy(str(args.checkpoint))
+    print(f"[policy] obs_dim={obs_dim}")
+
+    model = mujoco.MjModel.from_xml_path(str(F1_XML))
+    data = mujoco.MjData(model)
+    joint_names_px = [str(x) for x in lib["joint_names"]]
+    body_names = [str(x) for x in lib["body_names"]]
+    # map npz joint/body order to the MuJoCo model
+    jid = {n: mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, n) for n in joint_names_px}
+    assert all(v >= 0 for v in jid.values()), [k for k, v in jid.items() if v < 0]
+    qadr = np.array([model.jnt_qposadr[jid[n]] for n in joint_names_px])
+    dadr = np.array([model.jnt_dofadr[jid[n]] for n in joint_names_px])
+    bid = np.array([mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, n) for n in body_names])
+    assert all(v >= 0 for v in bid), [n for n, b in zip(body_names, bid) if b < 0]
+    anchor_idx = body_names.index("lumbar_pitch_link")
+
+    default_pos, kp, kd, action_scale = pm.build_joint_arrays(joint_names_px)
+
+    # initial state: default stand at the clip's first reference frame
+    mujoco.mj_resetData(model, data)
+    data.qpos[0:3] = lib["body_pos_w"][start, 0]
+    data.qpos[3:7] = lib["body_quat_w"][start, 0]
+    data.qpos[qadr] = default_pos
+    data.qvel[:] = 0.0
+    mujoco.mj_forward(model, data)
+
+    last_action = np.zeros(len(joint_names_px), dtype=np.float32)
+    metrics = {k: [] for k in [
+        "body_pos_err_rel", "joint_pos_err", "anchor_pos_err", "base_z",
+        "action_rate", "contact_mismatch", "slip", "flight_ref", "flight_robot",
+        "robot_xy", "ref_xy", "skill",
+    ]}
+    fell = False
+    n_steps = (end - start) if args.max_steps <= 0 else min(args.max_steps, end - start)
+    t0 = time.time()
+    recorder = None
+    if args.record:
+        import imageio
+        renderer = mujoco.Renderer(model, height=480, width=640)
+        cam = mujoco.MjvCamera()
+        mujoco.mjv_defaultCamera(cam)
+        cam.lookat[:] = [0, 0, 0.6]
+        cam.distance = 3.5
+        cam.azimuth = 135
+        cam.elevation = -15
+        writer = imageio.get_writer(str(args.record), fps=50)
+        recorder = (renderer, cam, writer)
+
+    for step in range(n_steps):
+        t = start + step
+        joint_pos = np.array([data.qpos[a] for a in qadr])
+        joint_vel = np.array([data.qvel[a] for a in dadr])
+        obs_np, ref_body_pos, ref_body_quat, robot_anchor_pos, robot_anchor_quat, anchor_pos_b = \
+            build_obs(t, lib, data, joint_pos, joint_vel, last_action, default_pos,
+                      bid, anchor_idx, lambda v: v)
+        with torch.no_grad():
+            action = actor(pm.normalize_obs(torch.from_numpy(obs_np).unsqueeze(0), normalizer)).squeeze(0).numpy().astype(np.float32)
+        metrics["action_rate"].append(float(np.mean(np.abs(action - last_action))))
+        last_action = action.copy()
+        target_pos = default_pos + action * action_scale
+        for _ in range(pm.DECIMATION):
+            jp = np.array([data.qpos[a] for a in qadr])
+            jv = np.array([data.qvel[a] for a in dadr])
+            tau = kp * (target_pos - jp) - kd * jv
+            for i, n in enumerate(joint_names_px):
+                eff, _, _ = pm._match_joint_params_auto(n)
+                tau[i] = np.clip(tau[i], -eff, eff)
+            ctrl = np.zeros(model.nu)
+            for i, a in enumerate(dadr):
+                ctrl[i] = tau[i]
+            data.ctrl[:] = ctrl
+            mujoco.mj_step(model, data)
+
+        # ---- metrics -----------------------------------------------------
+        robot_body_pos = data.xpos[bid]
+        delta_ori = pm.yaw_quat(pm.quat_mul(robot_anchor_quat, pm.quat_inv(ref_body_quat[anchor_idx])))
+        delta_pos = robot_anchor_pos.copy()
+        delta_pos[2] = ref_body_pos[anchor_idx][2]
+        ref_rel = delta_pos[None, :] + (ref_body_pos - ref_body_pos[anchor_idx][None, :]) @ pm.quat_to_rotmat(delta_ori).T
+        metrics["body_pos_err_rel"].append(float(np.mean(np.linalg.norm(robot_body_pos - ref_rel, axis=1))))
+        metrics["joint_pos_err"].append(float(np.mean(np.abs(joint_pos - lib["joint_pos"][t]))))
+        metrics["anchor_pos_err"].append(float(np.linalg.norm(anchor_pos_b)))
+        metrics["base_z"].append(float(data.qpos[2]))
+        metrics["robot_xy"].append(data.qpos[0:2].copy())
+        metrics["ref_xy"].append(ref_body_pos[0, :2].copy())
+        metrics["skill"].append(int(lib["skill_ids"][ci]))
+
+        # foot contact from sole corners
+        robot_contact = []
+        for side in ("left", "right"):
+            b = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, f"{side}_ankle_roll")
+            Rm = data.xmat[b].reshape(3, 3)
+            p = data.xpos[b]
+            z = min((p + Rm @ np.array(c))[2] for c in FOOT_CORNERS)
+            robot_contact.append(z < 0.02)
+        ref_contact = lib["foot_contact"][t] > 0.5
+        mismatch = int(robot_contact[0] != ref_contact[0]) + int(robot_contact[1] != ref_contact[1])
+        metrics["contact_mismatch"].append(mismatch)
+        metrics["flight_ref"].append(int(not ref_contact[0] and not ref_contact[1]))
+        metrics["flight_robot"].append(int(not robot_contact[0] and not robot_contact[1]))
+
+        # slip: foot horizontal speed while reference stance
+        if step > 0:
+            dt = pm.POLICY_DT
+            slip = 0.0
+            for side in ("left", "right"):
+                b = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, f"{side}_ankle_roll")
+                v = np.linalg.norm((data.xpos[b][:2] - metrics.get(f"_prev_{side}", data.xpos[b][:2])) / dt)
+                metrics[f"_prev_{side}"] = data.xpos[b][:2].copy()
+                if ref_contact[0 if side == "left" else 1]:
+                    slip = max(slip, v)
+            metrics["slip"].append(slip)
+
+        if data.qpos[2] < 0.55 * pm.F1_INIT_HEIGHT:
+            fell = True
+        if recorder is not None:
+            recorder[0].update_scene(data, camera=recorder[1])
+            recorder[2].append_data(recorder[0].render())
+
+    if recorder is not None:
+        recorder[2].close()
+        print(f"[record] {args.record}")
+
+    # ---- summary ---------------------------------------------------------
+    n_entry = int(args.entry_s / pm.POLICY_DT)
+    n_exit = int(args.exit_s / pm.POLICY_DT)
+    entry_ok = not fell and all(m == 0 for m in metrics["contact_mismatch"][:n_entry])
+    robot_xy = np.array(metrics["robot_xy"])
+    exit_drift = float(np.linalg.norm(robot_xy[-1] - robot_xy[max(0, len(robot_xy) - n_exit)]))
+    exit_ok = (not fell) and exit_drift <= 0.05
+    body_err = np.array(metrics["body_pos_err_rel"])
+    success = (not fell) and float(body_err.max()) < 0.5
+    out = {
+        "clip": args.clip,
+        "skill": int(lib["skill_ids"][ci]),
+        "frames": n_steps,
+        "seconds": round(n_steps / 50.0, 2),
+        "falls": bool(fell),
+        "success": bool(success),
+        "entry_ok": bool(entry_ok),
+        "exit_ok": bool(exit_ok),
+        "exit_drift_m": round(exit_drift, 4),
+        "body_pos_err_rel_mean": round(float(body_err.mean()), 4),
+        "body_pos_err_rel_p95": round(float(np.percentile(body_err, 95)), 4),
+        "joint_pos_err_mean": round(float(np.mean(metrics["joint_pos_err"])), 4),
+        "anchor_pos_err_mean": round(float(np.mean(metrics["anchor_pos_err"])), 4),
+        "contact_mismatch_pct": round(float(np.mean(metrics["contact_mismatch"]) / 2 * 100), 3),
+        "slip_mean_mps": round(float(np.mean(metrics["slip"])), 4),
+        "slip_p95_mps": round(float(np.percentile(metrics["slip"], 95)), 4),
+        "flight_ref_pct": round(float(np.mean(metrics["flight_ref"]) * 100), 2),
+        "flight_robot_pct": round(float(np.mean(metrics["flight_robot"]) * 100), 2),
+        "action_rate_mean": round(float(np.mean(metrics["action_rate"])), 4),
+        "wall_s": round(time.time() - t0, 1),
+    }
+    print(json.dumps(out, indent=2))
+    if args.metrics:
+        np.savez(args.metrics, **{k: np.array(v) for k, v in metrics.items() if not k.startswith("_")})
+        print(f"[metrics] {args.metrics}")
+
+
+if __name__ == "__main__":
+    main()

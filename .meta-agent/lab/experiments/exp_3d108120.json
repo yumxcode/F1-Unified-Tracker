@@ -1,0 +1,142 @@
+{
+  "id": "exp_3d108120",
+  "title": "F1 舞蹈 v4：手臂丰富+位移明显两全源（dance2_subject3 移动段）重定向八门→训练→sim2sim",
+  "status": "concluded",
+  "sourceTaskId": "82f46477-d253-4c75-9553-13f15641f41d:g1",
+  "sessionId": "82f46477-d253-4c75-9553-13f15641f41d",
+  "createdAt": 1794055378502,
+  "updatedAt": 1794062927306,
+  "objective": "选一支\"上肢丰富（armV≥v3 的 1.05）+ 脚步移动明显（净位移≫v3 的 ~1m）\"且过 F1 八门的舞蹈源，完成 v4 训练与 sim2sim 验证",
+  "hypothesis": "重扫（GMR FK 帧口径，修正 fnd_7af304ab 的 raw 通道误读）后，dance2_subject3 [4300,4900) 段是全库唯一\"位移 2.7~4.3m × armV 1.10~1.25 × tiptoe<5%\"兼得窗口：[4350,4800) 主候选重定向后八门全过，训练后 sim2sim 零跌倒、手臂误差≤v3（0.1724）且位移保持≥90%",
+  "falsificationCondition": "八门任一不过（含 foot_flatness≥90%、arm_quality 饱和≤10%/腕 ROM≥2%），或 sim2sim 5 圈出现跌倒，或手臂关节误差劣于 v3 基线 0.1724 rad 超过 10%",
+  "decisionBranches": [
+    {
+      "condition": "重定向八门全过（尤其 foot_flatness≥90%）",
+      "next": "npz 转换 + gradmotion 训练（全锚点终止）+ sim2sim"
+    },
+    {
+      "condition": "foot_flatness 85~90%（源 89.7% 接近门限，重定向可能压低）",
+      "next": "微调窗口边界（±50f 内重扫 flat 最高子窗）重重定向，最多 2 轮；仍不过则启用 backup 窗口"
+    },
+    {
+      "condition": "大面积违规（穿地/自碰撞硬门失败）",
+      "next": "该段不可用，回到扫描结果取次优候选（dance2s3 [4300,4750) 或 CMU 重扫）"
+    }
+  ],
+  "base": {
+    "kind": "continue_from",
+    "ref": "v3 交付（commit 62f036e，TASK_20261107_132，dance2s1 [255,706) 15s）",
+    "fromExperimentId": "exp_3d00709b"
+  },
+  "controlExperimentId": "exp_3d00709b",
+  "changes": [
+    {
+      "key": "source_motion",
+      "to": "dance2_subject3 [4350,4800) 15s（移动舞：位移 3.87m，armV 1.20，flat 89.7%，tiptoe 3.1%，GMR 帧 root z_std 0.05）",
+      "from": "dance2_subject1 [255,706) 15s（原地舞：25s 窗位移 1.4m，armV 1.05，flat 98.1%）"
+    },
+    {
+      "key": "termination",
+      "to": "全量 anchor 终止 0.5m（fnd_0836c33c：位移源必需）",
+      "from": "z-only anchor 终止（v3 原地舞默认）"
+    },
+    {
+      "key": "baseline_for_compare",
+      "to": "v3 同款指标 + 新增位移保持率",
+      "from": "v3 同款（finalReward 35.58 / error_body_pos 0.0416 / joint err 0.1315）"
+    }
+  ],
+  "events": [
+    {
+      "kind": "launch",
+      "text": "本地 Mac 重定向主候选 [4350,4800) 与 backup [4400,4850)（v3 管线：arm_relock c3.0_r0.92 + clamp_margin 0.06），两个 job 并行",
+      "at": 1794055393838
+    },
+    {
+      "at": 1794055393838,
+      "kind": "amendment",
+      "text": "设计修订：entrypoint → .venv/bin/python tools_bvh_to_csv_f1.py --bvh_file downloads/lafan1/dance2_subject3.bvh --start_frame {4350|4400} --end_frame {4800|4850} --arm_relock c3.0_r0.92 --clamp_margin 0.06 --output_file whole_body_tracking/motions/csv/dance2s3_travel_f1{a|b}.csv"
+    },
+    {
+      "kind": "effectiveness_check",
+      "text": "v4 源重定向实测：首迷 dance2s3 [4350,4800)/[4400,4850) 均被八门否决（foot_flatness 89.5/85.7 与 87.7/83.2%，后者还有右腕-torso 穿透 5.2cm；源级 flat 天花板 90.2% 不可修）。全库联合扫描唯一候选 dance2s1 [360,810) 左脚 88.3% 不及。帕累托细扫 [255,870) 发现 flat↔travel 渐变带，[345,795) 源 flat 95.0/trav 1.82/armV 1.14 为最优平衡。重定向后 7/8 门过，唯 ground 穿地（开头 7 帧 IK 瞬态 -35mm + 移动段两簇步落地缩放伪影 -20/-17mm）——新工具 tools_lift_ground_f1.py 掐头 7 帧 + 局部 root-z 高斯 bump（max 7.4mm，仅 9 帧提升，关节角/脚姿态不变）。最终 [352,795) 443f 八门全过：ground -0.0130、flat L90.6/R94.0%、arm sat 0%、腕 ROM 11.8%、self 0.0331。",
+      "evidence": [
+        "/tmp/check_c_lift.json",
+        "whole_body_tracking/motions/csv/dance2s1_ta_f1c_lift.csv"
+      ],
+      "at": 1794056139326
+    },
+    {
+      "kind": "launch",
+      "text": "v4 训练提交：TASK_20261107_199，v3 同配方仅换 motion_file=motions/dance2s1_ta_f1.npz（737f@50），startScript gm-run entry_f1_train.py --task=Tracking-Flat-F1-v0 --num_envs 4096 --max_iterations 5000，代码 commit 7433312。账号 58/59 余额不足已弃（58 已从池移除），63（v3 同号）可用。前两个死任务：TASK_20261107_197/198（余额不足未运行）。全锚点 0.5m 终止在 F1FlatEnvCfg 默认开启（travel-v2 经验已合入 main）。",
+      "jobRef": "TASK_20261107_199 (gradmotion, account gifahim182 id=63, project PRO_20261107_014)",
+      "at": 1794056409344
+    }
+  ],
+  "results": [
+    {
+      "metrics": {
+        "anchor_pos_err_global_m": 0.0531,
+        "arm_joint_err_rad": 0.2123,
+        "arm_vs_leg_ratio": 2.29,
+        "contact_pct_L_R": "98.5/97.8",
+        "finalMeanReward": 32.74,
+        "leg_joint_err_rad": 0.0926,
+        "mean_body_pos_err_m": 0.0624,
+        "min_base_z_m": 0.554,
+        "planted_slip_L_R_m_per_s": "0.101/0.050",
+        "ref_travel_per_loop_m": 1.199,
+        "robot_travel_per_loop_m": 1.099,
+        "v3_arm": 0.1724,
+        "v3_joint": 0.1315,
+        "v3_leg": 0.0994,
+        "v3_sim2sim_anchor_rel": 0.0461
+      },
+      "gates": [
+        {
+          "gate": "fall_detected (5 loops)",
+          "value": "false",
+          "pass": true
+        },
+        {
+          "gate": "arm err vs v3×1.1 (≤0.1896)",
+          "value": 0.2123,
+          "pass": false
+        },
+        {
+          "gate": "travel retention ≥90%",
+          "value": 91.6,
+          "pass": true
+        }
+      ],
+      "samples": 5,
+      "subject": "model_4999 (TASK_20261107_199) on dance2s1_ta_f1.npz, MuJoCo 3.13, 5 loops × 737 steps",
+      "note": "全锚点 0.5m 终止生效（Episode_Termination/anchor_pos 0.375）。arm err 劣化归因：与参考手臂速度负相关（corr -0.52，top-speed 分位 0.151 vs bottom 0.331 rad）——误差集中在‘边走边持臂’的协调段，非手臂幅度问题；仍优于 v1 饱和数据 0.2986（-29%）。",
+      "evidence": [
+        "whole_body_tracking/motions/sim2sim_v4_travelarm.npz",
+        "/tmp/tasklog.json（TASK_20261107_199 训练日志）",
+        "trained_models/dance_f1_v4_model_4999.pt"
+      ],
+      "at": 1794062800116
+    }
+  ],
+  "protocolWarnings": [
+    "相对对照 exp_3d00709b 的改动数为 4（含起点差异），不是单变量。起点与对照不同（例如接续对照的产物继续运行），这本身计为一项改动。",
+    "续接链深度 5：该结果建立在 5 次接续之上，作为最终交付前需从零复现确认。",
+    "命中分支「分支 2（foot_flatness 85~90% 微调窗口）与分支 3（候选八门否决）均命中：dance2s3 双否决后退回全库扫描；arm-err 证伪线命中」不在预注册的决策分支中。"
+  ],
+  "entrypoint": ".venv/bin/python tools_bvh_to_csv_f1.py --bvh_file downloads/lafan1/dance2_subject3.bvh --start_frame {4350|4400} --end_frame {4800|4850} --arm_relock c3.0_r0.92 --clamp_margin 0.06 --output_file whole_body_tracking/motions/csv/dance2s3_travel_f1{a|b}.csv",
+  "conclusion": {
+    "verdict": "falsified",
+    "summary": "按预注册证伪线严格判定 falsified：主候选 dance2s3 [4350,4800) 八门否决（foot_flatness 89.5/85.7% + 右腕-torso 穿透 5.2cm，源级 flat 天花板 90.2% 不可修）；修订后用全库唯一候选 dance2s1 [352,795) 完成全链路（八门全过、训练零跌倒、位移保持 91.6%），但 arm err 0.2123 rad 劣于 v3×1.1 阈值 0.1896（+23%），命中第三条证伪条件。主体工程目标（两全源+可训练+零跌倒+位移保持）达成，手臂误差子指标未保持；归因：移动+持臂的协调难度（与参考手臂速度负相关 corr -0.52），非数据饱和（arm sat 0%）。",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；GMR 重定向管线 + 八门；LAFAN/CMU 源；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim；全锚点 0.5m 终止",
+    "branchHit": "分支 2（foot_flatness 85~90% 微调窗口）与分支 3（候选八门否决）均命中：dance2s3 双否决后退回全库扫描；arm-err 证伪线命中",
+    "at": 1794062927306,
+    "findingIds": [
+      "fnd_a1120dd4",
+      "fnd_0bbd4015",
+      "fnd_32de93c0",
+      "fnd_d8a9b24e"
+    ]
+  }
+}

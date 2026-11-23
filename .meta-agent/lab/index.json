@@ -1,0 +1,65 @@
+[
+  {
+    "id": "exp_7f7653a7",
+    "title": "F1 资产审计与 kp/kd 定稿（URDF→MJCF/Isaac URDF + 增益推导）",
+    "status": "concluded",
+    "conclusion": "confirmed：F1 URDF 审计完成：上身与 X1 逐字一致、腿部全新（130/241.9/218.4 Nm，不对称 hip_roll 限位）；三处仿真资产（F1_29DOF/mjcf、wbt assets、GMR assets）全部加载通过；kp/kd 按 X1 验证带宽带 + URDF 站立惯量推导，焊接基座保持 1.23° 通过。commit 4fc083b 已推送。",
+    "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+    "createdAt": 1793867540026,
+    "updatedAt": 1793867663757
+  },
+  {
+    "id": "exp_9be24e0c",
+    "title": "F1 GMR 重定向（dance1_subject3 → dance_f1_train.csv）+ 质量门",
+    "status": "concluded",
+    "conclusion": "confirmed：F1 GMR 重定向完成：列序 bug 修复后六项硬门全过（穿地 -0.0144m / 自碰撞 0.069m / 限位 0 / 速度 0 / 高度带 / 连续），干净窗口 [0,689)=23s 提取为 dance_f1_train.csv，渲染目检动作真实。commit 8438929。",
+    "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+    "createdAt": 1793868552015,
+    "updatedAt": 1793868585775
+  },
+  {
+    "id": "exp_599ede6b",
+    "title": "F1 BeyondMimic 舞蹈训练 v1（gradmotion，full obs）",
+    "status": "concluded",
+    "conclusion": "confirmed：F1 BeyondMimic 舞蹈训练+sim2sim 全部通过：TASK_20261105_430 训练 5000 iter（finalReward 35.3，ep 483-500，error_body_pos 0.055）；model_4999 sim2sim 5 循环 5735 步零跌倒（joint err 0.201 rad、anchor 相对误差 0.055 m，均优于/持平 X1 基线 0.272/0.058）。关键修复：PhysX 关节序用 gradmotion probe 实测。commits bbf543c/9132f03/ab927f1/d4ed554。",
+    "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+    "createdAt": 1793868990639,
+    "updatedAt": 1793880344672
+  },
+  {
+    "id": "exp_710c7bcb",
+    "title": "F1 移动舞蹈：dance2_subject1 旅行段（[4950,5700)）GMR 重定向+量化门+训练+sim2sim",
+    "status": "concluded",
+    "conclusion": "confirmed：确认：换 CMU 137_24 Graceful Lady Walk（人根位移 4.73m/9.9s 近直线走秀）后复用 F1 管线完整跑通并达标交付。(1) 源选择：LAFAN 舞蹈全系统排除（fnd_7af304ab），CMU 137 族经新适配器（7 个关键修复）重定向六门全过（ground -0.0124 / self 0.078 / 高度带与腿 scale 0.717 数学自洽）。(2) v1 训练（TASK_20261105_558，z-only 终止基线配方）sim2sim 5 循环零跌倒但位移保持仅 42%（滞后 2.2m）。(3) 根因定位（obs 分段 ",
+    "sourceTaskId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad:g1",
+    "createdAt": 1793887529928,
+    "updatedAt": 1793903850628
+  },
+  {
+    "id": "exp_3d00709b",
+    "title": "F1 舞蹈 v3：脚步干净+手臂丰富的源重选与脚底/手臂质量门强化→重训→sim2sim 验证",
+    "status": "concluded",
+    "conclusion": "confirmed：确认：重选脚步干净+手臂丰富的源（dance2_subject1 [255,706)，源 flat 98.1%/tiptoe 1.1%/armV 1.05 m/s）+ 重定向臂部饱和修复（肩 FK 重锚+0.92 reach clamp+center posture 重解+臂 clamp 0.06）+ 八门验收（新增脚底放平/手臂质量门）后，v3 训练（TASK_20261107_132，reward 35.58，error_body_pos 0.0416 vs v1 0.055）sim2sim 5 循环零跌倒：全身 joint err 0.1315（v1 0.2012，−",
+    "sourceTaskId": "88ea19c0-698d-4b01-8335-203aded72dd6:g1",
+    "createdAt": 1794022499973,
+    "updatedAt": 1794031694028
+  },
+  {
+    "id": "exp_3d108120",
+    "title": "F1 舞蹈 v4：手臂丰富+位移明显两全源（dance2_subject3 移动段）重定向八门→训练→sim2sim",
+    "status": "concluded",
+    "conclusion": "falsified：按预注册证伪线严格判定 falsified：主候选 dance2s3 [4350,4800) 八门否决（foot_flatness 89.5/85.7% + 右腕-torso 穿透 5.2cm，源级 flat 天花板 90.2% 不可修）；修订后用全库唯一候选 dance2s1 [352,795) 完成全链路（八门全过、训练零跌倒、位移保持 91.6%），但 arm err 0.2123 rad 劣于 v3×1.1 阈值 0.1896（+23%），命中第三条证伪条件。主体工程目标（两全源+可训练+零跌倒+位移保持）达成，手臂误差子指标未保持；归因：移动+持臂的协调难度（与参",
+    "sourceTaskId": "82f46477-d253-4c75-9553-13f15641f41d:g1",
+    "createdAt": 1794055378502,
+    "updatedAt": 1794062927306
+  },
+  {
+    "id": "exp_27f4783d",
+    "title": "F1 舞蹈 v5：hip roll 内收根因修复（重定向脚目标额状面撑开）→ 八门+开度门 → 重训 → sim2sim 对比 v4",
+    "status": "concluded",
+    "conclusion": "confirmed：确认：v4 hip roll 内收根因为重定向 IK 脚目标过窄（缩放几何不匹配 F1 宽髋），非源舞蹈、非训练层。stance_widen 0.075 修复后九门全过（含新增站姿开度门：gap/hipW mean 1.266、内收帧 12.87%→1.13%），TASK_20261108_088 同配方重训（reward 32.77），sim2sim 5 圈零跌倒且全部预注册验收线通过：joint err 0.1518（≤0.1614）、位移保持 90.8%（≥87%）、回放双腿内收帧 0.0%（≤5%）、回放脚距 0.479m=1.55×髋宽。内收问题在参考层与策略层均",
+    "sourceTaskId": "fa2596d9-7e57-427c-a845-e4dc97583b42:g1",
+    "createdAt": 1794141123187,
+    "updatedAt": 1794173160109
+  }
+]

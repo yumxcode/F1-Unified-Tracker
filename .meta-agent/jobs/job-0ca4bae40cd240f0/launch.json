@@ -1,0 +1,17 @@
+{
+  "token": "5921fc43-93c6-4e6c-bfd6-0cc35716a380",
+  "owner": {
+    "pid": 93340,
+    "startToken": "Sat Nov  7 11:31:18 2026"
+  },
+  "spec": {
+    "file": "sandbox-exec",
+    "args": [
+      "-p",
+      "(version 1)\n\n;; Permissive base — deny specific operations below.\n(allow default)\n\n;; Deny all writes by default.\n(deny file-write*)\n\n;; Node.js runtime always-writable paths.\n(allow file-write*\n  (literal \"/dev/null\")\n  (literal \"/dev/zero\")\n  (literal \"/dev/random\")\n  (literal \"/dev/urandom\")\n  (regex #\"^/dev/fd/[0-9]+$\")\n  (subpath \"/private/var/folders\")\n  (subpath \"/var/folders\") (subpath \"/private/var/folders\")\n  (subpath \"/private/tmp\")\n  (subpath \"/tmp\") (subpath \"/private/tmp\")\n)\n\n;; Sub-agent workspace.\n(allow file-write* (subpath \"/Users/yumx/code/Beyondminic-Weilai-X1\"))\n\n;; Caller-specified extra write paths.\n(allow file-write*\n  (subpath \"/Users/yumx/.account-pool\")\n  (subpath \"/Users/yumx/.config/gh\")\n  (subpath \"/private/var/folders/3r/gk4flgtj3d7d30y1h95dmwxh0000gn/C/mds\")\n  (subpath \"/Users/yumx/code/Beyondminic-Weilai-X1\")\n)\n\n;; Caller-specified write-deny paths (override allows above).\n(deny file-write*\n  (subpath \"/Users/yumx/code/Beyondminic-Weilai-X1/.meta-agent\")\n  (subpath \"/Users/yumx/.meta-agent\")\n)\n",
+      "bash",
+      "-c",
+      "set -o pipefail\ncd ~/code/Beyondminic-Weilai-X1 && .venv/bin/python whole_body_tracking/scripts/play_mujoco.py --robot f1 --headless --checkpoint trained_models/dance_f1_v1_model_4999.pt --motion whole_body_tracking/motions/dance_f1_train.npz --max_steps 1147 --dump_metrics whole_body_tracking/motions/sim2sim_v1_baseline_armfoot.npz 2>&1 | tail -25"
+    ]
+  }
+}

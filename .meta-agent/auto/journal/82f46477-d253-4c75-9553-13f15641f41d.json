@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "82f46477-d253-4c75-9553-13f15641f41d",
+  "entries": [
+    {
+      "kind": "decision",
+      "text": "继续推进（不回退）：在 v3 交付（62f036e）基础上做 v4 换源训练。",
+      "reason": "核对结论：本任务即 v3 的直接延续（v4），任务契约明确\"续 A10 v3 之后\"。已有进展与当前目标高度对齐：(1) v3 管线（arm_relock 0.92 clamp + 8 质量门）刚于 TASK_20261107_132 验证有效（arm err -42%），是本轮要求\"严格沿用\"的对象；(2) 已知结论直接服务本轮选源——fnd_4828e7e7（LAFAN dance 内 armV 与脚步干净度负相关，两全窗口=dance2s1 [255,706) armV 1.05）、fnd_7af304ab（LAFAN dance 无跨空间移动可过门窗口）、fnd_9d695b42（CMU 137 族=有位移且可过门的源）、fnd_0836c33c（位移大需全锚点 0.5m 终止）、fnd_2922525d（臂展 0.421m 饱和根因与修复）均建立在当前同一 URDF/管线上，前提未变；(3) git 历史干净（62f036e 为 v3 交付，工作区无未提交改动），trained_models 有 v1/v3/travel v1/v2 四个基线可对比。无需回退：本轮是沿已验证管线换源重跑，旧结论全部可沿用。",
+      "source": "reset_audit",
+      "goalRevision": 1,
+      "id": "jr_48ca9ba3",
+      "at": 1794054968230
+    },
+    {
+      "kind": "artifact",
+      "text": "v4 全部交付物：模型/动作/指标/三视频/报告/新工具/登记。commits 7433312→d628956 已推送。",
+      "artifacts": [
+        "trained_models/dance_f1_v4_model_4999.pt",
+        "whole_body_tracking/motions/dance2s1_ta_f1.npz",
+        "whole_body_tracking/motions/sim2sim_v4_travelarm.npz",
+        "renders/dance2s1_ta_f1_reference.mp4",
+        "renders/dance2s1_ta_playback.mp4",
+        "renders/dance2s1_ta_compare.mp4",
+        "F1_DANCE_V4_REPORT.md",
+        "tools_lift_ground_f1.py",
+        ".gm/task_f1.yaml"
+      ],
+      "goalRevision": 1,
+      "id": "jr_77c94eef",
+      "at": 1794063046791
+    }
+  ]
+}

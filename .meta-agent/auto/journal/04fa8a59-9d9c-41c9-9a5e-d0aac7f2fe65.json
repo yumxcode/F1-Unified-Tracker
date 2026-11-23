@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65",
+  "entries": [
+    {
+      "kind": "decision",
+      "text": "从头审核结论：在现有进展上继续推进，不回退。F1 是 X1 的姊妹机型（上身逐字一致、关节同名同序），复用已验证的 X1 管线结构；但 F1 腿部参数、几何、MJCF、GMR 腿部配置、质量门几何、训练 actuator 配置全部按 F1 URDF 重新推导，X1 结论不直接沿用。",
+      "reason": "继续。依据：1) 上轮会话（5b0bc3e8）在本仓库完成了 X1 29DOF 全链路（GMR 重定向+质量门、BeyondMimic 训练 v10-v12、sim2sim 稳定通过），产物齐全（.gm/task_x1.yaml 训练配方、GMR ik 配置、tools_check_motion_x1.py 量化门、play_mujoco.py sim2sim），全部服务于同一目标的管线基础设施，无需回退。2) 本任务对象 F1_29DOF（commit c0e0ef6，已推送）与 X1 关节拓扑同名同序（29 关节完全同名）、上身（lumbar+双臂 17 关节）运动学原点/限位与 X1 URDF 逐字一致，管线可平移。3) F1 腿部为全新执行器（力矩 130/241.9/218.4 Nm vs X1 180/80/80）、全新腿长/惯量、髋 roll 限位不对称——X1 的腿部 kp/kd/armature 结论不适用，须按 F1 URDF 重新推导并验证；X1 上身 kp/kd（x1_armature_pd.md 方案B）可作为初值但腰部挂载的下半身惯量不同，需重算阻尼比。4) 试验记录本为空（上轮未记录），本轮从 F1 基线重新登记。",
+      "source": "reset_audit",
+      "goalRevision": 1,
+      "id": "jr_46a353a0",
+      "at": 1793865260695
+    },
+    {
+      "kind": "decision",
+      "text": "采纳中途审查：补 timestep=0.001、X1 基线标定 PD-hold 门、修正重力矩分析（stand 位 qfrc_bias + I+armature 对账）、重验三份 MJCF；GMR 重定向进度保留继续。",
+      "reason": "采纳审查的大部分建议：(1) f1_serial.xml 补 timestep=0.001 对齐 X1 配方（单一变量）；(2) 在 X1 模型+X1 已验证增益上跑同一自由站立 PD-hold 门做标定——若 X1 也倒（预期，mgh≈183 Nm/rad ≫ 双踝 kp 100），证伪\"增益是根因\"，确认该门不适用于自由站立，保留焊接基座保持门作为机械验收；(3) 修正 tools_f1_kp_kd.py 重力矩用 stand keyframe qfrc_bias，ζ/fn 用 I+armature 对账（解释与 X1 踝 kd 的 5 倍差异源于辨识 I_tot 含 rotor armature）；(4) 重验三份 MJCF 一致性。不采纳：回退 GMR 重定向进度——CSV 已产出且质量门工具未受影响，修正完成后继续窗口扫描。",
+      "source": "drift",
+      "goalRevision": 1,
+      "id": "jr_18f46e2e",
+      "at": 1793868063325
+    },
+    {
+      "kind": "key_op",
+      "text": "gradmotion 训练任务 TASK_20261105_423（beyondmimic-f1-dance-v1）于 2026-11-05 17:02 启动：项目 PRO_20261105_080（账号 talare7232），4090D 单卡，IsaacLab 2.1.0 镜像，Tracking-Flat-F1-v0 全观测，5000 iter。监控命令：HOME=$PWD/.gmhome GM_API_KEY=$(account-pool get --json|...) gm task logs --task-id TASK_20261105_423",
+      "goalRevision": 1,
+      "id": "jr_5e80fc78",
+      "at": 1793869374411
+    },
+    {
+      "kind": "decision",
+      "text": "中途审查（第200批次）的平台配置建议核实为已过时：个人存储挂载已在审查快照后修复，任务已运行；无重复提交循环。继续监控训练。",
+      "reason": "审查建议的 1-4 步在快照之后已全部完成：TASK_20261105_423 已去除 personalDataPath 并成功 run（status 3，start 2026-11-05 17:02:19，日志见 pip install -e 与 SDK Running）；exp_599ede6b 已记 launch 与 job_ref。无重复 run 循环（共两次：首次触发启动流程、编辑后一次成功）。第 5 步（换商品）仅在取消挂载仍报错时触发——未发生。无需新增变更，继续按计划监控训练。",
+      "source": "drift",
+      "goalRevision": 1,
+      "id": "jr_d8c536fb",
+      "at": 1793869699873
+    },
+    {
+      "kind": "artifact",
+      "text": "F1 全链路交付物：审计报告/kp-kD 表、仿真资产、重定向动作+质量门、训练模型、sim2sim 三视频、gradmotion 任务记录。",
+      "artifacts": [
+        "F1_29DOF/F1_AUDIT.md",
+        "F1_29DOF/f1_kp_kd.json",
+        "F1_29DOF/mjcf/robot/f1/f1_serial.xml",
+        "F1_29DOF/mjcf/robot/f1/f1_stand.json",
+        "whole_body_tracking/motions/dance_f1_train.npz",
+        "whole_body_tracking/motions/quality_dance_f1_train.json",
+        "whole_body_tracking/motions/csv/dance_f1_train.csv",
+        "trained_models/dance_f1_v1_model_4999.pt",
+        "dance_f1_playback.mp4",
+        "dance_f1_reference.mp4",
+        "dance_f1_compare.mp4",
+        ".gm/task_f1.yaml"
+      ],
+      "goalRevision": 1,
+      "id": "jr_4c3819ff",
+      "at": 1793881446676
+    },
+    {
+      "kind": "progress",
+      "text": "F1 29DOF 舞蹈训练任务完成：审计+kp/kd（焊接基座 1.23° PASS）、GMR 重定向六项硬门全过（23s 干净窗口）、gradmotion 训练（reward 35.3 > X1 基线 31.8）、sim2sim 5 循环零跌倒（joint err 0.201 < X1 0.272）。全部交付物已提交推送（main@7de2c76），报告页 f1-dance-final-report 已发布。",
+      "goalRevision": 1,
+      "id": "jr_d471ac85",
+      "at": 1793881507821
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-10a17eed52364ae5",
+  "name": "gmr-retarget-dance2s1-travel",
+  "command": ".venv/bin/python -u tools_bvh_to_csv_f1.py --bvh_file downloads/lafan1/dance2_subject1.bvh --output_file whole_body_tracking/motions/csv/dance2s1_travel_f1.csv --start_frame 4950 --end_frame 5700",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad",
+  "idempotencyKey": "gmr-f1-dance2s1-w4950",
+  "createdAt": 1793887693126,
+  "outputs": [
+    "whole_body_tracking/motions/csv/dance2s1_travel_f1.csv"
+  ],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "560b1c5e-13e1-4339-b346-1b16911d341f",
+  "launchOwner": {
+    "pid": 39906,
+    "startToken": "Thu Nov  5 21:58:56 2026"
+  },
+  "pid": 40313,
+  "startToken": "Thu Nov  5 22:08:13 2026"
+}

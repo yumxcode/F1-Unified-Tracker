@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0",
+  "wakeId": "auto-wake-b9d070d99211",
+  "sessionId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad",
+  "projectDir": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "fireAt": 1793887902912,
+  "reason": "等待 dance1_subject3 旅行窗 [2400,3150) 重定向完成后跑质量门 — waiting until job job-4fde4be9d08f4fdf finishes",
+  "checkpoint": {
+    "waitCondition": {
+      "kind": "job",
+      "jobId": "job-4fde4be9d08f4fdf"
+    },
+    "waitTarget": "local"
+  },
+  "goal": "F1 29DOF 移动舞蹈训练（仓库 ~/code/Beyondminic-Weilai-X1，main 分支）：换一段有整体位移的舞蹈源动作（不要求每步迈很大，但根要有跨空间移动，LAFAN 舞蹈变体/CMU 137 族/GVHMR 视频重建均可），复用已跑通的 F1 管线（GMR 重定向+量化门 → Beyondminic 训练 → sim2sim），交付新训练模型、sim2sim 指标与对照视频。训练在 gradmotion，长周期观测用 timer park。",
+  "goalRevision": 1,
+  "checkpointRevision": 11,
+  "historyMessageCount": 122,
+  "historyFingerprint": "16777232:5352404:298757:1793887897470528529:1793887897470528529:Infinity:67108864",
+  "runtime": {
+    "sessionDir": "/Users/yumx/.weixin-bot/weixin-bot/personal-agent/runtime-sessions",
+    "configFile": "/Users/yumx/.meta-agent/glm_config.json"
+  },
+  "status": "done",
+  "attempts": 1,
+  "createdAt": 1793887897592,
+  "updatedAt": 1793889723753,
+  "claim": {
+    "owner": "yumxdeMac-mini.local#40743",
+    "token": "8dff02c8-4592-49d6-a4b4-8b25c5f13a5b",
+    "claimedAt": 1793887903177,
+    "expiresAt": 1793890303254
+  }
+}

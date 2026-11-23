@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-e3fd7475a3ff4cb3",
+  "name": "retarget-d2s1-ta-d",
+  "command": "cd ~/code/Beyondminic-Weilai-X1 && .venv/bin/python tools_bvh_to_csv_f1.py --bvh_file downloads/lafan1/dance2_subject1.bvh --start_frame 330 --end_frame 780 --arm_relock c3.0_r0.92 --clamp_margin 0.06 --output_file whole_body_tracking/motions/csv/dance2s1_ta_f1d.csv 2>&1",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "82f46477-d253-4c75-9553-13f15641f41d",
+  "idempotencyKey": "v4-retarget-d2s1-ta-330-780",
+  "createdAt": 1794055673983,
+  "outputs": [
+    "whole_body_tracking/motions/csv/dance2s1_ta_f1d.csv"
+  ],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "3b950c5a-4e07-4e27-af3e-8b3b0e38805b",
+  "launchOwner": {
+    "pid": 7268,
+    "startToken": "Sat Nov  7 20:34:45 2026"
+  },
+  "pid": 7884,
+  "startToken": "Sat Nov  7 20:47:53 2026"
+}

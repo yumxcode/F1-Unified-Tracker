@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "taskId": "task_53ed737241c0185daa52bcb0835162a3",
+  "sourceSessionId": "fa2596d9-7e57-427c-a845-e4dc97583b42",
+  "goalRevision": 1,
+  "revision": 1,
+  "status": "pending",
+  "evidence": [
+    {
+      "reviewId": "review_fbe3bbf2b03852b80263c2931e19ae12",
+      "outcome": "passed",
+      "conclusion": "关键目标与关键路径全部完成，且关键指标由我从入库产物独立重算验证，非仅采信报告。(1) 根因结论=重定向 bug（非源舞蹈、非训练层）：源 LAFAN dance2s1 大腿外展 +5.3/+7.0°、双内收帧 1.1%、gap/hipW 1.91（不内收）；v4 重定向层 hip roll 均值 −0.06/−0.64°、双内收帧 12.75%（由入库 sim2sim_v4_joints.npz 重算，与报告 L10-18、yaml L287-299 一致）；机制为 GMR 腿缩放 0.689 使脚目标间距 0.270m < F1 髋宽 0.309m，pos-500 IK 脚任务把脚拉进髋线内侧。(2) 修复走“重定向问题→修复后重新重定向”分支：tools_bvh_to_csv_f1.py --stance_widen 0.075 hook（6207e62 入库），两档校准选 w75；产物过九门（quality_dance2s1_w75_f1_lift.json overall_pass=true：gates1-6 全 True、flatness 90.5/93.3%、arm sat 0%、gate9 stance_openness mean 1.266≥1.15 / p5 0.845≥0.70 / 双内收 1.13%≤3%）。(3) 验收门槛未降低：tools_check_motion_f1.py 在 d628956..6207e62 间为 +57/−0 纯新增，既有八门阈值零改动；gate9 为本轮新增门（p5 默认 0.70 按源校准：源 p5=0.53，×1.3），v4 在该门下 FAIL（0.945/0.477/12.87%），相对 v4 基线净收紧。(4) gradmotion 训练 TASK_20261108_088：[exec:57] status=5 finished、[exec:58] 5000 iter 完整（timesteps 491520000）、[exec:59] finalReward 32.77（v4 32.74 同配方）、[exec:61] model_4999 下载 sha 前缀 9d1242002defbff33453，与快照内模型文件 sha256 完全一致。(5) 评估与 v4 对比：[exec:62] sim2sim 5 圈零跌倒 exit=0；由入库 npz 独立重算：joint err 0.1518 vs 0.1467（+3.5%≤门10%）、anchor 0.0411 vs 0.0531（−23%）、body 0.0513 vs 0.0624（−18%）、xy p95 0.063 vs 0.103、travel 保持 90.8% vs 91.6%、min base z 0.550；hip roll 内收消除：参考均值 −0.06/−0.64→+6.49/−7.83°，参考双内收帧 12.75%→0.95%，回放双内收 7.06%→0.00%。(6) 产物入库：6207e62（修复+九门+动作+参考视频）+4d509c2（模型+指标+报告+记录+回放视频）已推送 origin/main（[exec:70]，工作区事实 0 未推、无未提交改动）。放宽项（非关键，不阻断）：a) timer park 挂起等待属过程约束，快照内无法直接取证，但执行记录仅少量稀疏状态查询、无空转轮询迹象；b) 报告 §5 参考双内收 1.13% 为 443f@30 门径值，sim2sim 737f@50 全帧重算为 0.95%，均远低于门限，不影响结论；c) arm err 0.2236 略高于 v4（+5.3%）为已知移动+持臂协调代价（v4 轮已证伪 v3×1.1 线并归因 fnd_32de93c0），不在 v5 预注册验收门内，已在报告遗留项如实披露；d) 三层根因审计的临时分析脚本未全部入库，但关键数字可由入库的 --dump_joints 产物与 gate9 工具复现（本次审核已复现），关键代码（stance_widen/gate9/dump_joints）均已提交。",
+      "unfinished": [],
+      "evidence": [
+        "[verify:ce35f20e-572c-4c96-8b15-3fd5dc9e5aae] F1_DANCE_V5_REPORT.md 全文：L10-18 根因三层审计（源不内收/重定向引入/策略无漂移）+ 机制分析；L45-74 v4 vs v5 对比表与预注册证伪线全过；L76-84 交付物清单",
+        "[verify:5e251a27-5247-4d74-be79-3cebd38360c2] .gm/task_f1.yaml L317-345/358-363：TASK_20261108_088、同配方 5000 iter、finalReward 32.77、sim2sim 命令与全指标、verdict exp_27f4783d confirmed；同时显示已入库代码中 gate9 默认阈值（1.15/0.70/3%）、--stance_widen（tools_bvh_to_csv_f1.py L84/171/177/187）、--dump_joints（play_mujoco.py L477/973/1049）",
+        "[verify:0c74f644-49e5-48ab-9e0e-7e5c36f34acc] yaml L287/318/322 dance_v5 段存在且绑定 TASK_20261108_088 与 motion dance2s1_ta_w75_f1.npz；quality_dance2s1_w75_f1_lift.json 九门全过（overall_pass=True，gates1-6 全 True，flatness 90.5/93.3%，arm sat 0%，gate9 1.266/0.845/1.13%）",
+        "[verify:46fc7ef9-5ecd-4935-854c-574558f5a5ac] 由入库 npz 独立重算：v4 ref hiproll −0.06/−0.64°、双内收 12.75%、回放 7.06%；v5 ref +6.49/−7.83°、双内收 0.95%、回放 0.00%；joint err 0.1467→0.1518、anchor 0.0531→0.0411、body 0.0624→0.0513、xy p95 0.103→0.063、travel 91.6→90.8%；motion 737f@50×29 关节；模型 sha256 前缀 9d1242002defbff33453 —— 内收消除与报告对比表数字全部独立验证",
+        "[verify:a3ab46d1-e62a-4c2f-831b-33e9170d89c0] tools_check_motion_f1.py 在 d628956..6207e62 间删除行为 0（纯新增，八门未动、门槛只升未降）；6207e62+4d509c2 在 HEAD 历史中；4d509c2 含模型/指标/报告/yaml/视频 6 文件；全部交付物在快照磁盘上存在且大小匹配",
+        "[exec:57] gm task info TASK_20261108_088 status=5（finished），exit=0 —— 训练任务完成",
+        "[exec:58] 训练日志 5000 iter 完整（Total timesteps 491520000，elapsed 01:31:22），exit=0",
+        "[exec:59] Mean reward 32.77（iteration 4958），exit=0 —— 与 v4 32.74 同收敛",
+        "[exec:61] model_4999 下载 6768482 字节、sha 前缀 9d1242002defbff33453，与快照文件一致",
+        "[exec:62] sim2sim 命令 exit=0：joint err 0.1518、fall_detected false、anchor 0.0411、min_base_z 0.55，产物已入库",
+        "[exec:69] git commit 4d509c2（编辑后运行，exit=0）创建交付提交；[exec:70] git push 6207e62..4d509c2 main→main 成功，工作区事实：0 未推送、无未提交改动"
+      ],
+      "terminal": true,
+      "keyPath": [
+        "根因审查用三层分解（源 FK / 重定向产物 / 策略回放）+ 同一口径量化（额状面 hip roll、gap/hipW、双内收帧%），并给 v4 留 --dump_joints 审计基线（sim2sim_v4_joints.npz 入库），使修复前后对比可被第三方独立复算 [verify:46fc7ef9-5ecd-4935-854c-574558f5a5ac]",
+        "新增验收门先做区分度验证（v4 内收版必须 FAIL、修复版 PASS），阈值按源统计校准而非拍脑袋，并在记录中显式登记 amendment（.gm/task_f1.yaml L304-308）[verify:5e251a27-5247-4d74-be79-3cebd38360c2]",
+        "修复做在管线 hook 层（scale_human_data 包装）而非改 vendored GMR，且用两档参数（0.06/0.075）校准后择优 [verify:5e251a27-5247-4d74-be79-3cebd38360c2]"
+      ],
+      "pitfalls": [
+        "训练账号余额耗尽产生死任务（jiyow52926 TASK_20261108_087 未运行即删，换 gifahim182 后 088 成功）——多账号池任务应在提交后立即确认 started，避免长时间空等 [exec:57]",
+        "比例失配类重定向缺陷（腿缩放 0.689 + 宽髋机器人）不表现为传统偏置/镜像错误，而藏在 IK 任务权重竞争中（脚 pos-500 >> 大腿姿态 10），需逐层量化才定位到 [verify:ce35f20e-572c-4c96-8b15-3fd5dc9e5aae]"
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "reviewId": "review_fbe3bbf2b03852b80263c2931e19ae12",
+      "outcome": "passed",
+      "conclusion": "关键目标与关键路径全部完成，且关键指标由我从入库产物独立重算验证，非仅采信报告。(1) 根因结论=重定向 bug（非源舞蹈、非训练层）：源 LAFAN dance2s1 大腿外展 +5.3/+7.0°、双内收帧 1.1%、gap/hipW 1.91（不内收）；v4 重定向层 hip roll 均值 −0.06/−0.64°、双内收帧 12.75%（由入库 sim2sim_v4_joints.npz 重算，与报告 L10-18、yaml L287-299 一致）；机制为 GMR 腿缩放 0.689 使脚目标间距 0.270m < F1 髋宽 0.309m，pos-500 IK 脚任务把脚拉进髋线内侧。(2) 修复走“重定向问题→修复后重新重定向”分支：tools_bvh_to_csv_f1.py --stance_widen 0.075 hook（6207e62 入库），两档校准选 w75；产物过九门（quality_dance2s1_w75_f1_lift.json overall_pass=true：gates1-6 全 True、flatness 90.5/93.3%、arm sat 0%、gate9 stance_openness mean 1.266≥1.15 / p5 0.845≥0.70 / 双内收 1.13%≤3%）。(3) 验收门槛未降低：tools_check_motion_f1.py 在 d628956..6207e62 间为 +57/−0 纯新增，既有八门阈值零改动；gate9 为本轮新增门（p5 默认 0.70 按源校准：源 p5=0.53，×1.3），v4 在该门下 FAIL（0.945/0.477/12.87%），相对 v4 基线净收紧。(4) gradmotion 训练 TASK_20261108_088：[exec:57] status=5 finished、[exec:58] 5000 iter 完整（timesteps 491520000）、[exec:59] finalReward 32.77（v4 32.74 同配方）、[exec:61] model_4999 下载 sha 前缀 9d1242002defbff33453，与快照内模型文件 sha256 完全一致。(5) 评估与 v4 对比：[exec:62] sim2sim 5 圈零跌倒 exit=0；由入库 npz 独立重算：joint err 0.1518 vs 0.1467（+3.5%≤门10%）、anchor 0.0411 vs 0.0531（−23%）、body 0.0513 vs 0.0624（−18%）、xy p95 0.063 vs 0.103、travel 保持 90.8% vs 91.6%、min base z 0.550；hip roll 内收消除：参考均值 −0.06/−0.64→+6.49/−7.83°，参考双内收帧 12.75%→0.95%，回放双内收 7.06%→0.00%。(6) 产物入库：6207e62（修复+九门+动作+参考视频）+4d509c2（模型+指标+报告+记录+回放视频）已推送 origin/main（[exec:70]，工作区事实 0 未推、无未提交改动）。放宽项（非关键，不阻断）：a) timer park 挂起等待属过程约束，快照内无法直接取证，但执行记录仅少量稀疏状态查询、无空转轮询迹象；b) 报告 §5 参考双内收 1.13% 为 443f@30 门径值，sim2sim 737f@50 全帧重算为 0.95%，均远低于门限，不影响结论；c) arm err 0.2236 略高于 v4（+5.3%）为已知移动+持臂协调代价（v4 轮已证伪 v3×1.1 线并归因 fnd_32de93c0），不在 v5 预注册验收门内，已在报告遗留项如实披露；d) 三层根因审计的临时分析脚本未全部入库，但关键数字可由入库的 --dump_joints 产物与 gate9 工具复现（本次审核已复现），关键代码（stance_widen/gate9/dump_joints）均已提交。",
+      "unfinished": [],
+      "evidence": [
+        "[verify:ce35f20e-572c-4c96-8b15-3fd5dc9e5aae] F1_DANCE_V5_REPORT.md 全文：L10-18 根因三层审计（源不内收/重定向引入/策略无漂移）+ 机制分析；L45-74 v4 vs v5 对比表与预注册证伪线全过；L76-84 交付物清单",
+        "[verify:5e251a27-5247-4d74-be79-3cebd38360c2] .gm/task_f1.yaml L317-345/358-363：TASK_20261108_088、同配方 5000 iter、finalReward 32.77、sim2sim 命令与全指标、verdict exp_27f4783d confirmed；同时显示已入库代码中 gate9 默认阈值（1.15/0.70/3%）、--stance_widen（tools_bvh_to_csv_f1.py L84/171/177/187）、--dump_joints（play_mujoco.py L477/973/1049）",
+        "[verify:0c74f644-49e5-48ab-9e0e-7e5c36f34acc] yaml L287/318/322 dance_v5 段存在且绑定 TASK_20261108_088 与 motion dance2s1_ta_w75_f1.npz；quality_dance2s1_w75_f1_lift.json 九门全过（overall_pass=True，gates1-6 全 True，flatness 90.5/93.3%，arm sat 0%，gate9 1.266/0.845/1.13%）",
+        "[verify:46fc7ef9-5ecd-4935-854c-574558f5a5ac] 由入库 npz 独立重算：v4 ref hiproll −0.06/−0.64°、双内收 12.75%、回放 7.06%；v5 ref +6.49/−7.83°、双内收 0.95%、回放 0.00%；joint err 0.1467→0.1518、anchor 0.0531→0.0411、body 0.0624→0.0513、xy p95 0.103→0.063、travel 91.6→90.8%；motion 737f@50×29 关节；模型 sha256 前缀 9d1242002defbff33453 —— 内收消除与报告对比表数字全部独立验证",
+        "[verify:a3ab46d1-e62a-4c2f-831b-33e9170d89c0] tools_check_motion_f1.py 在 d628956..6207e62 间删除行为 0（纯新增，八门未动、门槛只升未降）；6207e62+4d509c2 在 HEAD 历史中；4d509c2 含模型/指标/报告/yaml/视频 6 文件；全部交付物在快照磁盘上存在且大小匹配",
+        "[exec:57] gm task info TASK_20261108_088 status=5（finished），exit=0 —— 训练任务完成",
+        "[exec:58] 训练日志 5000 iter 完整（Total timesteps 491520000，elapsed 01:31:22），exit=0",
+        "[exec:59] Mean reward 32.77（iteration 4958），exit=0 —— 与 v4 32.74 同收敛",
+        "[exec:61] model_4999 下载 6768482 字节、sha 前缀 9d1242002defbff33453，与快照文件一致",
+        "[exec:62] sim2sim 命令 exit=0：joint err 0.1518、fall_detected false、anchor 0.0411、min_base_z 0.55，产物已入库",
+        "[exec:69] git commit 4d509c2（编辑后运行，exit=0）创建交付提交；[exec:70] git push 6207e62..4d509c2 main→main 成功，工作区事实：0 未推送、无未提交改动"
+      ],
+      "terminal": true,
+      "keyPath": [
+        "根因审查用三层分解（源 FK / 重定向产物 / 策略回放）+ 同一口径量化（额状面 hip roll、gap/hipW、双内收帧%），并给 v4 留 --dump_joints 审计基线（sim2sim_v4_joints.npz 入库），使修复前后对比可被第三方独立复算 [verify:46fc7ef9-5ecd-4935-854c-574558f5a5ac]",
+        "新增验收门先做区分度验证（v4 内收版必须 FAIL、修复版 PASS），阈值按源统计校准而非拍脑袋，并在记录中显式登记 amendment（.gm/task_f1.yaml L304-308）[verify:5e251a27-5247-4d74-be79-3cebd38360c2]",
+        "修复做在管线 hook 层（scale_human_data 包装）而非改 vendored GMR，且用两档参数（0.06/0.075）校准后择优 [verify:5e251a27-5247-4d74-be79-3cebd38360c2]"
+      ],
+      "pitfalls": [
+        "训练账号余额耗尽产生死任务（jiyow52926 TASK_20261108_087 未运行即删，换 gifahim182 后 088 成功）——多账号池任务应在提交后立即确认 started，避免长时间空等 [exec:57]",
+        "比例失配类重定向缺陷（腿缩放 0.689 + 宽髋机器人）不表现为传统偏置/镜像错误，而藏在 IK 任务权重竞争中（脚 pos-500 >> 大腿姿态 10），需逐层量化才定位到 [verify:ce35f20e-572c-4c96-8b15-3fd5dc9e5aae]"
+      ]
+    }
+  ],
+  "attempts": [
+    {
+      "id": "review_fbe3bbf2b03852b80263c2931e19ae12",
+      "state": "completed",
+      "note": "recorded"
+    }
+  ],
+  "taskContract": {
+    "schemaVersion": "1",
+    "revision": 1,
+    "goalRevision": 1,
+    "goal": "训练 F1 29DOF 舞蹈 v5（仓库 ~/code/Beyondminic-Weilai-X1，main 分支，续上一支舞蹈训练之后）。\n\n背景问题：上一支舞蹈重定向后以及训练出来的策略，双腿有点内收（具体表现为 hip roll 向内收）。现在这个姿态感觉内收会导致不稳定。\n\n目标与要求：\n1. 先审查根因：是原始舞蹈本身就是内收的，还是重定向过程引入的问题。\n   - 若是重定向问题：定位并解决重定向问题（如 hip roll 偏置、骨架朝向约定、镜像/符号约定等），修复后重新重定向。\n   - 若原舞蹈本身就内收：更换另一支舞蹈源动作（选择姿态更外展/稳定、适合 29DOF F1 的舞蹈），重新走重定向流程。\n2. 最终产物必须满足仓库内最新的重定向质量要求和训练质量要求（以仓库 docs/ 或相关验收标准文档为准），不允许降低验收门槛。\n3. 环境约束：\n   - 本地为 Mac，无法本地训练；所有大的验证和训练全部提交到 gradmotion 平台执行。\n   - 使用 gm-cli（gradmotion skill）管理认证/配置/profile/project/task 流程。\n   - 涉及长周期观测（等待远端训练任务完成等），请使用 timer park 机制挂起等待，不要空转轮询。\n4. 训练完成后按仓库既有流程做质量评估（跟踪误差、姿态指标、稳定性等），给出与上一版（内收版本）的对比结论，确认 hip roll 内收问题已消除。\n\n交付：问题根因结论（原舞蹈内收 or 重定向 bug）、修复/换舞的完整流程记录、gradmotion 训练任务编号与结果、最终策略与评估报告、关键产物入库（代码/配置/文档提交到仓库）。",
+    "amendments": []
+  },
+  "extraction": {
+    "state": "idle",
+    "reason": "terminal",
+    "throughReviewId": "review_fbe3bbf2b03852b80263c2931e19ae12",
+    "requestedAt": 1794173726393,
+    "extractedThroughReviewId": "review_fbe3bbf2b03852b80263c2931e19ae12"
+  },
+  "updatedAt": 1794173849784,
+  "card": {
+    "title": "动作重定向双腿内收缺陷：比例失配根因定位与脚目标层修复",
+    "oneLiner": "重定向内收若排除了偏置/镜像/符号约定错误，先查比例失配：缩放后脚目标间距小于机器人髋宽时 IK 必然致内收，应在脚目标层撑开修复并留审计 dump 供复算。",
+    "task": "为 29DOF 人形机器人续训舞蹈全身跟踪策略，上一版动作与策略均双腿髋滚转内收、姿态不稳。先三层量化归因，确认为重定向 bug 而非源舞蹈：腿部缩放使脚目标间距小于机器人髋宽，IK 位置任务把脚拉入髋线内侧。在 BVH 转 CSV 管线加脚目标额状面撑开参数并两档校准，重新重定向、新增站姿开度验收门，远端重训后 sim2sim 零跌倒，与旧版对比确认内收消除，终态 passed，产物入库推送。",
+    "scope": "覆盖：基于缩放+IK 的动作重定向管线中姿态缺陷的分层归因与量化、比例失配类内收的几何判据、脚目标层参数修复、量化验收门设计与区分度验证、sim2sim 对比评估。不覆盖：RL 训练配方与调参、真机部署、源舞蹈选择与更换分支。",
+    "applicability": [
+      "重定向产物出现系统性姿态偏移（如双腿内收/外展），且已排查骨架朝向、镜像、符号约定等常规嫌疑均无异常时。",
+      "源动作用 limb 缩放适配腿长/髋宽与源人体差异明显的机器人，且 IK 中脚部位置任务权重远高于姿态保持任务时。",
+      "需为某类姿态缺陷新增量化验收门，并要求该门能明确区分修复前后的版本时。"
+    ],
+    "principles": [
+      "姿态缺陷归因用三层分解：源动作 FK、重定向产物、策略回放，用同一口径量化（额状面关节角、跨腿间距与髋宽比、异常帧占比），一次锁定缺陷所在层；同时把缺陷版关节 dump 入库作审计基线，使前后对比可被第三方独立复算。",
+      "先做几何可达性检查再查约定类错误：比较缩放后脚目标间距与机器人髋宽，前者小于后者时 IK 位置任务必然把脚拉进髋线内侧形成内收；此类缺陷应在脚目标层撑开解决，调骨架偏置或镜像参数无效。",
+      "修复做在管线包装层（hook 包装缩放/重定向调用），不改 vendored 重定向库；参数取两档校准后择优，兼顾开度收益与跟踪误差代价，避免硬编码进上游依赖。",
+      "新增量化验收门前先验证区分度：缺陷版本必须 FAIL、修复版本必须 PASS；门限按源动作统计分布校准（如分位数乘安全系数）而非拍脑袋，并在实验记录中显式登记门定义修订。"
+    ],
+    "pitfalls": [
+      "现象：内收类姿态缺陷查骨架偏置、镜像/符号约定全部正常。原因：比例失配缺陷不表现为约定错误，而藏在 IK 任务权重竞争中（脚位置强权重压过姿态弱权重）。规避：先量化缩放后脚目标与髋宽的几何关系，再逐层定位权重来源。",
+      "现象：远端任务提交后长时间无进展。原因：执行账号余额耗尽，任务未运行即被删成死任务。规避：提交后立即确认任务已进入运行态再挂起等待；多账号轮换时尤其要先确认再 park。"
+    ],
+    "limitations": [
+      "修复后手臂跟踪误差略高于缺陷版（相对约 +5%），归因于移动+持臂协调代价，属已知遗留项，本轮未优化。",
+      "结论经 sim2sim 验证（多圈零跌倒），未在真机上复验。",
+      "站姿开度门限按本轮源动作统计校准，换其他源动作或机器人体型时需重新校准分位数系数。"
+    ],
+    "outcome": "终态 passed。根因确认为重定向 bug：腿部缩放使脚目标间距小于机器人髋宽，IK 位置任务致双腿内收；源舞蹈无内收。脚目标撑开参数两档校准取优后重新重定向，新增站姿开度门对缺陷版 FAIL、修复版 PASS，既有验收门零改动。重训完整收敛，sim2sim 多圈零跌倒；参考动作双内收帧占比由 12.75% 降至 0.95%，策略回放降至 0；关节跟踪误差 +3.5%（门内），锚点与躯干误差反而改善。",
+    "details": [
+      {
+        "path": "F1_DANCE_V5_REPORT.md",
+        "why": "三层根因审计方法、机制分析与新旧版对比表"
+      },
+      {
+        "path": "tools_bvh_to_csv_f1.py",
+        "why": "脚目标额状面撑开参数的管线 hook 实现入口"
+      },
+      {
+        "path": "tools_check_motion_f1.py",
+        "why": "站姿开度验收门实现与源统计校准阈值"
+      },
+      {
+        "path": "whole_body_tracking/motions/sim2sim_v4_joints.npz",
+        "why": "缺陷版关节 dump 审计基线，支撑独立复算"
+      },
+      {
+        "path": "whole_body_tracking/motions/sim2sim_v5_joints.npz",
+        "why": "修复版同口径关节 dump，用于前后对比"
+      },
+      {
+        "path": ".gm/task_f1.yaml",
+        "why": "实验记录：门登记、修订登记与远端任务全指标"
+      }
+    ],
+    "tags": [
+      "人形机器人",
+      "动作重定向",
+      "hip roll 内收",
+      "比例失配",
+      "IK 任务权重竞争",
+      "脚目标额状面撑开",
+      "验收门区分度",
+      "sim2sim"
+    ]
+  },
+  "contentHash": "5754277039ba872da5f40c8ff0cc60802315d15401f02019c82cd51afb3b5f03",
+  "source": {
+    "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+    "remote": "git@github.com:yumxcode/Beyondminic-Weilai-X1.git",
+    "branch": "main",
+    "commit": "4d509c2e41c64f8c970e675f1e6a32bcbe0a93ff"
+  }
+}

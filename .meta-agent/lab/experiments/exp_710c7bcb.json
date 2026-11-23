@@ -1,0 +1,186 @@
+{
+  "id": "exp_710c7bcb",
+  "title": "F1 移动舞蹈：dance2_subject1 旅行段（[4950,5700)）GMR 重定向+量化门+训练+sim2sim",
+  "status": "concluded",
+  "sourceTaskId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad:g1",
+  "sessionId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad",
+  "createdAt": 1793887529928,
+  "updatedAt": 1793903850628,
+  "objective": "用有整体位移的舞蹈源（LAFAN dance2_subject1 窗口 [4950,5700)，人根净位移 5.9m/25s）复用 F1 管线完成重定向→量化门→训练→sim2sim，验证管线对移动舞蹈的适用性",
+  "hypothesis": "已跑通的 F1 管线（全局 IK 重定向 + 全局 root 参考跟踪训练 + travel-aware sim2sim）对根跨空间移动的舞蹈同样成立：GMR 全局 IK 保留根 xy（base_link pos 权重 100，按 root scale 缩放），训练时 MotionCommand 把机器人 root 写到参考全局位置（全局误差），sim2sim 已在参考 frame-0 初始化。换源后仅复跑管线即可，无需结构性改动。",
+  "falsificationCondition": "六项质量门任一不过且窗口平移 ±150-300 帧仍不过；或训练 finalReward < 25 / episode length < 300；或 sim2sim 5 循环内跌倒",
+  "decisionBranches": [
+    {
+      "condition": "六门过但窗口内穿地/自碰撞超限",
+      "next": "微调窗口边界（±150 帧）重跑门"
+    },
+    {
+      "condition": "训练 5000 iter 后 error_body_pos ≤0.10 且 ep_len≥400",
+      "next": "进入 sim2sim 验证"
+    },
+    {
+      "condition": "sim2sim 出现跌倒或 anchor 误差 >0.15m",
+      "next": "检查根速度门限（位移段速度更高），必要时窗口平滑或降速重定向"
+    }
+  ],
+  "base": {
+    "kind": "continue_from",
+    "ref": "F1 v1 管线（dance1_subject3 原地舞蹈）+ 已验证 F1 资产/ik 配置/训练配置",
+    "fromExperimentId": "exp_599ede6b"
+  },
+  "controlExperimentId": "exp_599ede6b",
+  "changes": [
+    {
+      "key": "source_motion",
+      "to": "LAFAN dance2_subject1 [4950,5700) 25s 移动舞蹈（人根净位移 5.90m，bbox 6.95×0.24m，近似直线穿越；机器人根位移≈×0.7 scale）",
+      "from": "LAFAN dance1_subject3 [0,689) 23s 原地舞蹈（净位移 0.23m）"
+    },
+    {
+      "key": "retarget_output",
+      "to": "dance2s1_travel_f1.csv / .npz（同管线：tools_bvh_to_csv_f1.py → tools_check_motion_f1.py 六门 → tools_csv_to_npz_f1_local.py）",
+      "from": "dance_f1_train.csv / dance_f1_train.npz"
+    },
+    {
+      "key": "training",
+      "to": "新 gradmotion 任务同配置仅换 motion_file",
+      "from": "TASK_20261105_430（gradmotion，Tracking-Flat-F1-v0，full obs 160d）"
+    },
+    {
+      "key": "sim2sim_gate",
+      "to": "同门 + 新增根位移跟踪指标（robot_xy vs ref_xy 轨迹偏差）",
+      "from": "5 循环零跌倒门 + joint/anchor 误差对照 X1 基线"
+    }
+  ],
+  "events": [
+    {
+      "kind": "launch",
+      "text": "GMR 重定向 dance2_subject1 [4950,5700) → dance2s1_travel_f1.csv（后台作业 job-10a17eed52364ae5，复用 exp_9be24e0c 验证过的 ik 配置与参数：solver proxqp, init_margin 0.15, smooth_window 5）",
+      "jobRef": "job-10a17eed52364ae5",
+      "at": 1793887701168
+    },
+    {
+      "at": 1793887701168,
+      "kind": "amendment",
+      "text": "设计修订：codeRef → 7de2c76 (main HEAD); tools_bvh_to_csv_f1.py@8438929；entrypoint → tools_bvh_to_csv_f1.py --bvh_file downloads/lafan1/dance2_subject1.bvh --start_frame 4950 --end_frame 5700"
+    },
+    {
+      "kind": "effectiveness_check",
+      "text": "CMU 137 族适配器跑通：137_24 Graceful Lady Walk（1193f@120fps → 299f@30fps，9.9s，人根位移 4.73m 近直线，z std 0.018）→ F1 CSV 六门真实全过（ground -0.0124 / self 0.078 / 限位 0 / 速度 0 / 高度带 [0.64,0.70] 与腿 scale 0.717 数学自洽 / 连续）+ npz 级门全过（497f@50fps）。七个关键修复：(1) ASF/AMC 单位是 ASF 单位（×2.54/0.45/100）非英寸；(2) GMR 世界 Z-up 前+x，CMU Y-up 需 Rx(-90°) 映射 (x,-z,y)；(3) yaw 180° 岔用 stance 逐身体位置投票消歧（hips 局部 x 轴近竖直退化）；(4) CMU 世界地面在 z≈-0.106，需整体归零；(5) 模特步绷脚尖（脚前向轴世界 z 分量 -0.38~-0.63）→ FootMod 朝向水平化保 yaw；(6) 段长 scale 按 ASF length 字段实测重算（137 ASF rest pose 蜷腿，T-pose 关节位置测不出骨长；leg 0.798→0.717）；(7) F1 mocap body 名上身带 _link 后缀，mj_name2id 返回 -1 时 xpos[-1] 给假数据。",
+      "evidence": [
+        "whole_body_tracking/motions/quality_cmu137_24_f1_csv.json",
+        "whole_body_tracking/motions/quality_cmu137_24_f1_npz.json",
+        "downloads/cmu137/137.asf"
+      ],
+      "at": 1793890102923
+    },
+    {
+      "at": 1793890102923,
+      "kind": "amendment",
+      "text": "设计修订：codeRef → tools_amc_to_lafan_frames.py + tools_amc_csv_f1.py（本工作区新工具）"
+    },
+    {
+      "kind": "launch",
+      "text": "gradmotion 训练已启动：beyondmimic-f1-travel-cmu137（PRO_20261105_081，jiyow52926 userId4718，ESKU000001 4090D，IsaacLab 2.1.0）。startScript：entry_f1_train.py --task=Tracking-Flat-F1-v0 --motion_file motions/cmu137_24_f1.npz --headless --num_envs 4096 --max_iterations 5000（与 exp_599ede6b 同配方仅换动作源）。一处平台修复：ESKU000001 不支持个人存储挂载，去掉 personalDataPath 后 run 成功。",
+      "jobRef": "TASK_20261105_558",
+      "at": 1793890241662
+    },
+    {
+      "at": 1793890241662,
+      "kind": "amendment",
+      "text": "设计修订：codeRef → ea738ef (main, pushed)"
+    },
+    {
+      "kind": "effectiveness_check",
+      "text": "训练启动验证：4096 envs 场景创建成功；MotionLoader joint/body 按名重排（29/30）；policy obs 160 维与 v1 一致；iter 0/5000 正常输出（25456 steps/s，error_anchor_pos 0.0577，ee_body_pos 终止初期 1172 属正常随机策略）；SDK 已捕获 tensorboard 目录 f1_flat/2026-11-05_22-55-18。",
+      "evidence": [
+        "gm task logs TASK_20261105_558"
+      ],
+      "at": 1793890565607
+    },
+    {
+      "kind": "launch",
+      "text": "v2 训练启动（beyondmimic-f1-travel-cmu137-v2）：同 v1 配置（同 npz、5000 iter、4090D），唯一改动 F1FlatEnvCfg 终止从 z-only 0.25m 改全量 0.5m（commit f90f8e4）。v1（TASK_20261105_558）sim2sim 结果归档：5 循环零跌倒、min_base_z 0.57、anchor_rel 0.117，但位移保持 42%（1.54/3.70m 每循环，滞后累积 2.2m）；obs 分段 z-score 显示除 anchor_pos_b（3.9σ，果）外其余段均在分布内，排除关节序/物理参数错位。",
+      "jobRef": "TASK_20261106_006",
+      "at": 1793897044791
+    },
+    {
+      "at": 1793897044791,
+      "kind": "amendment",
+      "text": "设计修订：codeRef → f90f8e4 (main, pushed)"
+    }
+  ],
+  "results": [
+    {
+      "metrics": {
+        "source": "CMU 137_24 Graceful Lady Walk, 9.9s, human-root travel 4.73m",
+        "v1_sim2sim_anchor_err_m": 1.2677,
+        "v1_sim2sim_travel_retention_pct": 42,
+        "v1_train_anchor_err_m": 0.4726,
+        "v1_train_final_reward": 23.28,
+        "v2_sim2sim_anchor_err_m": 0.115,
+        "v2_sim2sim_anchor_rel_m": 0.1085,
+        "v2_sim2sim_joint_err_rad": 0.5017,
+        "v2_sim2sim_min_base_z_m": 0.556,
+        "v2_sim2sim_travel_retention_pct": 97,
+        "v2_train_anchor_err_m": 0.2,
+        "v2_train_ep_len": 467,
+        "v2_train_final_reward": 22.24
+      },
+      "gates": [
+        {
+          "gate": "retarget_six_gates_csv",
+          "value": "ground -0.0124 / self 0.078 / limits 0 / vel 0 / height [0.64,0.70] / continuity PASS",
+          "pass": true
+        },
+        {
+          "gate": "retarget_six_gates_npz",
+          "value": "ground -0.0124 / self 0.072 (497f@50fps)",
+          "pass": true
+        },
+        {
+          "gate": "sim2sim_zero_falls_5loops",
+          "value": "2485 steps, min_base_z 0.556, fall_detected false",
+          "pass": true
+        },
+        {
+          "gate": "sim2sim_travel_retention",
+          "value": "3.60/3.70 m = 97% per loop (v1 z-only-term: 42%)",
+          "pass": true
+        },
+        {
+          "gate": "sim2sim_anchor_err",
+          "value": "mean 0.115 m, in-loop peak 0.15 m (v1: 1.27 m mean, 2.22 m peak)",
+          "pass": true
+        }
+      ],
+      "subject": "F1 29DOF travel-dance policy, 5 sim2sim loops (2485 steps @50Hz MuJoCo)",
+      "note": "v1=Task_20261105_558 (z-only anchor termination, baseline), v2=Task_20261106_006 (full anchor termination 0.5m, only change). Same npz cmu137_24_f1.npz.",
+      "evidence": [
+        "whole_body_tracking/motions/sim2sim_cmu137_24_v2_metrics.npz",
+        "/tmp/sim2sim_v2.log",
+        "/tmp/v2_final.log",
+        "whole_body_tracking/motions/quality_cmu137_24_f1_csv.json",
+        "whole_body_tracking/motions/quality_cmu137_24_f1_npz.json"
+      ],
+      "at": 1793903755222
+    }
+  ],
+  "protocolWarnings": [
+    "相对对照 exp_599ede6b 的改动数为 5（含起点差异），不是单变量。起点与对照不同（例如接续对照的产物继续运行），这本身计为一项改动。",
+    "续接链深度 3：该结果建立在 3 次接续之上，作为最终交付前需从零复现确认。",
+    "命中分支「sim2sim 出现跌倒或 anchor 误差 >0.15m → 检查根速度门限（未命中：v2 anchor 误差 0.115m 达标）」不在预注册的决策分支中。"
+  ],
+  "codeRef": "f90f8e4 (main, pushed)",
+  "entrypoint": "tools_bvh_to_csv_f1.py --bvh_file downloads/lafan1/dance2_subject1.bvh --start_frame 4950 --end_frame 5700",
+  "conclusion": {
+    "verdict": "confirmed",
+    "summary": "确认：换 CMU 137_24 Graceful Lady Walk（人根位移 4.73m/9.9s 近直线走秀）后复用 F1 管线完整跑通并达标交付。(1) 源选择：LAFAN 舞蹈全系统排除（fnd_7af304ab），CMU 137 族经新适配器（7 个关键修复）重定向六门全过（ground -0.0124 / self 0.078 / 高度带与腿 scale 0.717 数学自洽）。(2) v1 训练（TASK_20261105_558，z-only 终止基线配方）sim2sim 5 循环零跌倒但位移保持仅 42%（滞后 2.2m）。(3) 根因定位（obs 分段 z-score）：基类 z-only anchor 终止不约束水平滞后，训练内即滞后 0.47m，sim2sim 正反馈放大。(4) v2（TASK_20261106_006，唯一改动=全量 anchor 终止 0.5m）sim2sim：零跌倒、位移保持 97%（3.60/3.70m 每循环）、全局锚误差 0.115m（v1 1.27m）、anchor_rel 0.109m、min_base_z 0.556。位移跟踪假设被证实，交付 v2 模型+指标+对照视频。",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；CMU 137 族 ASF/AMC 源（tools_amc_to_lafan_frames.py 适配器）；gradmotion IsaacLab 2.1.0 4090D；MuJoCo 3.13 sim2sim；全量 anchor 终止 0.5m 仅在 F1FlatEnvCfg（X1/G1 未动）",
+    "branchHit": "sim2sim 出现跌倒或 anchor 误差 >0.15m → 检查根速度门限（未命中：v2 anchor 误差 0.115m 达标）",
+    "at": 1793903850628,
+    "findingIds": [
+      "fnd_0836c33c",
+      "fnd_9d695b42"
+    ]
+  }
+}

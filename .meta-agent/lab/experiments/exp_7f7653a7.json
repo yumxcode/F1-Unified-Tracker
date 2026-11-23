@@ -1,0 +1,81 @@
+{
+  "id": "exp_7f7653a7",
+  "title": "F1 资产审计与 kp/kd 定稿（URDF→MJCF/Isaac URDF + 增益推导）",
+  "status": "concluded",
+  "sourceTaskId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65:g1",
+  "sessionId": "04fa8a59-9d9c-41c9-9a5e-d0aac7f2fe65",
+  "createdAt": 1793867540026,
+  "updatedAt": 1793867663757,
+  "objective": "F1_29DOF 审计是否产出可用的仿真资产与通过机械验证的 kp/kd？",
+  "hypothesis": "F1 URDF 可直接编译为可训练/可仿真的资产；上身沿用 X1 辨识增益 + 腿部按 URDF 惯量/带宽法推导的增益能通过机械保形验证",
+  "falsificationCondition": "MJCF 无法在 MuJoCo/Isaac 加载；焊接基座保持测试最大关节误差 > 6° 或发散；渲染目检装配错乱",
+  "prediction": "三处 MJCF 均加载（31 body/29 motor/63 sensor）；焊接基座 3° 扰动保持收敛到 <6°；渲染装配正确",
+  "base": {
+    "kind": "scratch"
+  },
+  "changes": [
+    {
+      "key": "F1_29DOF 资产审计 + kp/kd 定稿",
+      "to": "MJCF/URDF/meshes 三处资产 + f1_kp_kd.json + F1_AUDIT.md",
+      "from": "无（新机型）"
+    }
+  ],
+  "events": [],
+  "results": [
+    {
+      "metrics": {
+        "joints_same_as_x1": 29,
+        "stand_base_z_m": 0.588,
+        "total_mass_kg": 35.03,
+        "upper_body_identical": "true",
+        "weld_hold_max_err_deg": 1.23,
+        "weld_hold_mean_err_deg": 0.29
+      },
+      "gates": [
+        {
+          "gate": "MuJoCo 三处加载 nbody=31/nu=29/nsensor=63",
+          "value": "31/29/63",
+          "pass": true
+        },
+        {
+          "gate": "焊接基座保持最大误差 < 6°",
+          "value": "1.23°",
+          "pass": true
+        },
+        {
+          "gate": "站立 keyframe 足底接触 z≈0",
+          "value": "0.0 m",
+          "pass": true
+        },
+        {
+          "gate": "渲染目检装配正确",
+          "value": "正确",
+          "pass": true
+        }
+      ],
+      "evidence": [
+        "F1_29DOF/F1_AUDIT.md",
+        "F1_29DOF/f1_kp_kd.json",
+        "F1_29DOF/mjcf/robot/f1/f1_serial.xml",
+        "F1_29DOF/mjcf/robot/f1/f1_stand.json",
+        "F1_29DOF/mjcf/render_f1_flat.png",
+        "F1_29DOF/mjcf/render_f1_front.png"
+      ],
+      "at": 1793867550504
+    }
+  ],
+  "protocolWarnings": [
+    "未声明对照实验（controlExperimentId），无法核对单变量。"
+  ],
+  "conclusion": {
+    "verdict": "confirmed",
+    "summary": "F1 URDF 审计完成：上身与 X1 逐字一致、腿部全新（130/241.9/218.4 Nm，不对称 hip_roll 限位）；三处仿真资产（F1_29DOF/mjcf、wbt assets、GMR assets）全部加载通过；kp/kd 按 X1 验证带宽带 + URDF 站立惯量推导，焊接基座保持 1.23° 通过。commit 4fc083b 已推送。",
+    "applicability": "F1 URDF SYS-SPEC-0002-V1.1（commit c0e0ef6）；MuJoCo 3.13；X1 验证过的增益带宽带",
+    "branchHit": "全部通过",
+    "at": 1793867663757,
+    "findingIds": [
+      "fnd_988820c6",
+      "fnd_117b7fc1"
+    ]
+  }
+}

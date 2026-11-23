@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "f1-dance-v5-hiproll-fix",
+  "title": "F1 舞蹈 v5 内收修复报告",
+  "kind": "markdown",
+  "createdAt": "2026-11-08T21:28:03.932Z",
+  "updatedAt": "2026-11-08T21:28:03.932Z",
+  "latestVersion": 1,
+  "versions": [
+    {
+      "version": 1,
+      "createdAt": "2026-11-08T21:28:03.932Z",
+      "bytes": 16261,
+      "sessionId": "fa2596d9-7e57-427c-a845-e4dc97583b42"
+    }
+  ]
+}

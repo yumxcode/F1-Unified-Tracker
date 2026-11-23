@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0",
+  "wakeId": "auto-wake-23213b95d657",
+  "sessionId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad",
+  "projectDir": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "fireAt": 1793903679028,
+  "reason": "v2 训练 TASK_20261106_006 进行至 iter 1848/5000（健康）。65 分钟后应完成（剩 3152 iter ≈ 62 分钟），届时下载模型并跑 sim2sim。",
+  "checkpoint": {
+    "next": "v2 done -> download model_4999, sim2sim 5 loops, compare travel retention vs v1 42%",
+    "v1": "zero falls but 42% travel retention, lag 2.2m",
+    "v2change": "full-anchor termination 0.5m",
+    "v2taskId": "TASK_20261106_006",
+    "v2progress": "iter 1848 reward 17.6 eplen 448"
+  },
+  "goal": "F1 29DOF 移动舞蹈训练（仓库 ~/code/Beyondminic-Weilai-X1，main 分支）：换一段有整体位移的舞蹈源动作（不要求每步迈很大，但根要有跨空间移动，LAFAN 舞蹈变体/CMU 137 族/GVHMR 视频重建均可），复用已跑通的 F1 管线（GMR 重定向+量化门 → Beyondminic 训练 → sim2sim），交付新训练模型、sim2sim 指标与对照视频。训练在 gradmotion，长周期观测用 timer park。",
+  "goalRevision": 1,
+  "checkpointRevision": 87,
+  "historyMessageCount": 510,
+  "historyFingerprint": "16777232:5352404:941437:1793899778938960851:1793899778938960851:Infinity:67108864",
+  "runtime": {
+    "sessionDir": "/Users/yumx/.weixin-bot/weixin-bot/personal-agent/runtime-sessions",
+    "configFile": "/Users/yumx/.meta-agent/glm_config.json"
+  },
+  "status": "done",
+  "attempts": 1,
+  "createdAt": 1793899779029,
+  "updatedAt": 1793903766896,
+  "claim": {
+    "owner": "yumxdeMac-mini.local#50516",
+    "token": "4806af73-691e-4a4f-ad2e-d1ae18831962",
+    "claimedAt": 1793903680001,
+    "expiresAt": 1793904340009
+  }
+}

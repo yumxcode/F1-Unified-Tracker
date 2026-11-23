@@ -1,0 +1,17 @@
+{
+  "token": "97cdf559-8a43-44cd-915a-543c3aaa1fd1",
+  "owner": {
+    "pid": 40743,
+    "startToken": "四 11月/ 5 22:11:42 2026"
+  },
+  "spec": {
+    "file": "sandbox-exec",
+    "args": [
+      "-p",
+      "(version 1)\n\n;; Permissive base — deny specific operations below.\n(allow default)\n\n;; Deny all writes by default.\n(deny file-write*)\n\n;; Node.js runtime always-writable paths.\n(allow file-write*\n  (literal \"/dev/null\")\n  (literal \"/dev/zero\")\n  (literal \"/dev/random\")\n  (literal \"/dev/urandom\")\n  (regex #\"^/dev/fd/[0-9]+$\")\n  (subpath \"/private/var/folders\")\n  (subpath \"/var/folders\") (subpath \"/private/var/folders\")\n  (subpath \"/private/tmp\")\n  (subpath \"/tmp\") (subpath \"/private/tmp\")\n)\n\n;; Sub-agent workspace.\n(allow file-write* (subpath \"/Users/yumx/code/Beyondminic-Weilai-X1\"))\n\n;; Caller-specified extra write paths.\n(allow file-write*\n  (subpath \"/Users/yumx/.account-pool\")\n  (subpath \"/Users/yumx/.config/gh\")\n  (subpath \"/private/var/folders/3r/gk4flgtj3d7d30y1h95dmwxh0000gn/C/mds\")\n  (subpath \"/Users/yumx/code/Beyondminic-Weilai-X1\")\n)\n\n;; Caller-specified write-deny paths (override allows above).\n(deny file-write*\n  (subpath \"/Users/yumx/code/Beyondminic-Weilai-X1/.meta-agent\")\n  (subpath \"/Users/yumx/.meta-agent\")\n)\n",
+      "bash",
+      "-c",
+      "set -o pipefail\ncurl -sk --retry 3 -o downloads/allasfamc.zip \"https://mocap.cs.cmu.edu/allasfamc.zip\" && ls -la downloads/allasfamc.zip && unzip -l downloads/allasfamc.zip | grep -E \"^.*137/\" | head -8 && unzip -l downloads/allasfamc.zip | tail -3"
+    ]
+  }
+}

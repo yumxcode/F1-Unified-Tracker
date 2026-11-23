@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-65e9506d86014c14",
+  "name": "gmr-cmu137-graceful",
+  "command": ".venv/bin/python -u tools_amc_csv_f1.py --asf downloads/cmu137/137.asf --amc downloads/cmu137/137_24.amc --output_file whole_body_tracking/motions/csv/cmu137_24_f1.csv",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad",
+  "idempotencyKey": "gmr-f1-cmu137-24",
+  "createdAt": 1793889382343,
+  "outputs": [
+    "whole_body_tracking/motions/csv/cmu137_24_f1.csv"
+  ],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "219c1a23-64de-4e02-be9e-00dd02bfd2ec",
+  "launchOwner": {
+    "pid": 40743,
+    "startToken": "四 11月/ 5 22:11:42 2026"
+  },
+  "pid": 42054,
+  "startToken": "四 11月/ 5 22:36:22 2026"
+}

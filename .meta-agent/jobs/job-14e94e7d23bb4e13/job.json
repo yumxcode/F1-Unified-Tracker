@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-14e94e7d23bb4e13",
+  "name": "dl-cmu-allasfamc",
+  "command": "curl -sk --retry 3 -o downloads/allasfamc.zip \"https://mocap.cs.cmu.edu/allasfamc.zip\" && ls -la downloads/allasfamc.zip && unzip -l downloads/allasfamc.zip | grep -E \"^.*137/\" | head -8 && unzip -l downloads/allasfamc.zip | tail -3",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad",
+  "idempotencyKey": "dl-cmu-allasfamc",
+  "createdAt": 1793888355786,
+  "deadlineAt": 1793890155786,
+  "outputs": [
+    "downloads/allasfamc.zip"
+  ],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "97cdf559-8a43-44cd-915a-543c3aaa1fd1",
+  "launchOwner": {
+    "pid": 40743,
+    "startToken": "四 11月/ 5 22:11:42 2026"
+  },
+  "pid": 41193,
+  "startToken": "四 11月/ 5 22:19:15 2026"
+}

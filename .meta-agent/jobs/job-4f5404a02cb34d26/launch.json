@@ -1,0 +1,17 @@
+{
+  "token": "c38e35d6-90c5-49c0-b10a-11863f5e73aa",
+  "owner": {
+    "pid": 43422,
+    "startToken": "四 11月/ 5 22:46:39 2026"
+  },
+  "spec": {
+    "file": "sandbox-exec",
+    "args": [
+      "-p",
+      "(version 1)\n\n;; Permissive base — deny specific operations below.\n(allow default)\n\n;; Deny all writes by default.\n(deny file-write*)\n\n;; Node.js runtime always-writable paths.\n(allow file-write*\n  (literal \"/dev/null\")\n  (literal \"/dev/zero\")\n  (literal \"/dev/random\")\n  (literal \"/dev/urandom\")\n  (regex #\"^/dev/fd/[0-9]+$\")\n  (subpath \"/private/var/folders\")\n  (subpath \"/var/folders\") (subpath \"/private/var/folders\")\n  (subpath \"/private/tmp\")\n  (subpath \"/tmp\") (subpath \"/private/tmp\")\n)\n\n;; Sub-agent workspace.\n(allow file-write* (subpath \"/Users/yumx/code/Beyondminic-Weilai-X1\"))\n\n;; Caller-specified extra write paths.\n(allow file-write*\n  (subpath \"/Users/yumx/.account-pool\")\n  (subpath \"/Users/yumx/.config/gh\")\n  (subpath \"/private/var/folders/3r/gk4flgtj3d7d30y1h95dmwxh0000gn/C/mds\")\n  (subpath \"/Users/yumx/code/Beyondminic-Weilai-X1\")\n)\n\n;; Caller-specified write-deny paths (override allows above).\n(deny file-write*\n  (subpath \"/Users/yumx/code/Beyondminic-Weilai-X1/.meta-agent\")\n  (subpath \"/Users/yumx/.meta-agent\")\n)\n",
+      "bash",
+      "-c",
+      "set -o pipefail\n.venv/bin/python -u tools_amc_csv_f1.py --asf downloads/cmu137/137.asf --amc downloads/cmu137/137_24.amc --output_file whole_body_tracking/motions/csv/cmu137_24_f1.csv > /tmp/gmr_v8.log 2>&1; grep -E \"ground|scale|travel|Saved\" /tmp/gmr_v8.log; .venv/bin/python tools_check_motion_f1.py --csv whole_body_tracking/motions/csv/cmu137_24_f1.csv --fps 30 --json_out whole_body_tracking/motions/quality_cmu137_24_f1_csv.json > /tmp/gate_v8.log 2>&1; python3 -c \"\nimport json\nd=json.load(open('whole_body_tracking/motions/quality_cmu137_24_f1_csv.json'))\ng=d['ground']; s=d['self_penetration']\nprint(f\\\"ground {g['min_foot_z_m']:.4f} @f{g['frame']} pass={g['pass']} | self {s['min_pair_distance_m']:.4f} pass={s['pass']} | limits={d['joint_limits']['pass']} vel={d['joint_velocities']['pass']} hgt=[{d['root_height']['min_m']:.2f},{d['root_height']['max_m']:.2f}] pass={d['root_height']['pass']} | OVERALL={d['overall_pass']}\\\")\""
+    ]
+  }
+}

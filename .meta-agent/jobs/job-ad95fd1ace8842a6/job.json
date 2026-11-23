@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-ad95fd1ace8842a6",
+  "name": "render-v4-ref",
+  "command": "cd ~/code/Beyondminic-Weilai-X1 && .venv/bin/python tools_render_ref_f1.py --motion whole_body_tracking/motions/dance2s1_ta_f1.npz --out renders/dance2s1_ta_f1_reference.mp4 --loops 2 2>&1 | tail -3",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "82f46477-d253-4c75-9553-13f15641f41d",
+  "idempotencyKey": "v4-render-ref-ta",
+  "createdAt": 1794056173320,
+  "outputs": [
+    "renders/dance2s1_ta_f1_reference.mp4"
+  ],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "9e14a3d6-57f4-49ec-b54b-f2a4ae99630a",
+  "launchOwner": {
+    "pid": 7966,
+    "startToken": "六 11月/ 7 20:48:12 2026"
+  },
+  "pid": 8398,
+  "startToken": "六 11月/ 7 20:56:13 2026"
+}

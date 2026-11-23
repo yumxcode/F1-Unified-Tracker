@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-9c9b6641901d44e1",
+  "name": "render-cmu137-ref",
+  "command": ".venv/bin/python tools_render_ref_f1.py --motion whole_body_tracking/motions/cmu137_24_f1.npz --loops 3 --out cmu137_24_reference.mp4 2>&1 | tail -3",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad",
+  "idempotencyKey": "render-ref-cmu137-24",
+  "createdAt": 1793890086517,
+  "deadlineAt": 1793891886517,
+  "outputs": [
+    "cmu137_24_reference.mp4"
+  ],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "cf854402-f1bc-4e16-adb3-fa25d98acbef",
+  "launchOwner": {
+    "pid": 43422,
+    "startToken": "四 11月/ 5 22:46:39 2026"
+  },
+  "pid": 43620,
+  "startToken": "四 11月/ 5 22:48:06 2026"
+}

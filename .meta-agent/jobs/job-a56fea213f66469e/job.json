@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-a56fea213f66469e",
+  "name": "render-v4-compare-parts",
+  "command": "cd ~/code/Beyondminic-Weilai-X1 && .venv/bin/python whole_body_tracking/scripts/play_mujoco.py --robot f1 --headless --checkpoint trained_models/dance_f1_v4_model_4999.pt --motion whole_body_tracking/motions/dance2s1_ta_f1.npz --max_steps 737 --record renders/tmp_v4_policy1.mp4 2>&1 | tail -3 && .venv/bin/python tools_render_ref_f1.py --motion whole_body_tracking/motions/dance2s1_ta_f1.npz --out renders/tmp_v4_ref1.mp4 --loops 1 2>&1 | tail -3",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "82f46477-d253-4c75-9553-13f15641f41d",
+  "idempotencyKey": "v4-render-compare-parts",
+  "createdAt": 1794062789899,
+  "outputs": [
+    "renders/tmp_v4_policy1.mp4",
+    "renders/tmp_v4_ref1.mp4"
+  ],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "598fbc4e-92f0-4e6b-aa48-7ab39839862b",
+  "launchOwner": {
+    "pid": 10607,
+    "startToken": "六 11月/ 7 22:33:33 2026"
+  },
+  "pid": 11151,
+  "startToken": "六 11月/ 7 22:46:29 2026"
+}

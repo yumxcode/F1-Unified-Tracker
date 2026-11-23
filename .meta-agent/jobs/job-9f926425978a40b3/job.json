@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-9f926425978a40b3",
+  "name": "d2s1-relock-retarget",
+  "command": "cd ~/code/Beyondminic-Weilai-X1 && .venv/bin/python tools_bvh_to_csv_f1.py --bvh_file downloads/lafan1/dance2_subject1.bvh --output_file /tmp/d2s1_0_750_relock_f1.csv --start_frame 0 --end_frame 750 --arm_relock c3.0_r0.92 --clamp_margin 0.06 2>&1 | tail -3",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "88ea19c0-698d-4b01-8335-203aded72dd6",
+  "idempotencyKey": "d2s1-relock-retarget-v1",
+  "createdAt": 1794023788146,
+  "outputs": [],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "908302c4-e846-4212-81e4-10f24cab2598",
+  "launchOwner": {
+    "pid": 93340,
+    "startToken": "Sat Nov  7 11:31:18 2026"
+  },
+  "pid": 94410,
+  "startToken": "Sat Nov  7 11:56:28 2026"
+}

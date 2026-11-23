@@ -1,0 +1,19 @@
+/Users/yumx/code/Beyondminic-Weilai-X1/.venv/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+xrobotoolkit_sdk not found, skip for now. If you do not use XRobotStreamer, it's
+fine.
+XRobotStreamer is not installed. Please install xrobotoolkit_sdk to use this 
+feature.
+[src] 300 frames from dance1_subject3.bvh
+[GMR] Robot Degrees of Freedom (DoF) names and their order:
+[GMR] Robot Body names and their IDs:
+[GMR] Robot Motor (Actuator) names and their IDs:
+[v0_baseline] frame 0/300
+[v0_baseline] frame 100/300
+[v0_baseline] frame 200/300
+[v0_baseline] any_sat 100.0%  fails 0 | worst: right_wrist_roll 100%, right_shoulder_yaw 100%, right_elbow_pitch 100%, left_wrist_roll 100%, left_wrist_pitch 100%, right_wrist_pitch 92% | ROM<2%: left_wrist_pitch, left_wrist_roll, right_shoulder_yaw, right_elbow_pitch, right_wrist_roll
+[v3_arm_relock] frame 0/300
+[v3_arm_relock] frame 100/300
+[v3_arm_relock] frame 200/300
+[v3_arm_relock] any_sat 33.3%  fails 0 | worst: left_shoulder_roll 33%, left_wrist_roll 16%, left_wrist_pitch 16%, left_shoulder_pitch 16%, right_wrist_pitch 15%, right_wrist_roll 15%
+json -> /tmp/arm_study2.json

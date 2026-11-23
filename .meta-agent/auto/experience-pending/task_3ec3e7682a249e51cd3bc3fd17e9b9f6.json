@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "taskId": "task_3ec3e7682a249e51cd3bc3fd17e9b9f6",
+  "sourceSessionId": "82f46477-d253-4c75-9553-13f15641f41d",
+  "goalRevision": 1,
+  "revision": 1,
+  "status": "pending",
+  "evidence": [
+    {
+      "reviewId": "review_73d074f80a9bc6515e052152801b2f00",
+      "outcome": "passed",
+      "conclusion": "通过。F1 29DOF 舞蹈 v4 全链路已按契约完成并有独立数据自证：(1) 选源——全库扫描（CMU 137 族 04/16/38 出局 armV 0.09-0.43 且脚底差、LAFAN walk 系 armV≤0.79、dance2s3 移动段八门否决后）唯一窗口 dance2_subject1 [345,795) 帕累托膝点，两全指标实测成立：重定向后腕速 armV≈0.99m/s（源级 1.14 vs v3 源 1.05）+ 每圈位移 1.199m（≈v3 原地舞 9 倍），报告 §2 给出完整候选对比与淘汰链及 0.421m×0.92 臂展可达性核对；并修正了旧扫描工具 raw BVH 第 3 通道误读（fnd_7af304ab 标 stale）。(2) 重定向——v3 管线（arm_relock c3.0_r0.92 + clamp 0.06 + 新增 tools_lift_ground_f1.py 掐头/局部 root-z lift）后 8 门全过：我用 numpy+URDF 独立复核关键门均达标（限位违规 0、臂饱和 0.83%≤10%、腕 ROM 最低 25.9%≥2%、FK 帧无穿地 min body z +0.0265m、脚平放近似 tilt<15° L93.6/R94.7%≥90%），self/vel/height/continuity 四门因快照无 mujoco 以 yaml 记录+v3 同管线先例采信；位移大→全锚点 0.5m 终止已在 F1FlatEnvCfg 默认启用。(3) 训练与验证——gradmotion TASK_20261107_199 完成（复用 v3 账号 gifahim182，非新账号故 personalDataPath 约束不受影响），model_4999 已下载（sha256 前 16 位 c2e60a0e2638b671 与报告一致）；sim2sim 5 圈×737 步零跌倒（min base_z 0.5535），臂/腿误差 0.2123/0.0926、触地 98.5/97.8%、滑移 0.101/0.050 m/s、位移保持 91.6%（1.099/1.199m/圈）、xy p95 0.103m，全部从 sim2sim_v4_travelarm.npz 独立复算并与报告/yaml 逐项一致；v3 基线数字（arm 0.1724/leg 0.0994/joint 0.1315/min bz 0.5612/contact 100/99.5/slip 0.018/0.026）亦从 v3 npz 复算吻合。三视频均存在且为合法 mp4。约束满足：4 个 git 提交（7433312/65218b6/73611db/d628956）已推送（宿主事实：HEAD d628956、工作区干净、origin/main 0 未推送），.gm/task_f1.yaml dance_v4 段 +80 行，trained_models 新模型 + sim2sim 指标 + F1_DANCE_V4_REPORT.md 均交付。放宽的非关键细节：a) 报告 §4 中 'v3 anchor err 0.0553' 标注与 v3 npz 实测 0.1432 不符（0.0553 疑为 v1 的 anchor-rel 数字），但方向结论（v4 0.0531 优于 v3）仍被实测支持；b) yaml dance_v4.commits 字段漏列后两个提交（git 历史本身完整已推送）；c) arm err 0.2123 命中执行者自设预注册证伪线（较 v3 +23%）——契约要求的是输出臂/腿分解并对比 v3（已完整交付），未把 'arm err 不劣化' 定为验收条件，执行者已诚实判定 falsified 并归因（与参考臂速 corr −0.52，误差集中在持臂行走协调段，数据层无饱和：sat 0.83%、腕 ROM 25.9%），作为结果性遗憾记录，不构成关键路径未完成；d) 滑移 0.101 m/s 高于 v3 但契约未设滑移门限，已如实记录并归因迈步舞特性。",
+      "unfinished": [],
+      "evidence": [
+        "[verify:70f96d3d-b79e-4afd-8a18-2ca3f5f6a007] 汇总独立复算：9 个交付物全部存在、模型 sha256 前 16 位 c2e60a0e2638b671 与报告一致；训练 npz 737f@50/29 关节、min body z +0.0265m、root 位移 1.199m、限位违规 0、arm 饱和 0.83%≤10%、腕 ROM 最低 25.9%≥2%、重定向 armV 0.99m/s；sim2sim 3685=5×737 步、min base_z 0.5535 零跌倒、arm 0.2123/leg 0.0926/joint 0.1467/anchor 0.0531、位移保持 91.6%（1.099/1.199）、contact 98.5/97.8%、滑移 L0.101/R0.050；v3 基线 arm 0.1724/leg 0.0994/joint 0.1315/min bz 0.5612/contact 100/99.5 与报告对比表逐项吻合",
+        "[verify:8868f3e5-929f-4c7d-b6b4-853d41ff5069] git diff 62f036e..d628956 的 .gm/task_f1.yaml dance_v4 段：源扫描结论、八门全过数值（ground -0.0130/flat L90.6 R94.0/arm sat 0%/腕 ROM 11.8%）、TASK_20261107_199 训录、sim2sim 完整命令与指标、视频/指标清单",
+        "[verify:e6685c61-5879-41ac-b08e-2bc56cc3535b] F1_DANCE_V4_REPORT.md 全文：§2 候选对比表（CMU 137 族/LAFAN walk 系/dance2s3 八门否决/dance2s1 唯一窗口+帕累托膝点）与选段理由、可达性核对、§3 v3 管线+lift 工具、§4 sim2sim vs v3 对比表、§5 arm err 归因（corr −0.52）",
+        "[verify:cbc92e4d-4e3b-4146-821e-59e1dd5ac4e4] git log：本轮 4 个提交 7433312（选源+重定向+lift 工具）/65218b6（yaml+参考视频）/73611db（yaml sim2sim 结果）/d628956（模型+三视频+指标+报告）；宿主工作区事实：HEAD d628956、无未提交改动、origin/main 0 未推送",
+        "[exec:80] exit=0：从 gradmotion TASK_20261107_199 下载 checkpoint 4999 至 trained_models/dance_f1_v4_model_4999.pt（6768482 字节，sha c2e60a0e2638b671），证明云端训练完成且模型为真",
+        "[exec:79] exit=0：gradmotion 任务日志与 checkpoint 列表（model_3000/3500/4000/4999 的 OSS URL）拉取成功",
+        "[exec:83] exit=0：宿主采集的位移保持计算输出 'robot 1.099 m / ref 1.199 m -> retention 91.6%'、xy p95 0.1033、arm 0.2123/leg 0.0926，与我复算一致",
+        "[exec:91] exit=0：ffmpeg hstack 生成 renders/dance2s1_ta_compare.mp4（3140737B）",
+        "[verify:3f7b48ac-3771-4e35-8f0e-296713db7d33] 三个交付视频（reference 31.5MB/playback 73MB/compare 3.1MB）文件头均为 000000206674797069736f6d（ftypisom）合法 mp4",
+        "[verify:cc4f260c-7ff9-41bd-8718-7a7fb37b2b63] flat_env_cfg.py:26-27：bad_anchor_pos threshold 0.5 全锚点终止默认启用（travel-v2 经验沿用）"
+      ],
+      "terminal": true,
+      "keyPath": [
+        "对'手臂丰富+位移明显'两难源，先按联合约束（flat≥92 & tiptoe≤6 & armV≥1.0 & travel≥1.8）做全库窗口扫描定唯一候选，再在候选内做帕累托细扫取膝点——被 fnd_a1120dd4 与本轮交付证实有效 [verify:8868f3e5]",
+        "重定向产物的缩放脚穿地用'只抬 root-z、不动关节角'的高斯平滑局部 lift（tools_lift_ground_f1.py）修复，可保住脚平放门与臂质量门不被二次破坏 [verify:70f96d3d]"
+      ],
+      "pitfalls": [
+        "扫描工具把 raw BVH 第 3 根通道误读为高度（yaw 耦合虚假 z 波动），导致 fnd_7af304ab 错误排除 LAFAN 位移窗口；必须用重定向实际输入（GMR FK 帧）口径重扫（本轮已标 stale + pit_94a45937）[verify:8868f3e5]",
+        "报告引用对比基线数字时未核对出处：'v3 anchor 0.0553' 与 v3 npz 实测 0.1432 不符（疑为 v1 anchor-rel 数字），方向结论虽仍成立但应从交付 npz 复核后引用 [verify:70f96d3d]"
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "reviewId": "review_73d074f80a9bc6515e052152801b2f00",
+      "outcome": "passed",
+      "conclusion": "通过。F1 29DOF 舞蹈 v4 全链路已按契约完成并有独立数据自证：(1) 选源——全库扫描（CMU 137 族 04/16/38 出局 armV 0.09-0.43 且脚底差、LAFAN walk 系 armV≤0.79、dance2s3 移动段八门否决后）唯一窗口 dance2_subject1 [345,795) 帕累托膝点，两全指标实测成立：重定向后腕速 armV≈0.99m/s（源级 1.14 vs v3 源 1.05）+ 每圈位移 1.199m（≈v3 原地舞 9 倍），报告 §2 给出完整候选对比与淘汰链及 0.421m×0.92 臂展可达性核对；并修正了旧扫描工具 raw BVH 第 3 通道误读（fnd_7af304ab 标 stale）。(2) 重定向——v3 管线（arm_relock c3.0_r0.92 + clamp 0.06 + 新增 tools_lift_ground_f1.py 掐头/局部 root-z lift）后 8 门全过：我用 numpy+URDF 独立复核关键门均达标（限位违规 0、臂饱和 0.83%≤10%、腕 ROM 最低 25.9%≥2%、FK 帧无穿地 min body z +0.0265m、脚平放近似 tilt<15° L93.6/R94.7%≥90%），self/vel/height/continuity 四门因快照无 mujoco 以 yaml 记录+v3 同管线先例采信；位移大→全锚点 0.5m 终止已在 F1FlatEnvCfg 默认启用。(3) 训练与验证——gradmotion TASK_20261107_199 完成（复用 v3 账号 gifahim182，非新账号故 personalDataPath 约束不受影响），model_4999 已下载（sha256 前 16 位 c2e60a0e2638b671 与报告一致）；sim2sim 5 圈×737 步零跌倒（min base_z 0.5535），臂/腿误差 0.2123/0.0926、触地 98.5/97.8%、滑移 0.101/0.050 m/s、位移保持 91.6%（1.099/1.199m/圈）、xy p95 0.103m，全部从 sim2sim_v4_travelarm.npz 独立复算并与报告/yaml 逐项一致；v3 基线数字（arm 0.1724/leg 0.0994/joint 0.1315/min bz 0.5612/contact 100/99.5/slip 0.018/0.026）亦从 v3 npz 复算吻合。三视频均存在且为合法 mp4。约束满足：4 个 git 提交（7433312/65218b6/73611db/d628956）已推送（宿主事实：HEAD d628956、工作区干净、origin/main 0 未推送），.gm/task_f1.yaml dance_v4 段 +80 行，trained_models 新模型 + sim2sim 指标 + F1_DANCE_V4_REPORT.md 均交付。放宽的非关键细节：a) 报告 §4 中 'v3 anchor err 0.0553' 标注与 v3 npz 实测 0.1432 不符（0.0553 疑为 v1 的 anchor-rel 数字），但方向结论（v4 0.0531 优于 v3）仍被实测支持；b) yaml dance_v4.commits 字段漏列后两个提交（git 历史本身完整已推送）；c) arm err 0.2123 命中执行者自设预注册证伪线（较 v3 +23%）——契约要求的是输出臂/腿分解并对比 v3（已完整交付），未把 'arm err 不劣化' 定为验收条件，执行者已诚实判定 falsified 并归因（与参考臂速 corr −0.52，误差集中在持臂行走协调段，数据层无饱和：sat 0.83%、腕 ROM 25.9%），作为结果性遗憾记录，不构成关键路径未完成；d) 滑移 0.101 m/s 高于 v3 但契约未设滑移门限，已如实记录并归因迈步舞特性。",
+      "unfinished": [],
+      "evidence": [
+        "[verify:70f96d3d-b79e-4afd-8a18-2ca3f5f6a007] 汇总独立复算：9 个交付物全部存在、模型 sha256 前 16 位 c2e60a0e2638b671 与报告一致；训练 npz 737f@50/29 关节、min body z +0.0265m、root 位移 1.199m、限位违规 0、arm 饱和 0.83%≤10%、腕 ROM 最低 25.9%≥2%、重定向 armV 0.99m/s；sim2sim 3685=5×737 步、min base_z 0.5535 零跌倒、arm 0.2123/leg 0.0926/joint 0.1467/anchor 0.0531、位移保持 91.6%（1.099/1.199）、contact 98.5/97.8%、滑移 L0.101/R0.050；v3 基线 arm 0.1724/leg 0.0994/joint 0.1315/min bz 0.5612/contact 100/99.5 与报告对比表逐项吻合",
+        "[verify:8868f3e5-929f-4c7d-b6b4-853d41ff5069] git diff 62f036e..d628956 的 .gm/task_f1.yaml dance_v4 段：源扫描结论、八门全过数值（ground -0.0130/flat L90.6 R94.0/arm sat 0%/腕 ROM 11.8%）、TASK_20261107_199 训录、sim2sim 完整命令与指标、视频/指标清单",
+        "[verify:e6685c61-5879-41ac-b08e-2bc56cc3535b] F1_DANCE_V4_REPORT.md 全文：§2 候选对比表（CMU 137 族/LAFAN walk 系/dance2s3 八门否决/dance2s1 唯一窗口+帕累托膝点）与选段理由、可达性核对、§3 v3 管线+lift 工具、§4 sim2sim vs v3 对比表、§5 arm err 归因（corr −0.52）",
+        "[verify:cbc92e4d-4e3b-4146-821e-59e1dd5ac4e4] git log：本轮 4 个提交 7433312（选源+重定向+lift 工具）/65218b6（yaml+参考视频）/73611db（yaml sim2sim 结果）/d628956（模型+三视频+指标+报告）；宿主工作区事实：HEAD d628956、无未提交改动、origin/main 0 未推送",
+        "[exec:80] exit=0：从 gradmotion TASK_20261107_199 下载 checkpoint 4999 至 trained_models/dance_f1_v4_model_4999.pt（6768482 字节，sha c2e60a0e2638b671），证明云端训练完成且模型为真",
+        "[exec:79] exit=0：gradmotion 任务日志与 checkpoint 列表（model_3000/3500/4000/4999 的 OSS URL）拉取成功",
+        "[exec:83] exit=0：宿主采集的位移保持计算输出 'robot 1.099 m / ref 1.199 m -> retention 91.6%'、xy p95 0.1033、arm 0.2123/leg 0.0926，与我复算一致",
+        "[exec:91] exit=0：ffmpeg hstack 生成 renders/dance2s1_ta_compare.mp4（3140737B）",
+        "[verify:3f7b48ac-3771-4e35-8f0e-296713db7d33] 三个交付视频（reference 31.5MB/playback 73MB/compare 3.1MB）文件头均为 000000206674797069736f6d（ftypisom）合法 mp4",
+        "[verify:cc4f260c-7ff9-41bd-8718-7a7fb37b2b63] flat_env_cfg.py:26-27：bad_anchor_pos threshold 0.5 全锚点终止默认启用（travel-v2 经验沿用）"
+      ],
+      "terminal": true,
+      "keyPath": [
+        "对'手臂丰富+位移明显'两难源，先按联合约束（flat≥92 & tiptoe≤6 & armV≥1.0 & travel≥1.8）做全库窗口扫描定唯一候选，再在候选内做帕累托细扫取膝点——被 fnd_a1120dd4 与本轮交付证实有效 [verify:8868f3e5]",
+        "重定向产物的缩放脚穿地用'只抬 root-z、不动关节角'的高斯平滑局部 lift（tools_lift_ground_f1.py）修复，可保住脚平放门与臂质量门不被二次破坏 [verify:70f96d3d]"
+      ],
+      "pitfalls": [
+        "扫描工具把 raw BVH 第 3 根通道误读为高度（yaw 耦合虚假 z 波动），导致 fnd_7af304ab 错误排除 LAFAN 位移窗口；必须用重定向实际输入（GMR FK 帧）口径重扫（本轮已标 stale + pit_94a45937）[verify:8868f3e5]",
+        "报告引用对比基线数字时未核对出处：'v3 anchor 0.0553' 与 v3 npz 实测 0.1432 不符（疑为 v1 anchor-rel 数字），方向结论虽仍成立但应从交付 npz 复核后引用 [verify:70f96d3d]"
+      ]
+    }
+  ],
+  "attempts": [
+    {
+      "id": "review_73d074f80a9bc6515e052152801b2f00",
+      "state": "completed",
+      "note": "recorded"
+    }
+  ],
+  "taskContract": {
+    "schemaVersion": "1",
+    "revision": 1,
+    "goalRevision": 1,
+    "goal": "F1 29DOF 舞蹈 v4 训练（仓库 ~/code/Beyondminic-Weilai-X1，main 分支，续 A10 v3 之后）。\n\n背景：v3（dance2_subject1 选段 15s）手臂误差已修复（-42%），但该舞脚步位移较少；更早的 travel-dance（CMU 137 走秀步）有位移但手臂动作少且脚底姿态差。本轮目标：选一支\"上肢丰富 + 脚步移动/步伐明显\"两者兼顾的舞蹈源。\n\n要求：\n1. 选源：在现有素材库（LAFAN dance 系列、CMU 等，含 tools_scan_dance_sources.py 扫描结论）中筛选同时满足手臂活动量大（对照 v3 源的 armV 指标）和脚步位移/步伐明显的候选；结合 F1 29DOF 关节限位与臂展（0.421m 钳制经验）核对可达性，给出选段理由与候选对比。\n2. 重定向：严格沿用 v3 最新管线——arm_relock（臂展 0.92 钳制 + 中心姿态重锁）、脚底平放处理、8 道质量门（含 foot_flatness ≥90% 平放、arm_quality 饱和≤10%/腕 ROM≥2%）全过才进训练；若位移大，沿用 travel-dance v2 的全锚点终止（full-anchor termination 0.5m）经验。\n3. 训练与验证：本地 Mac 只做轻量校验；训练提交 gradmotion（用 account-pool 账号，新账号记得省略 personalDataPath）；长周期观测用 timer park 挂起等待，不阻塞。训练完成后跑 sim2sim（MuJoCo 5 圈零跌倒标准），输出关节误差手臂/腿分解、脚底接触与滑移、位移保持率（如有位移），对比 v3 基线，并产出参考/回放/对比三个视频与最终报告。\n\n约束：改动全部 git 提交留痕；沿用 .gm/task_f1.yaml 登记习惯；交付 trained_models 新模型 + sim2sim 指标 + 报告。",
+    "amendments": []
+  },
+  "extraction": {
+    "state": "idle",
+    "reason": "terminal",
+    "throughReviewId": "review_73d074f80a9bc6515e052152801b2f00",
+    "requestedAt": 1794063527947,
+    "extractedThroughReviewId": "review_73d074f80a9bc6515e052152801b2f00"
+  },
+  "updatedAt": 1794063654359,
+  "card": {
+    "title": "人形舞蹈动捕选源与重定向：扫描口径对齐、帕累托分段与 root 抬升穿地修复",
+    "oneLiner": "动捕源扫描统计必须按重定向实际输入口径计算；想要上肢活动与脚步位移兼得时，先用关节硬约束收窄、再取帕累托膝点。",
+    "task": "面向 29DOF 人形机器人，续接前代原地手臂舞与带位移走秀步两类舞蹈源，目标是同时具备上肢活动量与明显脚步位移的选段。经全动捕库联合约束扫描与帕累托细选定位唯一窗口，沿用既有重定向管线并新增穿地抬升工具，质量门全过后云端训练完成，sim2sim 五圈零跌倒验证并与前代基线对比，交付模型、三视频与报告，终态通过。",
+    "scope": "覆盖动捕库多约束扫描与分段、源统计口径校验、重定向产物穿地修复、大位移参考的训练终止配置、sim2sim 手臂/腿误差分解与基线对比；不覆盖重定向算法本身的改进、真机部署，以及多候选窗口场景下两段式扫描的效果。",
+    "applicability": [
+      "需要从 BVH/AMC 等动捕库中选出同时满足上肢活动、脚步位移、脚底平放、踮脚比例等多重硬约束的选段，且候选源较多需要对比淘汰。",
+      "扫描统计基于原始动捕通道值、而下游重定向或训练使用重建或 FK 帧时，两套口径必须先对齐，否则扫描结论不可信。",
+      "重定向后根/脚穿地（模型比例差异、缩放导致），且不希望破坏已通过的关节角与脚底姿态质量门时。",
+      "根位移大的参考动作进入强化学习训练需要终止阈值防止拖拽，且 sim2sim 验证需输出位移保持率与误差手臂/腿分解。"
+    ],
+    "principles": [
+      "分段采用两阶段：先以脚底平放、踮脚比例、上肢活动量、单圈位移等硬阈值做全库窗口粗扫锁定候选，再在候选窗口内做帕累托细扫取膝点，可高效收敛到上肢与位移同时优质的源。",
+      "动源源扫描统计必须与重定向管线实际输入同口径计算：原始采集通道直出的统计会被偏航耦合等失真，发现异常后须用重建帧重扫并将旧结论标 stale。",
+      "重定向产物穿地用『只抬 root 高度、不动关节角』的高斯平滑局部抬升修复，可同时保住脚底平放门与上肢质量门，避免整体平移造成的二次破坏。",
+      "根位移大的参考动作应在训练环境按位移量级启用锚点位置终止（阈值可沿用此前走位移任务验证过的取值），防止根漂移导致策略拖拽。",
+      "报告引用对比基线数字须从交付数据独立复算后再写；对关键指标预注册证伪线，命中时诚实归因并记录，区分契约验收条件与结果性遗憾。"
+    ],
+    "pitfalls": [
+      "扫描工具把某根原始 BVH 通道误读为高度，偏航耦合产生虚假波动，导致真正可用的位移窗口被错误排除；规避：以重建/重定向帧口径重扫，发现异常即标 stale 旧结论。",
+      "报告引用的基线指标与源数据不符：原因是取自旧报告或记忆、未经复算；规避：写对比数字前一律从交付的 npz/数据文件重算一遍。",
+      "人工维护的任务登记文件提交清单漏列后期提交：原因是登记写回与 git 提交两步脱节；规避：全部提交完成后再写登记，或自动读取 git log 生成。"
+    ],
+    "limitations": [
+      "本版手臂关节跟踪误差较前代基线明显变差、命中执行者自设证伪线，归因于持臂行走协调段、与参考臂速相关性低，数据层无饱和；后续版本需针对性改进。",
+      "脚底滑移速率高于前代（归因迈步舞特性），契约未设门限，真机滑移风险未验证。",
+      "全库仅一个窗口满足联合约束，该两段式扫描方法在多候选窗口或不同身材比例下的稳健性未验证。",
+      "部分动力学相关质量门在验证环境以登记记录与同管线先例采信，未经独立复算。"
+    ],
+    "outcome": "终态通过。选到上肢活动与脚步位移兼得的源（单圈位移约为前代原地舞的 9 倍），重定向后质量门全过、云端训练完成；sim2sim 五圈零跌倒、位移保持 91.6%，手臂误差较前代基线变差命中自设证伪线并诚实归因持臂行走协调段；交付模型、三视频、报告与任务登记。",
+    "details": [
+      {
+        "path": "F1_DANCE_V4_REPORT.md",
+        "why": "候选对比与淘汰链、选段理由、sim2sim 对比表与臂误差归因"
+      },
+      {
+        "path": "tools_lift_ground_f1.py",
+        "why": "只动 root-z 的局部抬升参考实现"
+      },
+      {
+        "path": "whole_body_tracking/motions/sim2sim_v4_travelarm.npz",
+        "why": "sim2sim 指标源数据，可复算误差分解/触地/滑移/位移"
+      },
+      {
+        "path": "whole_body_tracking/motions/dance2s1_ta_f1.npz",
+        "why": "重定向训练参考动作，可复核质量门数值"
+      },
+      {
+        "path": ".gm/task_f1.yaml",
+        "why": "任务登记习惯：扫描结论、门值、训练与验证命令全记录"
+      }
+    ],
+    "tags": [
+      "人形机器人",
+      "动捕源选段",
+      "运动重定向",
+      "质量门",
+      "地面穿地",
+      "root 抬升",
+      "sim2sim",
+      "帕累托分段"
+    ]
+  },
+  "contentHash": "00f15b0f4b050cca289496321ae7bf3b72be952df0e6c334ca534ee1d10aa1b9",
+  "source": {
+    "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+    "remote": "git@github.com:yumxcode/Beyondminic-Weilai-X1.git",
+    "branch": "main",
+    "commit": "d628956f90348d1a20e4db280c05a8afabf8068c"
+  }
+}

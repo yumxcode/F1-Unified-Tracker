@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F1 舞蹈训练验收报告</title>
+<style id="ma-base-theme">/* Layout: one centred reading column (960px, 1280px with .ma-wide); summary first, detail after. */
+:root {
+  color-scheme: dark;
+  --ma-bg: #0f1115;
+  --ma-surface: #161a20;
+  --ma-surface-2: #1d222a;
+  --ma-border: #2a3039;
+  --ma-border-strong: #3b434f;
+  --ma-text: #e6e9ee;
+  --ma-text-2: #b9c0ca;
+  --ma-muted: #8a93a0;
+  --ma-accent: #7aa7ff;
+  --ma-accent-soft: #1a2640;
+  --ma-on-accent: #0b1222;
+  --ma-good: #4cc38a; --ma-good-soft: #13291f;
+  --ma-warn: #e5a443; --ma-warn-soft: #2e2511;
+  --ma-bad: #f27a6e;  --ma-bad-soft: #341b1b;
+  --ma-c1: #7aa7ff; --ma-c2: #f2a25c; --ma-c3: #4fc1b2; --ma-c4: #e57fb0; --ma-c5: #b39af5; --ma-c6: #c3d36b;
+  --ma-shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .28);
+
+  --ma-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", system-ui, sans-serif;
+  --ma-font-display: var(--ma-font-sans);
+  --ma-font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, "JetBrains Mono", "Cascadia Code", Consolas, "Liberation Mono", monospace;
+  --ma-step--1: 13px; --ma-step-0: 15px; --ma-step-1: 17px; --ma-step-2: 20px; --ma-step-3: 24px; --ma-step-4: 30px;
+  --ma-measure: 70ch;
+  --ma-radius: 10px;
+  --ma-radius-sm: 6px;
+  --ma-gutter: clamp(16px, 4vw, 32px);
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --ma-bg: #f5f6f8;
+  --ma-surface: #ffffff;
+  --ma-surface-2: #eef1f5;
+  --ma-border: #dde2e8;
+  --ma-border-strong: #c7ced8;
+  --ma-text: #161a20;
+  --ma-text-2: #3d4550;
+  --ma-muted: #677180;
+  --ma-accent: #2f62d8;
+  --ma-accent-soft: #e5ecfb;
+  --ma-on-accent: #ffffff;
+  --ma-good: #1a7f52; --ma-good-soft: #e2f3ea;
+  --ma-warn: #a8640a; --ma-warn-soft: #fbf0dc;
+  --ma-bad: #c0362c;  --ma-bad-soft: #f9e3e1;
+  --ma-c1: #2f62d8; --ma-c2: #d9772f; --ma-c3: #23927f; --ma-c4: #c04a85; --ma-c5: #7b5cc7; --ma-c6: #6f7f1f;
+  --ma-shadow: 0 1px 2px rgba(22, 26, 32, .06), 0 6px 20px rgba(22, 26, 32, .06);
+}
+@media (prefers-color-scheme: light) {
+  :root[data-theme="auto"] {
+  color-scheme: light;
+  --ma-bg: #f5f6f8;
+  --ma-surface: #ffffff;
+  --ma-surface-2: #eef1f5;
+  --ma-border: #dde2e8;
+  --ma-border-strong: #c7ced8;
+  --ma-text: #161a20;
+  --ma-text-2: #3d4550;
+  --ma-muted: #677180;
+  --ma-accent: #2f62d8;
+  --ma-accent-soft: #e5ecfb;
+  --ma-on-accent: #ffffff;
+  --ma-good: #1a7f52; --ma-good-soft: #e2f3ea;
+  --ma-warn: #a8640a; --ma-warn-soft: #fbf0dc;
+  --ma-bad: #c0362c;  --ma-bad-soft: #f9e3e1;
+  --ma-c1: #2f62d8; --ma-c2: #d9772f; --ma-c3: #23927f; --ma-c4: #c04a85; --ma-c5: #7b5cc7; --ma-c6: #6f7f1f;
+  --ma-shadow: 0 1px 2px rgba(22, 26, 32, .06), 0 6px 20px rgba(22, 26, 32, .06);
+}
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--ma-bg);
+  color: var(--ma-text);
+  font-family: var(--ma-font-sans);
+  font-size: var(--ma-step-0);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection { background: var(--ma-accent-soft); }
+.ma-page { max-width: 960px; margin: 0 auto; padding-inline: var(--ma-gutter); padding-block: 48px 80px; }
+.ma-page.ma-wide { max-width: 1280px; }
+@media (max-width: 640px) { .ma-page { padding-block: 28px 56px; } }
+
+/* Type */
+h1, h2, h3, h4 { color: var(--ma-text); font-family: var(--ma-font-display); line-height: 1.3; font-weight: 650; letter-spacing: -0.01em; margin: 2em 0 .6em; text-wrap: balance; }
+h1 { font-size: var(--ma-step-4); line-height: 1.2; letter-spacing: -0.02em; margin-top: 0; }
+h2 { font-size: var(--ma-step-3); }
+h3 { font-size: var(--ma-step-1); }
+h4 { font-size: var(--ma-step-0); color: var(--ma-text-2); }
+p, ul, ol, dl, blockquote { max-width: var(--ma-measure); }
+p, ul, ol, dl, table, pre, blockquote, figure { margin: 0 0 1em; }
+ul, ol { padding-left: 1.4em; }
+li + li { margin-top: .25em; }
+li > ul, li > ol { margin: .25em 0 0; }
+li::marker { color: var(--ma-muted); }
+li.ma-task { list-style: none; margin-left: -1.25em; }
+li.ma-task > input[type=checkbox] { margin: 0 .45em 0 0; vertical-align: -1px; accent-color: var(--ma-accent); }
+a { color: var(--ma-accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--ma-accent) 40%, transparent); text-underline-offset: 3px; }
+a:hover { text-decoration-color: currentColor; }
+strong { font-weight: 650; color: var(--ma-text); }
+small, .ma-muted { color: var(--ma-muted); }
+hr { border: 0; border-top: 1px solid var(--ma-border); margin: 2.5em 0; }
+img, svg, video, canvas { max-width: 100%; height: auto; }
+code, kbd, samp, pre { font-family: var(--ma-font-mono); font-size: .88em; }
+:not(pre) > code { background: var(--ma-surface-2); padding: .12em .4em; border-radius: 4px; }
+kbd { border: 1px solid var(--ma-border-strong); border-bottom-width: 2px; border-radius: 4px; padding: 0 .35em; }
+pre { background: var(--ma-surface-2); border-radius: var(--ma-radius-sm); padding: 14px 16px; overflow-x: auto; line-height: 1.55; }
+pre code { background: none; padding: 0; font-size: inherit; }
+blockquote { margin-left: 0; padding-left: 1em; border-left: 2px solid var(--ma-border-strong); color: var(--ma-text-2); }
+.ma-eyebrow { font-size: var(--ma-step--1); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ma-muted); }
+.ma-header { margin-bottom: 32px; }
+.ma-header h1 { margin-bottom: .25em; }
+.ma-subtitle { color: var(--ma-muted); font-size: var(--ma-step-0); max-width: var(--ma-measure); }
+
+/* Tables: numbers line up; wide tables scroll inside their own box. */
+table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.ma-table-wrap { overflow-x: auto; margin: 0 0 1.25em; border: 1px solid var(--ma-border); border-radius: var(--ma-radius-sm); }
+.ma-table-wrap > table { margin: 0; }
+th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--ma-border); vertical-align: top; }
+th { font-weight: 600; font-size: var(--ma-step--1); color: var(--ma-text-2); background: var(--ma-surface-2); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: color-mix(in srgb, var(--ma-surface-2) 60%, transparent); }
+td.num, th.num, .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+figure { margin-inline: 0; }
+figcaption { color: var(--ma-muted); font-size: var(--ma-step--1); margin-top: .6em; }
+details { border: 1px solid var(--ma-border); border-radius: var(--ma-radius-sm); padding: .55em .9em; margin: 0 0 1em; background: var(--ma-surface); }
+summary { cursor: pointer; font-weight: 600; }
+details[open] > summary { margin-bottom: .5em; }
+
+/* Objects: a card marks ONE thing as separate — use it by role, not on every block. */
+.ma-card { background: var(--ma-surface); border: 1px solid var(--ma-border); border-radius: var(--ma-radius); padding: 18px 20px; margin: 0 0 16px; min-width: 0; }
+.ma-card.ma-raised { box-shadow: var(--ma-shadow); }
+.ma-card > :last-child { margin-bottom: 0; }
+.ma-card > h2:first-child, .ma-card > h3:first-child { margin-top: 0; }
+.ma-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); margin: 0 0 20px; }
+.ma-grid > * { min-width: 0; margin: 0; }
+/* KPI rows pack tighter: 2×2 on a phone, one row on a desktop. */
+.ma-grid:has(> .ma-kpi) { grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); }
+.ma-kpi { background: var(--ma-surface); border: 1px solid var(--ma-border); border-radius: var(--ma-radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
+.ma-kpi-label { color: var(--ma-muted); font-size: var(--ma-step--1); }
+.ma-kpi-value { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.25; }
+.ma-kpi-value small { font-size: .55em; font-weight: 500; color: var(--ma-muted); margin-left: .2em; }
+.ma-kpi-delta { font-size: var(--ma-step--1); font-variant-numeric: tabular-nums; color: var(--ma-muted); }
+.ma-up { color: var(--ma-good); } .ma-down { color: var(--ma-bad); }
+
+/* State: badges and callouts carry semantic colour, independent of the accent. */
+.ma-badge { display: inline-flex; align-items: center; gap: .3em; font-size: 12px; line-height: 1.7; padding: 0 .6em; border-radius: 999px; background: var(--ma-surface-2); color: var(--ma-text-2); white-space: nowrap; vertical-align: middle; }
+.ma-badge.good { background: var(--ma-good-soft); color: var(--ma-good); }
+.ma-badge.warn { background: var(--ma-warn-soft); color: var(--ma-warn); }
+.ma-badge.bad  { background: var(--ma-bad-soft);  color: var(--ma-bad); }
+.ma-badge.info { background: var(--ma-accent-soft); color: var(--ma-accent); }
+.ma-callout { border-radius: var(--ma-radius-sm); padding: 12px 16px; margin: 0 0 1.25em; background: var(--ma-accent-soft); border: 1px solid color-mix(in srgb, var(--ma-accent) 28%, transparent); max-width: none; }
+.ma-callout.good { background: var(--ma-good-soft); border-color: color-mix(in srgb, var(--ma-good) 30%, transparent); }
+.ma-callout.warn { background: var(--ma-warn-soft); border-color: color-mix(in srgb, var(--ma-warn) 30%, transparent); }
+.ma-callout.bad  { background: var(--ma-bad-soft);  border-color: color-mix(in srgb, var(--ma-bad) 30%, transparent); }
+.ma-callout > :last-child { margin-bottom: 0; }
+.ma-callout-title { display: block; font-weight: 650; margin-bottom: .2em; }
+
+/* Charts and diagrams */
+.ma-chart { margin: 0 0 1.25em; }
+.ma-chart svg { display: block; width: 100%; height: auto; overflow: visible; color: var(--ma-text-2); font-family: var(--ma-font-sans); }
+.ma-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--ma-step--1); color: var(--ma-text-2); margin: 0 0 8px; }
+.ma-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.ma-legend i { width: 10px; height: 10px; border-radius: 2px; background: currentColor; display: inline-block; }
+.ma-center { display: flex; justify-content: center; align-items: flex-start; overflow-x: auto; }
+.ma-mermaid { background: var(--ma-surface); border: 1px solid var(--ma-border); border-radius: var(--ma-radius); padding: 16px; text-align: center; overflow-x: auto; margin: 0 0 1.25em; }
+pre.mermaid { background: transparent; padding: 0; margin: 0; }
+.ma-prose > :first-child { margin-top: 0; }
+
+/* Behaviour */
+:focus-visible { outline: 2px solid var(--ma-accent); outline-offset: 2px; border-radius: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media print {
+  body { background: #fff; color: #000; }
+  .ma-card, .ma-kpi { box-shadow: none; break-inside: avoid; }
+}</style>
+</head>
+<body>
+<main class="ma-page">
+<article class="ma-prose"><h1 id="f1-29dof-舞蹈训练-全链路验收报告">F1 29DOF 舞蹈训练 · 全链路验收报告</h1>
+<div class="ma-subtitle">F1_29DOF（SYS-SPEC-0002-V1.1）· 2026-11-05 · main@7de2c76 · gradmotion TASK_20261105_430</div>
+<h2 id="结论">结论</h2>
+<p>三项契约目标全部完成并量化通过：F1 资产审计与 kp/kd 定稿、GMR 重定向六项质量门全过、BeyondMimic 训练收敛并在 MuJoCo sim2sim 中<strong>连续 5 个循环（114.7 s）零跌倒稳定跳舞</strong>，跟踪精度达到或优于 X1 已验证基线。</p>
+<h2 id="1-资产审计与-kp-kd">1 · 资产审计与 kp/kd</h2>
+<ul>
+<li><strong>结构</strong>：29 关节与 X1 完全同名同序；上身（腰+双臂 17 关节）URDF 定义逐字一致；腿部全新（髋/膝 130 Nm、踝 241.9/218.4 Nm、不对称髋 roll 限位 ±20°/90°、短大腿 0.139 m + 长小腿 0.331 m）。总质量 35.03 kg，站立 base z 0.588 m。</li>
+<li><strong>资产产出</strong>：ASCII STL（最大 66 MB）转二进制并抽稀，三处自包含扁平 meshes 布局；f1_serial.xml（timestep 1 ms、29 motor、63 sensor、8 足底角点接触球、对称站立 keyframe）；Isaac URDF；GMR mocap 模型。</li>
+<li><strong>kp/kd</strong>：上身沿用 X1 辨识方案 B（link 逐字一致）；腿部按 URDF 站立位子树惯量 + 估计 armature 推导（髋 70/60/90、膝 90/6、踝 60/45，kd≤8），ζ 0.41–0.55、髋 1.3 / 膝 2.3 / 踝 ~10 Hz（X1 验证带宽带），kd·dt/I&lt;0.8 在 1 ms 与 5 ms 物理下均满足。</li>
+<li><strong>验证</strong>：焊接基座 PD 保持（3° 扰动）收敛到最大下垂 <strong>1.23°</strong> PASS；自由站立 PD 门经 X1 基线标定为无效（X1+已验证增益同样倒下——平衡是策略职责）。</li>
+</ul>
+<h2 id="2-gmr-重定向-量化通过标准">2 · GMR 重定向（量化通过标准）</h2>
+<p>ik 配置：上身沿用 X1 标定值（中性帧匹配处），腕/右臂（与 X1 差 90–180°）按 T1 转换重算 + 八面体贪婪标定。动作源：LAFAN dance1_subject3 干净窗口 [0,689) = <strong>23.0 s</strong>。</p>
+<div class="ma-table-wrap"><table><thead><tr><th>硬门</th><th>阈值</th><th>实测</th><th>结果</th></tr></thead><tbody><tr><td>穿地</td><td>≥ −0.015 m</td><td>−0.0144 m</td><td>✅</td></tr><tr><td>自碰撞</td><td>≥ 0.005 m</td><td>0.069 m</td><td>✅</td></tr><tr><td>关节限位</td><td>0 违例</td><td>0</td><td>✅</td></tr><tr><td>关节速度</td><td>0 超限</td><td>0</td><td>✅</td></tr><tr><td>root 高度带</td><td>[0.35, 1.0] m</td><td>[0.544, 0.606]</td><td>✅</td></tr><tr><td>连续性</td><td>有限+四元数连续</td><td>通过</td><td>✅</td></tr></tbody></table></div>
+<p><strong>六项全过</strong>（quality_dance_f1_train.json）；渲染目检动作真实。</p>
+<h2 id="3-训练与-sim2sim">3 · 训练与 sim2sim</h2>
+<p>训练（gradmotion 4090D，IsaacLab 2.1.0，5000 iter / 4096 env / 1h45m）：</p>
+<div class="ma-table-wrap"><table><thead><tr><th>指标</th><th>F1 v1</th><th>X1 v10/v11 基线</th></tr></thead><tbody><tr><td>finalReward</td><td><strong>35.3</strong></td><td>31.75 / 31.53</td></tr><tr><td>episode length</td><td>483–500</td><td>490 / 500</td></tr><tr><td>error_body_pos</td><td><strong>0.055</strong></td><td>0.058 / 0.062</td></tr></tbody></table></div>
+<p>sim2sim（MuJoCo，5 循环 5735 步，114.7 s）：</p>
+<div class="ma-table-wrap"><table><thead><tr><th>指标</th><th>F1 v1</th><th>X1 v10 基线</th></tr></thead><tbody><tr><td>跌倒检测</td><td><strong>无</strong></td><td>无</td></tr><tr><td>最低 base z</td><td>0.568 m</td><td>0.511 m</td></tr><tr><td>关节误差</td><td><strong>0.201 rad</strong></td><td>0.272 rad</td></tr><tr><td>锚点相对体误差</td><td><strong>0.055 m</strong></td><td>0.058 m</td></tr></tbody></table></div>
+<p>播放视频（10 帧跨 5 循环抽样）全程直立。交付：<code>dance_f1_playback.mp4</code>（5 循环）、<code>dance_f1_reference.mp4</code>、<code>dance_f1_compare.mp4</code>（左策略|右参考）、<code>trained_models/dance_f1_v1_model_4999.pt</code>。</p>
+<h2 id="关键问题与修复">关键问题与修复</h2>
+<div class="ma-table-wrap"><table><thead><tr><th>问题</th><th>根因</th><th>修复</th></tr></thead><tbody><tr><td>CSV 列错位（门读错数据）</td><td>F1 MJCF 关节序（腿在前）≠ X1 管线假设</td><td>全链路显式按名重排</td></tr><tr><td>Isaac 机器人 prim 空</td><td>Isaac URDF 网格路径须相对 URDF 文件</td><td><code>../meshes/</code> 前缀 + 构建期断言</td></tr><tr><td>平台 pip 升级 numpy 致崩</td><td>harness 自动 <code>pip install -e</code> 无 <code>--no-deps</code></td><td>setup.py INSTALL_REQUIRES 置空</td></tr><tr><td>sim2sim 0.2 s 倒塌</td><td>F1 PhysX 关节序为 FIFO-BFS，与猜测差 5 槽</td><td>gradmotion probe 实测（TASK_20261105_507）写死真值</td></tr></tbody></table></div>
+<h2 id="已知限制">已知限制</h2>
+<ul>
+<li>F1 腿部 armature 为按扭矩比缩放的估计（无台架辨识）；真机部署前建议补辨识。</li>
+<li>首次推送的两个全尺寸视频超 GitHub 100 MB 上限，已重编码 3.5 Mbps（50 MB）入库。</li>
+</ul></article>
+</main>
+</body>
+</html>

@@ -1,0 +1,25 @@
+[policy] 4 linear layers
+[policy] Empirical normalization: count=100003840
+[policy] obs_dim=160, action_dim=29
+[init] Robot initialized at reference frame 0: pos=[-0.385  2.123  0.667]
+[obs] layout: full (obs_dim=160, full=160, wse=154)
+[perm] F1 PhysX<->MuJoCo joint order active
+[obs] Expected obs dim: 160 (policy expects 160)
+[playback] motion looped (reset to frame 0, as in training episode reset)
+[playback] motion looped (reset to frame 0, as in training episode reset)
+[playback] motion looped (reset to frame 0, as in training episode reset)
+[playback] motion looped (reset to frame 0, as in training episode reset)
+[playback] motion looped (reset to frame 0, as in training episode reset)
+[metrics] dumped to whole_body_tracking/motions/sim2sim_cmu137_24_metrics.json
+
+[sim2sim] {
+  "robot": "f1",
+  "steps": 2485,
+  "wall_s": 1.9,
+  "mean_body_pos_err_m": 1.2884,
+  "mean_body_pos_err_anchor_rel_m": 0.1165,
+  "mean_joint_pos_err_rad": 0.4759,
+  "mean_anchor_pos_err_m": 1.2677,
+  "min_base_z_m": 0.57,
+  "fall_detected": false
+}

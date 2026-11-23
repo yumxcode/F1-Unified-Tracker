@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-4f5404a02cb34d26",
+  "name": "gmr-cmu137-asflen",
+  "command": ".venv/bin/python -u tools_amc_csv_f1.py --asf downloads/cmu137/137.asf --amc downloads/cmu137/137_24.amc --output_file whole_body_tracking/motions/csv/cmu137_24_f1.csv > /tmp/gmr_v8.log 2>&1; grep -E \"ground|scale|travel|Saved\" /tmp/gmr_v8.log; .venv/bin/python tools_check_motion_f1.py --csv whole_body_tracking/motions/csv/cmu137_24_f1.csv --fps 30 --json_out whole_body_tracking/motions/quality_cmu137_24_f1_csv.json > /tmp/gate_v8.log 2>&1; python3 -c \"\nimport json\nd=json.load(open('whole_body_tracking/motions/quality_cmu137_24_f1_csv.json'))\ng=d['ground']; s=d['self_penetration']\nprint(f\\\"ground {g['min_foot_z_m']:.4f} @f{g['frame']} pass={g['pass']} | self {s['min_pair_distance_m']:.4f} pass={s['pass']} | limits={d['joint_limits']['pass']} vel={d['joint_velocities']['pass']} hgt=[{d['root_height']['min_m']:.2f},{d['root_height']['max_m']:.2f}] pass={d['root_height']['pass']} | OVERALL={d['overall_pass']}\\\")\"",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad",
+  "idempotencyKey": "gmr-f1-cmu137-24-v8",
+  "createdAt": 1793890059182,
+  "outputs": [
+    "whole_body_tracking/motions/csv/cmu137_24_f1.csv",
+    "whole_body_tracking/motions/quality_cmu137_24_f1_csv.json"
+  ],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "c38e35d6-90c5-49c0-b10a-11863f5e73aa",
+  "launchOwner": {
+    "pid": 43422,
+    "startToken": "四 11月/ 5 22:46:39 2026"
+  },
+  "pid": 43551,
+  "startToken": "四 11月/ 5 22:47:39 2026"
+}

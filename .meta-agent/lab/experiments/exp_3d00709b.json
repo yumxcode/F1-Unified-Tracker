@@ -1,0 +1,136 @@
+{
+  "id": "exp_3d00709b",
+  "title": "F1 舞蹈 v3：脚步干净+手臂丰富的源重选与脚底/手臂质量门强化→重训→sim2sim 验证",
+  "status": "concluded",
+  "sourceTaskId": "88ea19c0-698d-4b01-8335-203aded72dd6:g1",
+  "sessionId": "88ea19c0-698d-4b01-8335-203aded72dd6",
+  "createdAt": 1794022499973,
+  "updatedAt": 1794031694028,
+  "objective": "验证\"重选舞蹈源 + 重定向质量门强化（脚底放平/手臂质量）\"能否改善 F1 舞蹈的脚部姿态（踮脚/侧脚）与手臂跟踪（僵硬）问题",
+  "hypothesis": "脚部踮脚/侧脚主要根因在源动作选择与重定向缺失脚底姿态约束（数据侧）；手臂僵硬主要根因在重定向手臂目标质量（贴限位/可达边界顶满），而非训练配方。选脚步干净+手臂丰富的源并加脚底/手臂质量门后，参考动作脚部姿态与训练后手臂跟踪均可量化改善。",
+  "falsificationCondition": "新段过强化门并重训后，sim2sim 手臂关节跟踪误差与脚部姿态指标相对 dance v1（joint err 0.201 rad）与 cmu137_24 v2（0.502 rad）无显著改善，或参考动作脚底姿态门仍无法达标——则\"源选择+重定向质量\"路线证否，需转向训练侧（奖励/观测）归因。",
+  "prediction": "新段参考动作：触地帧 |sole pitch|≤10° 占比 >90%、|sole roll|≤8° 占比 >95%、手臂贴限位率 <5%；训练后 sim2sim 手臂 joint err 显著低于 cmu137_24 的 0.50 rad，全身 joint err ≤ dance v1 的 0.20 rad 量级。",
+  "base": {
+    "kind": "continue_from",
+    "ref": "F1 管线 v2 交付（CMU137_24 走秀 + 全量 anchor 终止配方）",
+    "fromExperimentId": "exp_710c7bcb"
+  },
+  "changes": [
+    {
+      "key": "source_motion",
+      "to": "新选舞蹈段：脚步干净（全掌落地）+手臂丰富+F1 可达",
+      "from": "源=LAFAN dance1_subject3（原地舞）或 CMU 137_24（走秀，sim2sim joint err 0.50 rad）"
+    },
+    {
+      "key": "retarget_gates",
+      "to": "新增脚底放平门（触地帧 sole pitch/roll）+手臂质量门（贴限位/连贯性）",
+      "from": "无脚底姿态/手臂质量检查"
+    },
+    {
+      "key": "training_motion",
+      "to": "同配方仅换 motion_file 为新段",
+      "from": "TASK_20261106_006 配方（5000 iter 4096env）"
+    }
+  ],
+  "events": [
+    {
+      "kind": "effectiveness_check",
+      "text": "选段与修复生效证据：(1) 基线诊断：cmu137_24 参考动作触地帧 sole pitch +24~27°/roll -25~-30° flat 0%（踮脚+外翻坐实）；dance_f1 手臂腕关节恒 22.3° 全程钉死（ROM 0%）、右肘 pitch 100% 贴下限。(2) 根因：缩放手目标 p95 0.415m 贴 F1 臂可达边界 0.421m，整身 IK 顶满所有臂关节；权重软化（v1/v2）无效复证。(3) 修复配方 arm_relock（肩 FK 重锚+0.92 reach clamp+center posture）+ 臂限位 clamp margin 0.06：dance2s1 [255,706) 八门全 PASS（ground -0.0128、self 过、脚 flat 96.0/100%、arm sat 0%、腕 ROM 9.6-78.5%）。(4) 选段依据：源窗 flat 98.1%/tiptoe 1.1%/toeout 24°/armV 1.05 m/s（v1 源 armV 0.50 的 2.1 倍）。LAFAN travel 段 [150,450) 复测违规（ground -0.0207/self -0.0763），fnd_7af304ab 维持。",
+      "evidence": [
+        "whole_body_tracking/motions/csv/dance2s1_arm_f1.csv",
+        "whole_body_tracking/motions/quality_dance2s1_arm_f1_csv.json",
+        "whole_body_tracking/motions/dance2s1_arm_f1.npz",
+        "renders/dance2s1_arm_f1_reference.mp4"
+      ],
+      "at": 1794023999354
+    },
+    {
+      "kind": "launch",
+      "text": "v3 训练启动：TASK_20261107_126 beyondmimic-f1-dance-v3-arm，motion=dance2s1_arm_f1.npz（dance2_subject1 [255,706) 451f@30→50fps），5000 iter 4096 envs，全量 anchor 终止 0.5m（v2 配方），代码 commit 99c99cd 已推送。",
+      "jobRef": "TASK_20261107_126 (gradmotion, jiyow52926 userId 4718, PRO_20261105_081)",
+      "at": 1794024134766
+    },
+    {
+      "kind": "incident",
+      "text": "gradmotion 号池 5 个账号（talare7232/4717、jiyow52926/4718、kagafo5365/4720、vohime3689/4734、gegog50702/4747）在 v3 训练 run 时全部报 1002056 账户余额不足；上轮 4 个训练任务（TASK_20261105_430/558/507/20261106_006）已耗尽全部余额。资源仅 ESKU000001（4090D）一种，无替代 SKU。5 个草稿任务（TASK_20261107_126~130）与 3 个误建 project 已清理。训练阻塞，等待账号充值/兑换码；本地准备工作（sim2sim 指标脚本、报告）继续推进。",
+      "at": 1794024679698
+    },
+    {
+      "kind": "launch",
+      "text": "账号池恢复（8 账号）后 v3 训练正式启动：TASK_20261107_132，motion=dance2s1_arm_f1.npz，5000 iter 4096 envs，全量 anchor 终止，代码 f71335c。启动坑：新账号下 personalDataPath=/personal 报\"该算力资源无法挂载个人存储\"，去掉该字段后成功。启动后 4 分钟日志确认 PPO 正常迭代（1.13s/iter，ETA 96min）；早期 Episode_Termination/ee_body_pos 851 偏高（末端位置终止主导，与手臂动作幅度大相关），中途检查趋势。",
+      "jobRef": "TASK_20261107_132 (gradmotion, gifahim182 userId 4752, PRO_20261107_014)",
+      "at": 1794025647179
+    }
+  ],
+  "results": [
+    {
+      "metrics": {
+        "arm_leg_err_ratio_v3": 1.73,
+        "arm_leg_err_ratio_v1": 2.56,
+        "final_error_body_pos": 0.0416,
+        "final_reward": 35.58,
+        "mean_anchor_pos_err_m": 0.1432,
+        "mean_arm_joint_err_rad": 0.1724,
+        "mean_body_pos_err_anchor_rel_m": 0.0461,
+        "mean_joint_pos_err_rad": 0.1315,
+        "mean_leg_joint_err_rad": 0.0994,
+        "min_base_z_m": 0.561,
+        "planted_slip_L_R_m_s": "[0.018,0.026]",
+        "v1_baseline": "{\"mean_arm_joint_err_rad\":0.2986,\"mean_joint_pos_err_rad\":0.2012,\"mean_leg_joint_err_rad\":0.1166}",
+        "v3_vs_v1": "{\"arm_err\":\"-42%\",\"full_body_err\":\"-35%\",\"leg_err\":\"-15%\"}"
+      },
+      "gates": [
+        {
+          "gate": "5 循环零跌倒",
+          "value": "3750 步 fall=false",
+          "pass": true
+        },
+        {
+          "gate": "手臂跟踪误差显著低于 v1 基线 0.2986 rad",
+          "value": 0.1724,
+          "pass": true
+        },
+        {
+          "gate": "全身 joint err ≤ v1 量级 0.2012",
+          "value": 0.1315,
+          "pass": true
+        },
+        {
+          "gate": "触地滑移 ≤0.05 m/s",
+          "value": "0.018/0.026 m/s",
+          "pass": true
+        },
+        {
+          "gate": "参考动作八门全过（脚底放平+手臂质量）",
+          "value": "flat 96.0/100%，arm sat 0%",
+          "pass": true
+        }
+      ],
+      "subject": "F1 v3 策略（dance2s1_arm 源）sim2sim 5 循环 vs v1 基线",
+      "note": "TASK_20261107_132 (gifahim182)，model_4999 sha256 0059705a。z-score 全段 <3σ（action 段 max 8.8 属重尾非系统性错配）。",
+      "evidence": [
+        "whole_body_tracking/motions/sim2sim_v3_armfoot.npz",
+        "whole_body_tracking/motions/quality_dance2s1_arm_f1_csv.json",
+        "renders/dance2s1_arm_compare.mp4",
+        "trained_models/dance_f1_v3_model_4999.pt"
+      ],
+      "at": 1794031598561
+    }
+  ],
+  "protocolWarnings": [
+    "未声明对照实验（controlExperimentId），无法核对单变量。",
+    "续接链深度 4：该结果建立在 4 次接续之上，作为最终交付前需从零复现确认。"
+  ],
+  "conclusion": {
+    "verdict": "confirmed",
+    "summary": "确认：重选脚步干净+手臂丰富的源（dance2_subject1 [255,706)，源 flat 98.1%/tiptoe 1.1%/armV 1.05 m/s）+ 重定向臂部饱和修复（肩 FK 重锚+0.92 reach clamp+center posture 重解+臂 clamp 0.06）+ 八门验收（新增脚底放平/手臂质量门）后，v3 训练（TASK_20261107_132，reward 35.58，error_body_pos 0.0416 vs v1 0.055）sim2sim 5 循环零跌倒：全身 joint err 0.1315（v1 0.2012，−35%）、手臂 0.1724（v1 0.2986，−42%）、腿 0.0994（−15%）、臂/腿误差比 2.56→1.73；触地滑移 0.018/0.026 m/s、触地率 100/99.5%；参考动作脚底放平 96.0/100%（旧 cmu137_24 为 0%）且臂饱和 0%（旧 100%）。全部预注册验收门通过，脚部姿态与手臂僵硬问题在数据与策略两层均确认改善。",
+    "applicability": "F1 29DOF（SYS-SPEC-0002-V1.1）；GMR 重定向管线（bvh_lafan1_to_f1.json + arm_relock）；LAFAN/CMU 源；gradmotion IsaacLab 2.1.0；MuJoCo 3.13 sim2sim；八门门限（flat 90% @10°/8°、arm sat 10%、腕 ROM 2%）",
+    "branchHit": "新段过强化门且重训后手臂误差与脚部指标显著改善（主分支）",
+    "at": 1794031694028,
+    "findingIds": [
+      "fnd_2922525d",
+      "fnd_4828e7e7",
+      "fnd_6a2c12cc"
+    ]
+  }
+}

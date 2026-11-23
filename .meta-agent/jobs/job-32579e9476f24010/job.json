@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-32579e9476f24010",
+  "name": "arm-study-f1",
+  "command": "cd ~/code/Beyondminic-Weilai-X1 && .venv/bin/python tools_arm_study_f1.py --bvh downloads/lafan1/dance1_subject3.bvh --start 0 --end 300 --json_out /tmp/arm_study.json 2>&1",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "88ea19c0-698d-4b01-8335-203aded72dd6",
+  "idempotencyKey": "arm-study-f1-v1",
+  "createdAt": 1794023061976,
+  "outputs": [],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "f973a75a-5345-4907-ba94-2af8075de991",
+  "launchOwner": {
+    "pid": 93340,
+    "startToken": "Sat Nov  7 11:31:18 2026"
+  },
+  "pid": 93873,
+  "startToken": "Sat Nov  7 11:44:21 2026"
+}

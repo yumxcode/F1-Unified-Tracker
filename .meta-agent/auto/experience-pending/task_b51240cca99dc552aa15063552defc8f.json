@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "taskId": "task_b51240cca99dc552aa15063552defc8f",
+  "sourceSessionId": "88ea19c0-698d-4b01-8335-203aded72dd6",
+  "goalRevision": 1,
+  "revision": 1,
+  "status": "pending",
+  "evidence": [
+    {
+      "reviewId": "review_4301be6bdfa213af7aadb92112803030",
+      "outcome": "passed",
+      "conclusion": "通过。v3 全链路关键目标均有仓库内一手证据：(1) 源重选——tools_scan_dance_sources.py（commit 99c99cd，204 行）按脚步干净度+手臂丰富度+根稳定度扫描，选定 dance2_subject1 [255,706)，选段理由与量化指标（flat 98.1%/tiptoe 1.1%/armV 1.05 m/s=2.1x 旧源）记录于 .gm/task_f1.yaml:168-172；关节可达性核对由 tools_arm_study_f1.py 完成（F1 URDF 臂 reach 0.421 m vs 手目标 p95 0.415 m 贴边界→0.92*reach clamp 修复），最终 arm sat 0%、joint_limits violations 0。(2) 质量门强化——tools_check_motion_f1.py 升级为八门（gate7 foot_flatness、gate8 arm_quality，tools_check_motion_f1.py:15-31,296-342,408-414），tools_diag_foot_f1.py 253 行脚部/手臂诊断；选定段八门全过（quality_dance2s1_arm_f1_csv.json overall_pass=true，ground -0.0128、脚底放平 96.0/100.0%、arm sat 0%、限位 0 违规），训练 npz（750f@50fps=15s, 29 关节）由过门 csv 派生。(3) 训练与验证——gradmotion TASK_20261107_132（gifahim182，4090D）5000 iter 完成 [exec:94]：reward 35.58、error_body_pos 0.0416（v1 0.055）；model_4999 sha256 0059705a8440…与快照内文件 shasum 完全一致 [exec:96]；sim2sim 5 循环 3750 步零跌倒，我从 sim2sim_v3_armfoot.npz 独立重算全部指标并与 v1 基线 npz 对比：arm err 0.2986→0.1724（-42.3%）、全身 0.2012→0.1315（-34.6%）、arm:leg 比 2.56→1.73、接触 L100/R99.5%、滑移 0.018/0.026 m/s、min base_z 0.561——与提交信息及任务记录逐项吻合，手臂僵硬与脚部姿态问题确认改善。(4) 约束——脚本与产物全部 git 提交（99c99cd/f71335c/62f036e）并推送 [exec:101]，工作区干净；训练用轮询观测 [exec:92-94]；最终报告内容（选段依据/重定向指标/训练结果/sim2sim 指标与视频）以 .gm/task_f1.yaml 形式入库，完整 HTML 报告为 harness 登记工件。放松的非关键细节：八门验收在重定向 csv 层留档（npz 层为既有工具的名字重排+重采样转换，未单独留 gate JSON）；HTML 最终报告与训练曲线 JSON 位于 gitignore 的 .meta-agent/.gmhome，快照内不可直接目检，但其实质数字（训练曲线 n=196、reward→35.56、err→0.042）已由 [exec:105] 与仓库内 npz/json 独立证实。",
+      "unfinished": [],
+      "evidence": [
+        "[verify:b99231e8-f591-4e73-bbfa-065007c33ee9] 快照内综合核验：git log 显示 v3 三次提交（99c99cd 八门+臂修复+源选择 / f71335c sim2sim 分解指标 / 62f036e 交付物）；v3 全量 diff 17 文件 1559 行入库；模型 sha256=0059705a8440…（与 [exec:96] 下载 sha 一致）；quality_dance2s1_arm_f1_csv.json overall_pass=True、ground -0.0128、脚平 L96.0/R100.0%、arm_sat 0、限位 0 违规；sim2sim v3 npz 重算 joint 0.1315/arm 0.1724/leg 0.0994/ratio 1.73/接触 L100.0 R99.5/min_base_z 0.561；v1 基线 npz 重算 arm 0.2986/leg 0.1166/joint 0.2012/ratio 2.56→改善 arm -42.3%、joint -34.6%；renders/ 三个 dance2s1 视频（reference/playback/compare）存在",
+        "[exec:94] exit=0 gradmotion TASK_20261107_132 迭代 4999/5000，Mean reward 35.58，error_body_pos 0.0416——平台训练完成（训练曲线见 [exec:105]：reward n=196 由 -0.362→35.562，err_body_pos→0.042）",
+        "[exec:96] exit=0 model_4999 下载并记 sha256 0059705a8440…，与快照 trained_models/dance_f1_v3_model_4999.pt 实测 shasum 一致——sim2sim 所用 checkpoint 即平台训练产物",
+        "[exec:101] exit=0 git push f71335c..62f036e main->main；系统工作区事实：HEAD 62f036e、0 未推送、无未提交改动——脚本改动全部提交推送",
+        "[verify:246871d5-d1aa-4d86-9fa7-7da418eea67f] .gm/task_f1.yaml:145-204：dance_v3 记录问题证据（cmu137_24 踮脚内外翻 flat 0%；手腕 100% 贴限位）、修复（arm_relock c3.0_r0.92）、选段（dance2_subject1 [255,706) 451f@30fps）、训练任务与 sim2sim 指标，与仓库内 json/npz 实测一致",
+        "[verify:ddc7365f-14ff-4dc2-bfa5-7f8890069240] tools_check_motion_f1.py:15-31,296-342,408-414：gate7 foot_flatness（|pitch|≤10°/|roll|≤8°/≥90% flat）与 gate8 arm_quality（sat≤10%/wrist ROM≥2%）已实现并计入 overall 裁决，--no_extra_gates 保留旧六门行为",
+        "[verify:9c704c9e-cc5f-44c8-87c9-5a9718c64f14] git ls-files：tools_diag_foot_f1.py、tools_scan_dance_sources.py、tools_arm_study_f1.py、play_mujoco.py、.gm/task_f1.yaml 均已入库（tools_diag_*.py 虽被 gitignore 但已 force-add）",
+        "[verify:9a3cd809-1206-470e-af41-abbe8a2e72b2]+[verify:15c2d54b-a35a-4554-8d0a-1c11ecba0681] 源扫描脚本（foot-clean/arm-rich/root-stable 评分）与脚部诊断脚本（sole pitch/roll、踮脚/内外翻、臂饱和/ROM）实体内容符合契约要求",
+        "[verify:9392b853-7cbd-4635-ad02-93550356836c] play_mujoco.py:830-1055 新增 arm/leg 误差分解与脚接触/滑移指标采集（f71335c），sim2sim_v3_armfoot.npz 含逐帧 arm_joint_err/leg_joint_err/contact/foot_xy",
+        "[exec:99] exit=0 compare 视频合成成功（renders/dance2s1_arm_compare.mp4，ref|policy）",
+        "[verify:43513fc0-ef0e-469f-892c-9eea951911d3] whole_body_tracking/motions/ 内 dance2s1_arm_f1.npz、sim2sim_v3_armfoot.npz、sim2sim_v1_baseline_armfoot.npz、quality_dance2s1_arm_f1_csv.json 均在仓库内；.meta-agent 为 gitignore 的 harness 工件目录"
+      ],
+      "terminal": true,
+      "keyPath": [
+        "对 sim2sim 指标类声明不止步于文档：直接用 numpy 读交付 npz 重算 mean/接触率/滑移并与基线 npz 对比，可一次性验证全部数字（本次 arm -42.3%/接触 100/99.5%/滑移全部复现）",
+        "交付模型用 sha256 对账：平台下载记录与快照内文件 shasum 比对，确认 sim2sim 用的就是平台训练产物"
+      ],
+      "pitfalls": [
+        "gitignore 中 tools_diag_*.py 模式会静默排除新增诊断脚本，需 git add -f 才能入库（本次已 force-add，后续新脚本要留意）",
+        "验收 JSON 只留了重定向 csv 层、npz 层未单独留档：npz 是名字重排+重采样的机械转换，风险低，但按门禁可追溯性最好两层都留 quality JSON"
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "reviewId": "review_4301be6bdfa213af7aadb92112803030",
+      "outcome": "passed",
+      "conclusion": "通过。v3 全链路关键目标均有仓库内一手证据：(1) 源重选——tools_scan_dance_sources.py（commit 99c99cd，204 行）按脚步干净度+手臂丰富度+根稳定度扫描，选定 dance2_subject1 [255,706)，选段理由与量化指标（flat 98.1%/tiptoe 1.1%/armV 1.05 m/s=2.1x 旧源）记录于 .gm/task_f1.yaml:168-172；关节可达性核对由 tools_arm_study_f1.py 完成（F1 URDF 臂 reach 0.421 m vs 手目标 p95 0.415 m 贴边界→0.92*reach clamp 修复），最终 arm sat 0%、joint_limits violations 0。(2) 质量门强化——tools_check_motion_f1.py 升级为八门（gate7 foot_flatness、gate8 arm_quality，tools_check_motion_f1.py:15-31,296-342,408-414），tools_diag_foot_f1.py 253 行脚部/手臂诊断；选定段八门全过（quality_dance2s1_arm_f1_csv.json overall_pass=true，ground -0.0128、脚底放平 96.0/100.0%、arm sat 0%、限位 0 违规），训练 npz（750f@50fps=15s, 29 关节）由过门 csv 派生。(3) 训练与验证——gradmotion TASK_20261107_132（gifahim182，4090D）5000 iter 完成 [exec:94]：reward 35.58、error_body_pos 0.0416（v1 0.055）；model_4999 sha256 0059705a8440…与快照内文件 shasum 完全一致 [exec:96]；sim2sim 5 循环 3750 步零跌倒，我从 sim2sim_v3_armfoot.npz 独立重算全部指标并与 v1 基线 npz 对比：arm err 0.2986→0.1724（-42.3%）、全身 0.2012→0.1315（-34.6%）、arm:leg 比 2.56→1.73、接触 L100/R99.5%、滑移 0.018/0.026 m/s、min base_z 0.561——与提交信息及任务记录逐项吻合，手臂僵硬与脚部姿态问题确认改善。(4) 约束——脚本与产物全部 git 提交（99c99cd/f71335c/62f036e）并推送 [exec:101]，工作区干净；训练用轮询观测 [exec:92-94]；最终报告内容（选段依据/重定向指标/训练结果/sim2sim 指标与视频）以 .gm/task_f1.yaml 形式入库，完整 HTML 报告为 harness 登记工件。放松的非关键细节：八门验收在重定向 csv 层留档（npz 层为既有工具的名字重排+重采样转换，未单独留 gate JSON）；HTML 最终报告与训练曲线 JSON 位于 gitignore 的 .meta-agent/.gmhome，快照内不可直接目检，但其实质数字（训练曲线 n=196、reward→35.56、err→0.042）已由 [exec:105] 与仓库内 npz/json 独立证实。",
+      "unfinished": [],
+      "evidence": [
+        "[verify:b99231e8-f591-4e73-bbfa-065007c33ee9] 快照内综合核验：git log 显示 v3 三次提交（99c99cd 八门+臂修复+源选择 / f71335c sim2sim 分解指标 / 62f036e 交付物）；v3 全量 diff 17 文件 1559 行入库；模型 sha256=0059705a8440…（与 [exec:96] 下载 sha 一致）；quality_dance2s1_arm_f1_csv.json overall_pass=True、ground -0.0128、脚平 L96.0/R100.0%、arm_sat 0、限位 0 违规；sim2sim v3 npz 重算 joint 0.1315/arm 0.1724/leg 0.0994/ratio 1.73/接触 L100.0 R99.5/min_base_z 0.561；v1 基线 npz 重算 arm 0.2986/leg 0.1166/joint 0.2012/ratio 2.56→改善 arm -42.3%、joint -34.6%；renders/ 三个 dance2s1 视频（reference/playback/compare）存在",
+        "[exec:94] exit=0 gradmotion TASK_20261107_132 迭代 4999/5000，Mean reward 35.58，error_body_pos 0.0416——平台训练完成（训练曲线见 [exec:105]：reward n=196 由 -0.362→35.562，err_body_pos→0.042）",
+        "[exec:96] exit=0 model_4999 下载并记 sha256 0059705a8440…，与快照 trained_models/dance_f1_v3_model_4999.pt 实测 shasum 一致——sim2sim 所用 checkpoint 即平台训练产物",
+        "[exec:101] exit=0 git push f71335c..62f036e main->main；系统工作区事实：HEAD 62f036e、0 未推送、无未提交改动——脚本改动全部提交推送",
+        "[verify:246871d5-d1aa-4d86-9fa7-7da418eea67f] .gm/task_f1.yaml:145-204：dance_v3 记录问题证据（cmu137_24 踮脚内外翻 flat 0%；手腕 100% 贴限位）、修复（arm_relock c3.0_r0.92）、选段（dance2_subject1 [255,706) 451f@30fps）、训练任务与 sim2sim 指标，与仓库内 json/npz 实测一致",
+        "[verify:ddc7365f-14ff-4dc2-bfa5-7f8890069240] tools_check_motion_f1.py:15-31,296-342,408-414：gate7 foot_flatness（|pitch|≤10°/|roll|≤8°/≥90% flat）与 gate8 arm_quality（sat≤10%/wrist ROM≥2%）已实现并计入 overall 裁决，--no_extra_gates 保留旧六门行为",
+        "[verify:9c704c9e-cc5f-44c8-87c9-5a9718c64f14] git ls-files：tools_diag_foot_f1.py、tools_scan_dance_sources.py、tools_arm_study_f1.py、play_mujoco.py、.gm/task_f1.yaml 均已入库（tools_diag_*.py 虽被 gitignore 但已 force-add）",
+        "[verify:9a3cd809-1206-470e-af41-abbe8a2e72b2]+[verify:15c2d54b-a35a-4554-8d0a-1c11ecba0681] 源扫描脚本（foot-clean/arm-rich/root-stable 评分）与脚部诊断脚本（sole pitch/roll、踮脚/内外翻、臂饱和/ROM）实体内容符合契约要求",
+        "[verify:9392b853-7cbd-4635-ad02-93550356836c] play_mujoco.py:830-1055 新增 arm/leg 误差分解与脚接触/滑移指标采集（f71335c），sim2sim_v3_armfoot.npz 含逐帧 arm_joint_err/leg_joint_err/contact/foot_xy",
+        "[exec:99] exit=0 compare 视频合成成功（renders/dance2s1_arm_compare.mp4，ref|policy）",
+        "[verify:43513fc0-ef0e-469f-892c-9eea951911d3] whole_body_tracking/motions/ 内 dance2s1_arm_f1.npz、sim2sim_v3_armfoot.npz、sim2sim_v1_baseline_armfoot.npz、quality_dance2s1_arm_f1_csv.json 均在仓库内；.meta-agent 为 gitignore 的 harness 工件目录"
+      ],
+      "terminal": true,
+      "keyPath": [
+        "对 sim2sim 指标类声明不止步于文档：直接用 numpy 读交付 npz 重算 mean/接触率/滑移并与基线 npz 对比，可一次性验证全部数字（本次 arm -42.3%/接触 100/99.5%/滑移全部复现）",
+        "交付模型用 sha256 对账：平台下载记录与快照内文件 shasum 比对，确认 sim2sim 用的就是平台训练产物"
+      ],
+      "pitfalls": [
+        "gitignore 中 tools_diag_*.py 模式会静默排除新增诊断脚本，需 git add -f 才能入库（本次已 force-add，后续新脚本要留意）",
+        "验收 JSON 只留了重定向 csv 层、npz 层未单独留档：npz 是名字重排+重采样的机械转换，风险低，但按门禁可追溯性最好两层都留 quality JSON"
+      ]
+    }
+  ],
+  "attempts": [
+    {
+      "id": "review_4301be6bdfa213af7aadb92112803030",
+      "state": "completed",
+      "note": "recorded"
+    }
+  ],
+  "taskContract": {
+    "schemaVersion": "1",
+    "revision": 2,
+    "goalRevision": 1,
+    "goal": "优化 F1 29DOF 舞蹈训练（仓库 ~/code/Beyondminic-Weilai-X1，main 分支）。\n\n背景问题：\n1. 现阶段选的舞蹈重定向后视频里脚步是踮脚或侧脚（虽然训练完 sim2sim 落地脚尚可，但参考动作本身脚部姿态不对）；\n2. 现有策略手臂动作僵硬、跟踪不好。\n\n目标与要求：\n1. 重新审核并选择策略舞蹈源动作：基于 F1 29DOF 的物理结构、关节运动范围（URDF/MJCF limits）与既往审计结论（F1_AUDIT.md、六道质量门经验），挑选同时包含清晰步伐（正常落地、不踮脚不侧脚）和丰富手臂动作、且可被 F1 结构稳定复现的舞蹈片段；给出选段理由与关节可达性核对。\n2. 在以往重定向管线基础上严格要求重定向质量：手臂、脚步、脚底板（sole 接触姿态）跟踪质量要高——落地帧脚底放平、脚尖不内翻外翻、手臂关节在限位内且动作连贯；沿用/强化 tools_check_motion_f1、脚部诊断（tools_diag_foot）与六道质量门做验收，不达标不进入训练。\n3. 训练与验证：本地 Mac 只做轻量校验，训练和大规模验证全部提交 gradmotion 平台；训练完成后跑 sim2sim，输出对比视频与跟踪指标（手臂跟踪误差、脚底接触/滑移指标），确认手臂僵硬与脚部姿态问题改善。\n\n约束：重定向与验收脚本改动留在仓库内并 git 提交；长周期训练观测用 timer/轮询方式 park 等待，不阻塞；产出最终报告（选段依据、重定向质量指标、训练曲线、sim2sim 视频与指标、遗留问题）。",
+    "amendments": [
+      {
+        "revision": 2,
+        "instruction": "gradmotion 账号已恢复：account-pool 现有 8 个账号（id 58-65：talare7232/jiyow52926/kagafo5365/vohime3689/gegog50702/gifahim182/hataxi6084/pepam51928），已逐一验证 API key 有效（whoami + project list 全部通过，userId 4717-4754 相互独立），其中 id 63/64/65 为今天新建。CLI 无余额查询接口，余额以实际跑任务为准。请提前恢复（不必等 2 小时），按原计划继续 v3 训练流程；若个别账号余额不足，切换池内下一个账号即可，不要再因账号问题挂起整轮。"
+      }
+    ]
+  },
+  "extraction": {
+    "state": "idle",
+    "reason": "terminal",
+    "throughReviewId": "review_4301be6bdfa213af7aadb92112803030",
+    "requestedAt": 1794032103178,
+    "extractedThroughReviewId": "review_4301be6bdfa213af7aadb92112803030"
+  },
+  "updatedAt": 1794032197972,
+  "card": {
+    "title": "人形机器人舞蹈重定向：源动作量化选段与脚手质量门前置",
+    "oneLiner": "重定向前量化扫描源动捕选段并核对关节可达性，把脚底放平与手臂质量设为训练前硬门，比训练后修补更省。",
+    "task": "针对 29 自由度人形机器人舞蹈策略脚步姿态失真（踮脚/内外翻）与手臂僵硬问题：量化扫描动捕库选定新舞蹈段并核对臂部可达性，将重定向质量门扩为八门（新增脚底放平门与手臂质量门），过门数据训练后经 sim2sim 分解指标对比基线确认改善。终态 passed，脚本与产物均已入库推送。",
+    "scope": "覆盖：动捕源动作量化选段、关节可达性核对、重定向质量门设计与留档、策略训练、sim2sim 按部位分解的跟踪/接触/滑移评估。不覆盖：sim2real 真机部署、非舞蹈类技能、其他足式形态的脚部结构适配。",
+    "applicability": [
+      "人形机器人重定向动捕数据训练全身跟踪策略，参考动作存在脚步姿态失真或手臂僵硬、跟踪不佳的现象时。",
+      "动捕库含多候选片段（BVH/AMC 等格式），需要在重定向前挑选适配机器人结构的窗口而非沿用现成段落。",
+      "使用 MuJoCo 类仿真做 sim2sim 验证，需要按身体部位分解评估跟踪质量以定位针对性问题是否改善。"
+    ],
+    "principles": [
+      "重定向前量化扫描源库：对候选窗口按脚部干净度（踮脚/内外翻率）、手臂丰富度（速度/幅度）与根稳定度打分排名，选段理由与指标留档，替代主观挑段。",
+      "重定向前做关节可达性核对：把目标手位分布与机器人运动学限界（reach、URDF/MJCF limits）比较，贴近边界即按比例收缩目标，在数据阶段消除贴限位与僵硬，而非训练后调参。",
+      "把脚底接触姿态与手臂质量做成训练前硬门：触地帧 sole pitch/roll 判平放、贴限位率与腕部活动度判手臂质量，不达标数据不进训练；每层门裁决 JSON 随数据留档保证可追溯。",
+      "按身体部位分解指标（臂/腿/全身误差、脚接触率与滑移）并保留旧版基线数据文件，训练后从交付产物直接重算对比，才能证实针对性问题确实改善而非整体指标掩盖。"
+    ],
+    "pitfalls": [
+      "现象：重定向后整体跟踪指标尚可，参考视频里脚却踮起/内外翻。原因：源动作本身姿态失真，重定向忠实复制错误姿态并成为学习目标。规避：选段与验收都渲染参考视频目检触地帧，并用 sole pitch/roll 量化。",
+      "现象：新增诊断脚本未入库，他人拉仓库后缺失。原因：gitignore 通配模式静默匹配了诊断类脚本路径。规避：git add 后用 git ls-files 确认已被跟踪，未跟踪则 add -f，并审视模式是否过宽。",
+      "现象：质量门裁决只留在一层数据，转换后的另一层无法追溯。原因：npz 由过门 csv 经重命名重采样机械派生，未单独留门记录。规避：每层数据都留门裁决 JSON，或明文写明派生关系。"
+    ],
+    "limitations": [
+      "改善结论与全部指标均在仿真（sim2sim）中验证，未做真机部署验证。",
+      "质量门阈值（sole 角度、贴限位率、腕部活动度）为该机器人形态设定，换形态或动作风格需重新标定。"
+    ],
+    "outcome": "终态 passed。选定舞蹈段八门全过（脚底放平达标、臂贴限位为 0），训练 5000 迭代后 sim2sim 五循环零跌倒；与旧版基线相比手臂关节误差约降 42%、全身约降 35%，脚接触率约满、滑移健康，踮脚与手臂僵硬问题确认改善，脚本与产物全部提交入库。",
+    "details": [
+      {
+        "path": "tools_scan_dance_sources.py",
+        "why": "源库量化选段的打分维度（脚步干净度/手臂丰富度/根稳定度）与实现"
+      },
+      {
+        "path": "tools_check_motion_f1.py",
+        "why": "八门定义，尤其脚底放平门与手臂质量门的阈值实现"
+      },
+      {
+        "path": "tools_diag_foot_f1.py",
+        "why": "触地帧判定、sole pitch/roll、臂饱和与活动度诊断实现"
+      },
+      {
+        "path": "tools_arm_study_f1.py",
+        "why": "臂部可达性核对与目标收缩（clamp）方法"
+      },
+      {
+        "path": ".gm/task_f1.yaml",
+        "why": "选段理由、问题证据、重定向与 sim2sim 全链路指标留档"
+      }
+    ],
+    "tags": [
+      "人形机器人",
+      "动作重定向",
+      "运动捕捉",
+      "全身跟踪",
+      "sim2sim",
+      "MuJoCo",
+      "质量门",
+      "关节限位"
+    ]
+  },
+  "contentHash": "7608d9374c2e01aa1f4bf02e514d00521ca9e9df1553ca017afa53f5c18457d8",
+  "source": {
+    "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+    "remote": "git@github.com:yumxcode/Beyondminic-Weilai-X1.git",
+    "branch": "main",
+    "commit": "62f036ed8640d5b7d5acfb5e209a2159d02a7fe8"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "detached-job-1.0",
+  "jobId": "job-458c7a877dd24bc2",
+  "name": "gmr-dance1s1-w3000",
+  "command": ".venv/bin/python -u tools_bvh_to_csv_f1.py --bvh_file downloads/lafan1/dance1_subject1.bvh --output_file whole_body_tracking/motions/csv/dance1s1_w3000_f1.csv --start_frame 3000 --end_frame 3750",
+  "cwd": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "workspace": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "target": "local",
+  "sessionId": "ef5e50fa-0add-4860-8f1d-1a989865f0ad",
+  "idempotencyKey": "gmr-f1-dance1s1-w3000",
+  "createdAt": 1793887891710,
+  "outputs": [
+    "whole_body_tracking/motions/csv/dance1s1_w3000_f1.csv"
+  ],
+  "supervised": true,
+  "launchState": "running",
+  "launchToken": "30b3cedf-1521-428a-bba5-60dd46fabaf8",
+  "launchOwner": {
+    "pid": 39906,
+    "startToken": "Thu Nov  5 21:58:56 2026"
+  },
+  "pid": 40640,
+  "startToken": "Thu Nov  5 22:11:31 2026"
+}

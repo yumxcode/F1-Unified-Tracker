@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F1 舞蹈 v3 优化报告</title>
+<style id="ma-base-theme">/* Layout: one centred reading column (960px, 1280px with .ma-wide); summary first, detail after. */
+:root {
+  color-scheme: dark;
+  --ma-bg: #0f1115;
+  --ma-surface: #161a20;
+  --ma-surface-2: #1d222a;
+  --ma-border: #2a3039;
+  --ma-border-strong: #3b434f;
+  --ma-text: #e6e9ee;
+  --ma-text-2: #b9c0ca;
+  --ma-muted: #8a93a0;
+  --ma-accent: #7aa7ff;
+  --ma-accent-soft: #1a2640;
+  --ma-on-accent: #0b1222;
+  --ma-good: #4cc38a; --ma-good-soft: #13291f;
+  --ma-warn: #e5a443; --ma-warn-soft: #2e2511;
+  --ma-bad: #f27a6e;  --ma-bad-soft: #341b1b;
+  --ma-c1: #7aa7ff; --ma-c2: #f2a25c; --ma-c3: #4fc1b2; --ma-c4: #e57fb0; --ma-c5: #b39af5; --ma-c6: #c3d36b;
+  --ma-shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .28);
+
+  --ma-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", system-ui, sans-serif;
+  --ma-font-display: var(--ma-font-sans);
+  --ma-font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, "JetBrains Mono", "Cascadia Code", Consolas, "Liberation Mono", monospace;
+  --ma-step--1: 13px; --ma-step-0: 15px; --ma-step-1: 17px; --ma-step-2: 20px; --ma-step-3: 24px; --ma-step-4: 30px;
+  --ma-measure: 70ch;
+  --ma-radius: 10px;
+  --ma-radius-sm: 6px;
+  --ma-gutter: clamp(16px, 4vw, 32px);
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --ma-bg: #f5f6f8;
+  --ma-surface: #ffffff;
+  --ma-surface-2: #eef1f5;
+  --ma-border: #dde2e8;
+  --ma-border-strong: #c7ced8;
+  --ma-text: #161a20;
+  --ma-text-2: #3d4550;
+  --ma-muted: #677180;
+  --ma-accent: #2f62d8;
+  --ma-accent-soft: #e5ecfb;
+  --ma-on-accent: #ffffff;
+  --ma-good: #1a7f52; --ma-good-soft: #e2f3ea;
+  --ma-warn: #a8640a; --ma-warn-soft: #fbf0dc;
+  --ma-bad: #c0362c;  --ma-bad-soft: #f9e3e1;
+  --ma-c1: #2f62d8; --ma-c2: #d9772f; --ma-c3: #23927f; --ma-c4: #c04a85; --ma-c5: #7b5cc7; --ma-c6: #6f7f1f;
+  --ma-shadow: 0 1px 2px rgba(22, 26, 32, .06), 0 6px 20px rgba(22, 26, 32, .06);
+}
+@media (prefers-color-scheme: light) {
+  :root[data-theme="auto"] {
+  color-scheme: light;
+  --ma-bg: #f5f6f8;
+  --ma-surface: #ffffff;
+  --ma-surface-2: #eef1f5;
+  --ma-border: #dde2e8;
+  --ma-border-strong: #c7ced8;
+  --ma-text: #161a20;
+  --ma-text-2: #3d4550;
+  --ma-muted: #677180;
+  --ma-accent: #2f62d8;
+  --ma-accent-soft: #e5ecfb;
+  --ma-on-accent: #ffffff;
+  --ma-good: #1a7f52; --ma-good-soft: #e2f3ea;
+  --ma-warn: #a8640a; --ma-warn-soft: #fbf0dc;
+  --ma-bad: #c0362c;  --ma-bad-soft: #f9e3e1;
+  --ma-c1: #2f62d8; --ma-c2: #d9772f; --ma-c3: #23927f; --ma-c4: #c04a85; --ma-c5: #7b5cc7; --ma-c6: #6f7f1f;
+  --ma-shadow: 0 1px 2px rgba(22, 26, 32, .06), 0 6px 20px rgba(22, 26, 32, .06);
+}
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--ma-bg);
+  color: var(--ma-text);
+  font-family: var(--ma-font-sans);
+  font-size: var(--ma-step-0);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection { background: var(--ma-accent-soft); }
+.ma-page { max-width: 960px; margin: 0 auto; padding-inline: var(--ma-gutter); padding-block: 48px 80px; }
+.ma-page.ma-wide { max-width: 1280px; }
+@media (max-width: 640px) { .ma-page { padding-block: 28px 56px; } }
+
+/* Type */
+h1, h2, h3, h4 { color: var(--ma-text); font-family: var(--ma-font-display); line-height: 1.3; font-weight: 650; letter-spacing: -0.01em; margin: 2em 0 .6em; text-wrap: balance; }
+h1 { font-size: var(--ma-step-4); line-height: 1.2; letter-spacing: -0.02em; margin-top: 0; }
+h2 { font-size: var(--ma-step-3); }
+h3 { font-size: var(--ma-step-1); }
+h4 { font-size: var(--ma-step-0); color: var(--ma-text-2); }
+p, ul, ol, dl, blockquote { max-width: var(--ma-measure); }
+p, ul, ol, dl, table, pre, blockquote, figure { margin: 0 0 1em; }
+ul, ol { padding-left: 1.4em; }
+li + li { margin-top: .25em; }
+li > ul, li > ol { margin: .25em 0 0; }
+li::marker { color: var(--ma-muted); }
+li.ma-task { list-style: none; margin-left: -1.25em; }
+li.ma-task > input[type=checkbox] { margin: 0 .45em 0 0; vertical-align: -1px; accent-color: var(--ma-accent); }
+a { color: var(--ma-accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--ma-accent) 40%, transparent); text-underline-offset: 3px; }
+a:hover { text-decoration-color: currentColor; }
+strong { font-weight: 650; color: var(--ma-text); }
+small, .ma-muted { color: var(--ma-muted); }
+hr { border: 0; border-top: 1px solid var(--ma-border); margin: 2.5em 0; }
+img, svg, video, canvas { max-width: 100%; height: auto; }
+code, kbd, samp, pre { font-family: var(--ma-font-mono); font-size: .88em; }
+:not(pre) > code { background: var(--ma-surface-2); padding: .12em .4em; border-radius: 4px; }
+kbd { border: 1px solid var(--ma-border-strong); border-bottom-width: 2px; border-radius: 4px; padding: 0 .35em; }
+pre { background: var(--ma-surface-2); border-radius: var(--ma-radius-sm); padding: 14px 16px; overflow-x: auto; line-height: 1.55; }
+pre code { background: none; padding: 0; font-size: inherit; }
+blockquote { margin-left: 0; padding-left: 1em; border-left: 2px solid var(--ma-border-strong); color: var(--ma-text-2); }
+.ma-eyebrow { font-size: var(--ma-step--1); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ma-muted); }
+.ma-header { margin-bottom: 32px; }
+.ma-header h1 { margin-bottom: .25em; }
+.ma-subtitle { color: var(--ma-muted); font-size: var(--ma-step-0); max-width: var(--ma-measure); }
+
+/* Tables: numbers line up; wide tables scroll inside their own box. */
+table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.ma-table-wrap { overflow-x: auto; margin: 0 0 1.25em; border: 1px solid var(--ma-border); border-radius: var(--ma-radius-sm); }
+.ma-table-wrap > table { margin: 0; }
+th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--ma-border); vertical-align: top; }
+th { font-weight: 600; font-size: var(--ma-step--1); color: var(--ma-text-2); background: var(--ma-surface-2); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: color-mix(in srgb, var(--ma-surface-2) 60%, transparent); }
+td.num, th.num, .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+figure { margin-inline: 0; }
+figcaption { color: var(--ma-muted); font-size: var(--ma-step--1); margin-top: .6em; }
+details { border: 1px solid var(--ma-border); border-radius: var(--ma-radius-sm); padding: .55em .9em; margin: 0 0 1em; background: var(--ma-surface); }
+summary { cursor: pointer; font-weight: 600; }
+details[open] > summary { margin-bottom: .5em; }
+
+/* Objects: a card marks ONE thing as separate — use it by role, not on every block. */
+.ma-card { background: var(--ma-surface); border: 1px solid var(--ma-border); border-radius: var(--ma-radius); padding: 18px 20px; margin: 0 0 16px; min-width: 0; }
+.ma-card.ma-raised { box-shadow: var(--ma-shadow); }
+.ma-card > :last-child { margin-bottom: 0; }
+.ma-card > h2:first-child, .ma-card > h3:first-child { margin-top: 0; }
+.ma-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); margin: 0 0 20px; }
+.ma-grid > * { min-width: 0; margin: 0; }
+/* KPI rows pack tighter: 2×2 on a phone, one row on a desktop. */
+.ma-grid:has(> .ma-kpi) { grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); }
+.ma-kpi { background: var(--ma-surface); border: 1px solid var(--ma-border); border-radius: var(--ma-radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
+.ma-kpi-label { color: var(--ma-muted); font-size: var(--ma-step--1); }
+.ma-kpi-value { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.25; }
+.ma-kpi-value small { font-size: .55em; font-weight: 500; color: var(--ma-muted); margin-left: .2em; }
+.ma-kpi-delta { font-size: var(--ma-step--1); font-variant-numeric: tabular-nums; color: var(--ma-muted); }
+.ma-up { color: var(--ma-good); } .ma-down { color: var(--ma-bad); }
+
+/* State: badges and callouts carry semantic colour, independent of the accent. */
+.ma-badge { display: inline-flex; align-items: center; gap: .3em; font-size: 12px; line-height: 1.7; padding: 0 .6em; border-radius: 999px; background: var(--ma-surface-2); color: var(--ma-text-2); white-space: nowrap; vertical-align: middle; }
+.ma-badge.good { background: var(--ma-good-soft); color: var(--ma-good); }
+.ma-badge.warn { background: var(--ma-warn-soft); color: var(--ma-warn); }
+.ma-badge.bad  { background: var(--ma-bad-soft);  color: var(--ma-bad); }
+.ma-badge.info { background: var(--ma-accent-soft); color: var(--ma-accent); }
+.ma-callout { border-radius: var(--ma-radius-sm); padding: 12px 16px; margin: 0 0 1.25em; background: var(--ma-accent-soft); border: 1px solid color-mix(in srgb, var(--ma-accent) 28%, transparent); max-width: none; }
+.ma-callout.good { background: var(--ma-good-soft); border-color: color-mix(in srgb, var(--ma-good) 30%, transparent); }
+.ma-callout.warn { background: var(--ma-warn-soft); border-color: color-mix(in srgb, var(--ma-warn) 30%, transparent); }
+.ma-callout.bad  { background: var(--ma-bad-soft);  border-color: color-mix(in srgb, var(--ma-bad) 30%, transparent); }
+.ma-callout > :last-child { margin-bottom: 0; }
+.ma-callout-title { display: block; font-weight: 650; margin-bottom: .2em; }
+
+/* Charts and diagrams */
+.ma-chart { margin: 0 0 1.25em; }
+.ma-chart svg { display: block; width: 100%; height: auto; overflow: visible; color: var(--ma-text-2); font-family: var(--ma-font-sans); }
+.ma-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--ma-step--1); color: var(--ma-text-2); margin: 0 0 8px; }
+.ma-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.ma-legend i { width: 10px; height: 10px; border-radius: 2px; background: currentColor; display: inline-block; }
+.ma-center { display: flex; justify-content: center; align-items: flex-start; overflow-x: auto; }
+.ma-mermaid { background: var(--ma-surface); border: 1px solid var(--ma-border); border-radius: var(--ma-radius); padding: 16px; text-align: center; overflow-x: auto; margin: 0 0 1.25em; }
+pre.mermaid { background: transparent; padding: 0; margin: 0; }
+.ma-prose > :first-child { margin-top: 0; }
+
+/* Behaviour */
+:focus-visible { outline: 2px solid var(--ma-accent); outline-offset: 2px; border-radius: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media print {
+  body { background: #fff; color: #000; }
+  .ma-card, .ma-kpi { box-shadow: none; break-inside: avoid; }
+}</style>
+</head>
+<body>
+<main class="ma-page">
+<article class="ma-prose"><h1 id="f1-29dof-舞蹈-v3-优化报告-阶段-数据侧完成-训练待账号充值">F1 29DOF 舞蹈 v3 优化报告（阶段：数据侧完成，训练待账号充值）</h1>
+<p><strong>范围</strong> · 2026-11-07 · 源重选 + 重定向质量门强化 + 手臂修复（已提交 commit 99c99cd / f71335c）</p>
+<h2 id="结论先行">结论先行</h2>
+<ol>
+<li><strong>脚部问题坐实并解决在数据侧</strong>：现阶段源（CMU 137_24 走秀）重定向后参考动作触地帧 sole pitch +24~27°（踮脚）、roll −25~30°（外翻），<strong>脚底放平率 0%</strong>；新选段 dance2_subject1 [255,706) 触地放平率 <strong>96.0% / 100%</strong>（左/右）。</li>
+<li><strong>手臂僵硬根因找到并修复</strong>：不是训练问题——旧重定向的腕关节被钉死在限位（p5=p50=p95=22.3°，ROM 0%），右肘 pitch 100% 帧贴下限。根因是<strong>缩放后手部位置目标贴着 F1 臂可达边界</strong>（p95 0.415 m vs 直臂可达 0.421 m），整身 IK 把所有臂关节顶向限位。修复后臂关节贴限位率 <strong>100% → 0%</strong>，腕 ROM <strong>0% → 9.6~78.5%</strong>。</li>
+<li><strong>策略层证据</strong>：v1 模型 sim2sim 手臂关节误差 0.2986 rad，是腿部（0.1166）的 <strong>2.6 倍</strong>——与用户观察一致；新参考动作已消除目标侧顶死，待重训验证。</li>
+<li><strong>训练阻塞</strong>：gradmotion 号池 5 个账号全部余额耗尽（上一轮 4 个训练任务用完），v3 训练任务定义已就绪，<strong>等待充值后一键启动</strong>。</li>
+</ol>
+<h2 id="1-问题定量证据-基线诊断-toolsdiagfootf1-py">1 问题定量证据（基线诊断，tools_diag_foot_f1.py）</h2>
+<div class="ma-table-wrap"><table><thead><tr><th>指标</th><th>dance_f1_train（v1 源）</th><th>cmu137_24（现阶段源）</th><th>门限</th></tr></thead><tbody><tr><td>触地帧 sole pitch（踮脚） p95</td><td>+7.4° / +9.3°</td><td><strong>+30.4° / +30.6°</strong></td><td>≤10°</td></tr><tr><td>触地帧 sole roll（内外翻） p95</td><td>+2.2° / +2.8°</td><td><strong>−30.3° / −32.3°</strong></td><td>≤8°</td></tr><tr><td>脚底放平率（stance 帧）</td><td>98.4% / 96.1%</td><td><strong>0% / 0%</strong></td><td>≥90%</td></tr><tr><td>臂关节贴限位帧率（任一）</td><td><strong>100%</strong></td><td><strong>100%</strong></td><td>≤10%</td></tr><tr><td>腕关节 ROM</td><td><strong>0%（4 关节全钉死 22.3°）</strong></td><td>0~3%</td><td>≥2%</td></tr><tr><td>右肘 pitch 贴下限帧率</td><td>99.4%</td><td>55%</td><td>—</td></tr></tbody></table></div>
+<p>踮脚/侧脚问题来自<strong>走秀源本身的步态</strong>（runway walk 全程踮脚+外翻）；手臂僵硬来自<strong>重定向 IK 目标可达性</strong>（与源无关，两段全中）。</p>
+<h2 id="2-源重选-toolsscandancesources-py">2 源重选（tools_scan_dance_sources.py）</h2>
+<p>源层面扫描 10 个 LAFAN BVH + 4 个 CMU AMC，统一量化：脚步干净度（触地帧脚底 pitch 分布）、踮脚率、外八字角、手臂丰富度（腕速/腕位置体积）、根稳定度。</p>
+<p><strong>排除</strong>：</p>
+<ul>
+<li>CMU 137 族（04/16/38/24）：脚部姿态异常（pitch −20~−46°）或踮脚，手臂贫乏（armV ≤0.39 m/s）</li>
+<li>LAFAN travel 段（dance2_subject1 [150,450) 等）：重定向实测穿地 −0.0207 m、腕-躯干穿插 −0.0763 m —— fnd_7af304ab 复验成立</li>
+<li>LAFAN 高手臂丰富度段（armV 1.3~2.1）：全部为翻滚/跳跃/地板动作（flat 43~73%）</li>
+</ul>
+<p><strong>LAFAN 内在约束</strong>：手臂丰富度与脚步干净度强负相关。两全的唯一窗口族 = dance2_subject1 前段。</p>
+<p><strong>定案：dance2_subject1 [255,706)（15 s @30fps）</strong></p>
+<div class="ma-table-wrap"><table><thead><tr><th>源指标</th><th>数值</th><th>对照 v1 源</th></tr></thead><tbody><tr><td>脚底放平率（源人体触地帧）</td><td><strong>98.1%</strong></td><td>94.1%</td></tr><tr><td>踮脚率</td><td><strong>1.1%</strong></td><td>0.7%</td></tr><tr><td>外八字角</td><td>24.0°（正常）</td><td>22.9°</td></tr><tr><td>手腕平均速度 armV</td><td><strong>1.05 m/s</strong></td><td>0.50（×2.1）</td></tr><tr><td>根位移</td><td>0.21 m（原地舞）</td><td>0.43 m</td></tr></tbody></table></div>
+<p><strong>关节可达性核对</strong>：29 关节 0 越限（URDF 限位，clamp margin 内）；手目标 clamp 至 0.92×臂可达保证可解；关节速度全部在 URDF 限内；根高度带 [0.59, 0.61] 正常。</p>
+<h2 id="3-重定向修复-toolsarmstudyf1-py-三轮变体对比">3 重定向修复（tools_arm_study_f1.py 三轮变体对比）</h2>
+<div class="ma-table-wrap"><table><thead><tr><th>变体</th><th>贴限位率</th><th>腕 ROM</th><th>结论</th></tr></thead><tbody><tr><td>v0 原版</td><td>100%</td><td>0%</td><td>复现问题</td></tr><tr><td>v1/v2 软化 IK 权重</td><td>100%</td><td>0%</td><td><strong>无效</strong>——根因不在权重</td></tr><tr><td>v3 relock（肩 FK 重锚+0.92 reach clamp+posture）</td><td>18~33%</td><td>恢复</td><td>有效但不彻底</td></tr><tr><td><strong>v3 + 臂限位 clamp 0.06 rad（定案）</strong></td><td><strong>0%</strong></td><td>9.6~78.5%</td><td>八门全过</td></tr></tbody></table></div>
+<p>修复后非臂关节 <strong>0 漂移</strong>（relock 冻结验证），脚部指标不变。</p>
+<h2 id="4-八门验收-toolscheckmotionf1-py-六门-八门">4 八门验收（tools_check_motion_f1.py，六门→八门）</h2>
+<p>新增：<strong>门 7 脚底放平</strong>（stance 帧 |sole pitch|≤10° 且 |roll|≤8° 占比 ≥90%）、<strong>门 8 手臂质量</strong>（任一臂关节贴限位 ≤10% 帧；腕 ROM ≥2% 反钉死）。<code>--no_extra_gates</code> 复现旧六门行为。</p>
+<div class="ma-table-wrap"><table><thead><tr><th>门</th><th>v1 源</th><th>cmu137_24</th><th><strong>新段（定案）</strong></th></tr></thead><tbody><tr><td>ground / self / limits / vel / height / cont</td><td>全过</td><td>全过</td><td><strong>全过</strong>（ground −0.0128 m）</td></tr><tr><td>7 脚底放平</td><td>过</td><td><strong>FAIL（0%）</strong></td><td><strong>过（96.0% / 100%）</strong></td></tr><tr><td>8 手臂质量</td><td><strong>FAIL（100% sat）</strong></td><td><strong>FAIL</strong></td><td><strong>过（0% sat）</strong></td></tr></tbody></table></div>
+<h2 id="5-sim2sim-指标体系-playmujoco-py-已扩展">5 sim2sim 指标体系（play_mujoco.py 已扩展）</h2>
+<p>新增输出：<code>mean_arm_joint_err_rad</code> / <code>mean_leg_joint_err_rad</code>（14 臂 vs 12 腿关节分解）、每脚 <code>contact_pct</code> + 触地滑移速度（mean/p95）。</p>
+<p><strong>v1 基线</strong>（旧模型+旧参考，1 循环 1147 步）：全身 joint err 0.2012 rad，其中<strong>臂 0.2986 / 腿 0.1166</strong>；触地率 98%，滑移 0.021 m/s；零跌倒。</p>
+<p><strong>v3 验收门（预注册）</strong>：sim2sim 5 循环零跌倒；臂 joint err 显著低于 0.2986；全身 ≤ v1 量级；触地滑移 ≤0.05 m/s；策略触地帧脚底姿态与参考一致（放平）。</p>
+<h2 id="6-状态与遗留">6 状态与遗留</h2>
+<ul>
+<li>✅ 选段/修复/八门/npz/参考视频（<code>renders/dance2s1_arm_f1_reference.mp4</code>）/指标脚本/基线 —— commit 99c99cd + f71335c 已推送</li>
+<li>⛔ <strong>训练阻塞</strong>：gradmotion 5 账号（talare7232/jiyow52926/kagafo5365/vohime3689/gegog50702）全部余额不足（1002056）；草稿任务已清理。<strong>需要任一账号充值或提供兑换码/新账号</strong>，随后创建任务（配置已验证）→ 5000 iter ≈1.75 h → sim2sim + 对比视频 → 最终报告</li>
+<li>⚠️ 视频目检：本地渲染视频已交付；Gemini 视频审查网络不可达，最终目检以用户观看为准</li>
+<li>备选窗口：dance1_subject3 [0,689)（armV 0.50，时长 23 s，八门同样全过）——若需更长时长可切换</li>
+</ul></article>
+</main>
+</body>
+</html>

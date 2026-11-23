@@ -1,0 +1,25 @@
+[metrics] dumped to whole_body_tracking/motions/sim2sim_v1_baseline_armfoot.npz
+
+[sim2sim] {
+  "robot": "f1",
+  "steps": 1147,
+  "wall_s": 0.9,
+  "mean_body_pos_err_m": 0.1303,
+  "mean_body_pos_err_anchor_rel_m": 0.0553,
+  "mean_joint_pos_err_rad": 0.2012,
+  "mean_anchor_pos_err_m": 0.1201,
+  "min_base_z_m": 0.568,
+  "fall_detected": false,
+  "mean_arm_joint_err_rad": 0.2986,
+  "mean_leg_joint_err_rad": 0.1166,
+  "left_foot": {
+    "contact_pct": 98.2,
+    "planted_slip_m_per_s": 0.021,
+    "planted_slip_p95_m_per_s": 0.042
+  },
+  "right_foot": {
+    "contact_pct": 98.9,
+    "planted_slip_m_per_s": 0.021,
+    "planted_slip_p95_m_per_s": 0.064
+  }
+}

@@ -1,0 +1,7 @@
+  warnings.warn(
+[src] Hips travel 4.69 m over 10.0s
+frame 0/299
+frame 100/299
+frame 200/299
+Saved 299 frames (9.93s) to /Users/yumx/code/Beyondminic-Weilai-X1/whole_body_tracking/motions/csv/cmu137_24_f1.csv; frozen: 0
+ground -1.4776 @f208 pass=False | self -0.0177 pass=False | limits=True vel=True hgt=[-0.96,1.49] pass=False | OVERALL=False

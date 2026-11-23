@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "fa2596d9-7e57-427c-a845-e4dc97583b42",
+  "entries": [
+    {
+      "kind": "decision",
+      "text": "继续推进，不回退。已在现有 v4 产物（dance2s1 [352,795) 重定向+训练链）基础上开始 hip roll 内收根因审查，结论：重定向 IK 脚位置目标过窄（scaled 0.270m < F1 髋宽 0.309m，80% 帧目标在髋线内侧）+ F1 宽髋几何（髋宽/身高 0.52 vs 人 0.12）系统性压缩站姿开度。修复方向：重定向脚目标额状面撑开，走\"修重定向→重新重定向→重训\"路线（源舞蹈不内收，不换舞）。",
+      "reason": "核对已有进展：v1-v4 全链路（GMR 管线、八门、lift 工具、sim2sim 指标体系）均服务于本任务且结论仍然成立；本任务核心（hip roll 内收）是新问题，v4 产物是必需的对比基线；重定向缺陷是增量可修的（IK 目标构造），无需回退基线。3 个旧结论中与本任务相关的（arm_relock、八门、lift）前提未变，沿用；无 stale。",
+      "source": "reset_audit",
+      "goalRevision": 1,
+      "id": "jr_843b8396",
+      "at": 1794141068234
+    },
+    {
+      "kind": "key_op",
+      "text": "gradmotion v5 训练任务已创建并启动：TASK_20261108_087（f1-dance-v5-stance-widen，PRO_20261107_014，gifahim182 同池账号 jiyow52926，ESKU000001/BJX00000028/V000127/1GPU），startScript: gm-run entry_f1_train.py --task=Tracking-Flat-F1-v0 --motion_file motions/dance2s1_ta_w75_f1.npz --headless --num_envs 4096 --max_iterations 5000；代码 commit 6207e62 已 push 到 origin/main。v4 同任务耗时 102 分钟。",
+      "goalRevision": 1,
+      "id": "jr_1bc1a73d",
+      "at": 1794141555654
+    },
+    {
+      "kind": "key_op",
+      "text": "更正：v5 训练任务最终为 TASK_20261108_088（gifahim182 账号，jiyow52926 的 TASK_20261108_087 因余额不足未运行已删除）。088 已于 20:42 启动成功，status 3 running，预计 ~100 分钟（v4 为 102 分钟）。",
+      "goalRevision": 1,
+      "id": "jr_f04ce0a1",
+      "at": 1794141807936
+    },
+    {
+      "kind": "artifact",
+      "text": "v5 交付物：模型/动作/指标/视频/报告/工具修复，commits 6207e62 + 4d509c2 已推送 origin/main",
+      "artifacts": [
+        "F1_DANCE_V5_REPORT.md",
+        "trained_models/dance_f1_v5_model_4999.pt",
+        "whole_body_tracking/motions/dance2s1_ta_w75_f1.npz",
+        "whole_body_tracking/motions/sim2sim_v5_stancewiden.npz",
+        "whole_body_tracking/motions/sim2sim_v5_joints.npz",
+        "renders/dance2s1_w75_playback.mp4",
+        "renders/dance2s1_w75_reference.mp4",
+        "tools_bvh_to_csv_f1.py",
+        "tools_check_motion_f1.py",
+        ".gm/task_f1.yaml"
+      ],
+      "goalRevision": 1,
+      "id": "jr_dd3ed69d",
+      "at": 1794173264855
+    }
+  ]
+}

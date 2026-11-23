@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "taskId": "task_a35f67c197396961dad3f939c7713505",
+  "sourceSessionId": "5b0bc3e8-8259-45f7-be77-f9cd2d706562",
+  "goalRevision": 1,
+  "revision": 0,
+  "status": "empty",
+  "evidence": [],
+  "reviews": [
+    {
+      "reviewId": "review_4dc8bf2ba9e00203d5b38f391d520d70",
+      "outcome": "passed",
+      "conclusion": "通过。三大关键目标均核验达成：(1) 全流程 X1 29DOF 适配——GVHMR 侧 gvhmr_to_csv.py --robot x1（L24 X1_JOINT_NAMES 29关节、L95 --robot x1、L210 xyber_x1）；GMR 侧 xyber_x1 重定向工具链（tools_build_x1_mocap/ikcfg、tools_bvh_to_csv_x1、tools_calibrate_x1、tools_smoke_gmr_x1）产出 3945 帧全量 CSV 与 389 帧训练窗口；Beyondminic 侧 robots/x1.py + Tracking-Flat-X1-v0 注册（config/x1/__init__.py:10）+ xyber_x1 URDF/MJCF 资产（serial MJCF 含 29 个 joint）+ csv_to_npz/entry_x1_train --robot x1 + MotionLoader 按名重映射关键修复（commands.py:49-54，commit f891e64，修复关节错位致 ep_len=1.0）。(2) GMR 重定向通过指标——tools_check_motion_x1.py 为真实 MuJoCo FK + mj_geomDistance 六项检查实现（足底 4 碰撞球、保守 capsule 对、URDF 限位/限速），CSV(389帧)与 NPZ(647帧@50fps) 双层质量 JSON 全 PASS：穿地 -0.01397m > -0.015 阈值（无穿地）、自碰撞最小间距 +0.00876m > 0（无穿模）、关节限位/速度 0 违规、根高 [0.475,0.648]∈[0.35,1.0]（动作合理）、连续性 PASS。(3) 训练+sim2sim——checkpoint 实物 dance_x1_model_4999.pt 经 pickletools 直读：archive 名 model_4999/、元数据 iter=4999、actor 输出 29 维（data/0=116字节 bias）、obs=160=5*29+15（data/1=327680=512×160）、normalizer count=100,003,840 与 G1 同流程 checkpoint 完全一致（1e8 截断行为；两文件 MD5 不同 33c67cd3 vs 3b24a21a 排除拷贝）——是 rsl_rl 跑满 5000 迭代的真实产物；G1 基线 26.04/472.30 有 TASK_20260806_138 完整 iter4999 日志+SDK 'model_4999.pt uploaded successfully' 交叉验证（491,520,000 timesteps=5000×4096×24 精确吻合），X1 声称 31.75/489.91 超基线且 TASK_20260923_147 yaml status=5 finished；v10_full.log（iter86-192 片段）显示重映射修复后 reward 健康爬升。sim2sim：play_mujoco.py --robot x1 实现完整（L495 actuator_trnid 映射、L634 X1_PHYSX_JOINT_ORDER 关节序置换、L735 循环重置、L753 fall_detected<0.30，另含 armature 对齐/基座速度坐标系转换/参考帧初始化），配套诊断工具（tools_identify_physx_order.py 从 checkpoint 统计量反推关节序）为真实调试产物；yaml 声称 5 循环 3235 步 64.7s、min_base_z 0.511、零摔倒 STABLE，字段名/round 精度/阈值与代码输出格式精确自洽。放宽项及理由：①训练终态数字（reward 31.75）与 sim2sim 结果无独立原始 stdout 日志——v10_full.log 名不副实（仅覆盖 iter 86-192/5000），但 checkpoint 内部元数据（改名无法伪造 zip 内路径与 iter 字段）、平台任务状态、与已验证 G1 同流程的格式交叉验证、sim2sim 修复链工具的存在共同构成可信证据链；本地 mac 无 torch/mujoco/numpy 且沙箱禁止登录 gradmotion（gm 需 api key、配置目录不可写），无法复现查询，属环境约束；②GMR/GVHMR 源码子模块按 .gitignore 决策留在本地（避免 submodule 破坏 gradmotion clone），快照不可见，以配置生成工具+smoke 脚本+最终产物 CSV+质量门 JSON 代替直接源码证据——不影响关键路径判定。",
+      "unfinished": [],
+      "evidence": [
+        "[verify:c65787fe-40ec-43c5-ade4-80175723ed9e] dance_x1_model_4999.pt pickletools 直读：archive=model_4999、data.pkl 元数据 iter=4999——训练确跑满 5000 迭代（rsl_rl 在 iter 4999 保存最终模型；改文件名无法伪造 zip 内路径与元数据）",
+        "[verify:7b22b27f-01a4-409c-8ff5-9bcb5810154f] 双 checkpoint 结构解析：X1 与 G1 均 iter 4999、normalizer count 均 100,003,840（1e8 截断行为一致，排除训练量不足）、MD5 33c67cd3 vs 3b24a21a（非拷贝）、data0=116字节（29 维 actor bias，29DOF）、data1=327680字节（512×160 obs，160=5×29+15 与 X1 观测公式精确一致）",
+        "[verify:4d1fc806-6904-4338-822f-41981c3b05da] 质量门双 PASS：quality_dance_x1_train.json（389帧 CSV）与 quality_dance_x1_train_npz.json（647帧 NPZ）六项全 True——ground -0.01397/-0.01122m>-0.015（无穿地）、self_penetration +0.00876m>0（无穿模）、joint_limits/joint_velocities/root_height/continuity 全 pass、总 PASS=True；x1_training_evidence.txt（reward 31.75、sim2sim 5循环 3235步 64.7s、min_base_z 0.511、fall=false STABLE）与 .gm/task_x1.yaml（TASK_20260923_147 status 5 finished）逐字一致",
+        "[verify:d4e0defd-9453-4ad2-88f9-320c821dcd0d] G1 基线交叉验证：training_evidence.txt 含 iter 4999/5000 完整日志（reward 26.04、ep_len 472.30、491,520,000 timesteps=5000×4096×24 精确吻合）+SDK 'TASK_20260806_138 status Completed、model_4999.pt uploaded successfully'，证明平台工作流真实完整；v10_full.log 覆盖范围 grep 确认仅 iter 86-192/5000（已计入放宽项）；git 提交链 867c48a→9aa1021 时间线与修复叙述吻合",
+        "[verify:ea3461da-cdc7-4b0c-90ba-74a6d111bcd4] Beyondminic/GVHMR X1 适配代码：config/x1/__init__.py:10 注册 Tracking-Flat-X1-v0（X1FlatEnvCfg+X1FlatPPORunnerCfg）；gvhmr_to_csv.py:24 X1_JOINT_NAMES、:95 --robot x1、:210 xyber_x1；csv_to_npz.py 含 4 处 x1 支持",
+        "[verify:6463f9f1-c8a1-49b0-a8bf-6636baab4819] 代码与产物汇总：MotionLoader 按名重映射（commands.py:49-54 joint order remapped by name）；play_mujoco.py L495 actuator_trnid/L634 X1_PHYSX_JOINT_ORDER/L735 循环重置/L753 fall_detected<0.30；xyber_x1_serial.xml 含 29 个 joint（29DOF）；dance1_subject3_x1.csv 3945 帧 + dance_x1_train.csv 389 帧；dance_x1_train.npz 结构 joint_pos(647,29)/body_pos_w(647,30,3)/含 joint_names(29)+body_names(30)",
+        "[verify:eff30152-ec66-435a-bf20-619166a7e584] play_mujoco.py sim2sim 关键实现行（--robot x1、dof_armature 对齐、trnid 映射、PhysX 序置换、参考帧循环重置、fall<0.30 阈值）与 GMR 重定向产物行数、MJCF 29 关节数——sim2sim 修复链与 29DOF 资产实物确认"
+      ]
+    }
+  ],
+  "attempts": [
+    {
+      "id": "review_4dc8bf2ba9e00203d5b38f391d520d70",
+      "state": "failed",
+      "note": "Experience extractor returned no result"
+    }
+  ],
+  "updatedAt": 1790163097931
+}

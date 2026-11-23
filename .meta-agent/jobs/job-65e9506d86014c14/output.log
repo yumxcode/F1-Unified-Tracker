@@ -1,0 +1,17 @@
+/Users/yumx/code/Beyondminic-Weilai-X1/.venv/lib/python3.11/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+xrobotoolkit_sdk not found, skip for now. If you do not use XRobotStreamer, it's
+fine.
+XRobotStreamer is not installed. Please install xrobotoolkit_sdk to use this 
+feature.
+[src] 299 frames @30fps from 1193 AMC frames
+[align] stance AMC frame 80
+[src] Hips travel 4.73 m over 10.0s
+[GMR] Robot Degrees of Freedom (DoF) names and their order:
+[GMR] Robot Body names and their IDs:
+[GMR] Robot Motor (Actuator) names and their IDs:
+frame 0/299
+frame 100/299
+frame 200/299
+[smooth] window=5
+Saved 299 frames (9.93s) to /Users/yumx/code/Beyondminic-Weilai-X1/whole_body_tracking/motions/csv/cmu137_24_f1.csv; frozen: 0

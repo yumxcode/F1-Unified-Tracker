@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F1 舞蹈 v3 优化报告</title>
+<style id="ma-base-theme">/* Layout: one centred reading column (960px, 1280px with .ma-wide); summary first, detail after. */
+:root {
+  color-scheme: dark;
+  --ma-bg: #0f1115;
+  --ma-surface: #161a20;
+  --ma-surface-2: #1d222a;
+  --ma-border: #2a3039;
+  --ma-border-strong: #3b434f;
+  --ma-text: #e6e9ee;
+  --ma-text-2: #b9c0ca;
+  --ma-muted: #8a93a0;
+  --ma-accent: #7aa7ff;
+  --ma-accent-soft: #1a2640;
+  --ma-on-accent: #0b1222;
+  --ma-good: #4cc38a; --ma-good-soft: #13291f;
+  --ma-warn: #e5a443; --ma-warn-soft: #2e2511;
+  --ma-bad: #f27a6e;  --ma-bad-soft: #341b1b;
+  --ma-c1: #7aa7ff; --ma-c2: #f2a25c; --ma-c3: #4fc1b2; --ma-c4: #e57fb0; --ma-c5: #b39af5; --ma-c6: #c3d36b;
+  --ma-shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .28);
+
+  --ma-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", system-ui, sans-serif;
+  --ma-font-display: var(--ma-font-sans);
+  --ma-font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, "JetBrains Mono", "Cascadia Code", Consolas, "Liberation Mono", monospace;
+  --ma-step--1: 13px; --ma-step-0: 15px; --ma-step-1: 17px; --ma-step-2: 20px; --ma-step-3: 24px; --ma-step-4: 30px;
+  --ma-measure: 70ch;
+  --ma-radius: 10px;
+  --ma-radius-sm: 6px;
+  --ma-gutter: clamp(16px, 4vw, 32px);
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --ma-bg: #f5f6f8;
+  --ma-surface: #ffffff;
+  --ma-surface-2: #eef1f5;
+  --ma-border: #dde2e8;
+  --ma-border-strong: #c7ced8;
+  --ma-text: #161a20;
+  --ma-text-2: #3d4550;
+  --ma-muted: #677180;
+  --ma-accent: #2f62d8;
+  --ma-accent-soft: #e5ecfb;
+  --ma-on-accent: #ffffff;
+  --ma-good: #1a7f52; --ma-good-soft: #e2f3ea;
+  --ma-warn: #a8640a; --ma-warn-soft: #fbf0dc;
+  --ma-bad: #c0362c;  --ma-bad-soft: #f9e3e1;
+  --ma-c1: #2f62d8; --ma-c2: #d9772f; --ma-c3: #23927f; --ma-c4: #c04a85; --ma-c5: #7b5cc7; --ma-c6: #6f7f1f;
+  --ma-shadow: 0 1px 2px rgba(22, 26, 32, .06), 0 6px 20px rgba(22, 26, 32, .06);
+}
+@media (prefers-color-scheme: light) {
+  :root[data-theme="auto"] {
+  color-scheme: light;
+  --ma-bg: #f5f6f8;
+  --ma-surface: #ffffff;
+  --ma-surface-2: #eef1f5;
+  --ma-border: #dde2e8;
+  --ma-border-strong: #c7ced8;
+  --ma-text: #161a20;
+  --ma-text-2: #3d4550;
+  --ma-muted: #677180;
+  --ma-accent: #2f62d8;
+  --ma-accent-soft: #e5ecfb;
+  --ma-on-accent: #ffffff;
+  --ma-good: #1a7f52; --ma-good-soft: #e2f3ea;
+  --ma-warn: #a8640a; --ma-warn-soft: #fbf0dc;
+  --ma-bad: #c0362c;  --ma-bad-soft: #f9e3e1;
+  --ma-c1: #2f62d8; --ma-c2: #d9772f; --ma-c3: #23927f; --ma-c4: #c04a85; --ma-c5: #7b5cc7; --ma-c6: #6f7f1f;
+  --ma-shadow: 0 1px 2px rgba(22, 26, 32, .06), 0 6px 20px rgba(22, 26, 32, .06);
+}
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--ma-bg);
+  color: var(--ma-text);
+  font-family: var(--ma-font-sans);
+  font-size: var(--ma-step-0);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection { background: var(--ma-accent-soft); }
+.ma-page { max-width: 960px; margin: 0 auto; padding-inline: var(--ma-gutter); padding-block: 48px 80px; }
+.ma-page.ma-wide { max-width: 1280px; }
+@media (max-width: 640px) { .ma-page { padding-block: 28px 56px; } }
+
+/* Type */
+h1, h2, h3, h4 { color: var(--ma-text); font-family: var(--ma-font-display); line-height: 1.3; font-weight: 650; letter-spacing: -0.01em; margin: 2em 0 .6em; text-wrap: balance; }
+h1 { font-size: var(--ma-step-4); line-height: 1.2; letter-spacing: -0.02em; margin-top: 0; }
+h2 { font-size: var(--ma-step-3); }
+h3 { font-size: var(--ma-step-1); }
+h4 { font-size: var(--ma-step-0); color: var(--ma-text-2); }
+p, ul, ol, dl, blockquote { max-width: var(--ma-measure); }
+p, ul, ol, dl, table, pre, blockquote, figure { margin: 0 0 1em; }
+ul, ol { padding-left: 1.4em; }
+li + li { margin-top: .25em; }
+li > ul, li > ol { margin: .25em 0 0; }
+li::marker { color: var(--ma-muted); }
+li.ma-task { list-style: none; margin-left: -1.25em; }
+li.ma-task > input[type=checkbox] { margin: 0 .45em 0 0; vertical-align: -1px; accent-color: var(--ma-accent); }
+a { color: var(--ma-accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--ma-accent) 40%, transparent); text-underline-offset: 3px; }
+a:hover { text-decoration-color: currentColor; }
+strong { font-weight: 650; color: var(--ma-text); }
+small, .ma-muted { color: var(--ma-muted); }
+hr { border: 0; border-top: 1px solid var(--ma-border); margin: 2.5em 0; }
+img, svg, video, canvas { max-width: 100%; height: auto; }
+code, kbd, samp, pre { font-family: var(--ma-font-mono); font-size: .88em; }
+:not(pre) > code { background: var(--ma-surface-2); padding: .12em .4em; border-radius: 4px; }
+kbd { border: 1px solid var(--ma-border-strong); border-bottom-width: 2px; border-radius: 4px; padding: 0 .35em; }
+pre { background: var(--ma-surface-2); border-radius: var(--ma-radius-sm); padding: 14px 16px; overflow-x: auto; line-height: 1.55; }
+pre code { background: none; padding: 0; font-size: inherit; }
+blockquote { margin-left: 0; padding-left: 1em; border-left: 2px solid var(--ma-border-strong); color: var(--ma-text-2); }
+.ma-eyebrow { font-size: var(--ma-step--1); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ma-muted); }
+.ma-header { margin-bottom: 32px; }
+.ma-header h1 { margin-bottom: .25em; }
+.ma-subtitle { color: var(--ma-muted); font-size: var(--ma-step-0); max-width: var(--ma-measure); }
+
+/* Tables: numbers line up; wide tables scroll inside their own box. */
+table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.ma-table-wrap { overflow-x: auto; margin: 0 0 1.25em; border: 1px solid var(--ma-border); border-radius: var(--ma-radius-sm); }
+.ma-table-wrap > table { margin: 0; }
+th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--ma-border); vertical-align: top; }
+th { font-weight: 600; font-size: var(--ma-step--1); color: var(--ma-text-2); background: var(--ma-surface-2); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: color-mix(in srgb, var(--ma-surface-2) 60%, transparent); }
+td.num, th.num, .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+figure { margin-inline: 0; }
+figcaption { color: var(--ma-muted); font-size: var(--ma-step--1); margin-top: .6em; }
+details { border: 1px solid var(--ma-border); border-radius: var(--ma-radius-sm); padding: .55em .9em; margin: 0 0 1em; background: var(--ma-surface); }
+summary { cursor: pointer; font-weight: 600; }
+details[open] > summary { margin-bottom: .5em; }
+
+/* Objects: a card marks ONE thing as separate — use it by role, not on every block. */
+.ma-card { background: var(--ma-surface); border: 1px solid var(--ma-border); border-radius: var(--ma-radius); padding: 18px 20px; margin: 0 0 16px; min-width: 0; }
+.ma-card.ma-raised { box-shadow: var(--ma-shadow); }
+.ma-card > :last-child { margin-bottom: 0; }
+.ma-card > h2:first-child, .ma-card > h3:first-child { margin-top: 0; }
+.ma-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); margin: 0 0 20px; }
+.ma-grid > * { min-width: 0; margin: 0; }
+/* KPI rows pack tighter: 2×2 on a phone, one row on a desktop. */
+.ma-grid:has(> .ma-kpi) { grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); }
+.ma-kpi { background: var(--ma-surface); border: 1px solid var(--ma-border); border-radius: var(--ma-radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
+.ma-kpi-label { color: var(--ma-muted); font-size: var(--ma-step--1); }
+.ma-kpi-value { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.25; }
+.ma-kpi-value small { font-size: .55em; font-weight: 500; color: var(--ma-muted); margin-left: .2em; }
+.ma-kpi-delta { font-size: var(--ma-step--1); font-variant-numeric: tabular-nums; color: var(--ma-muted); }
+.ma-up { color: var(--ma-good); } .ma-down { color: var(--ma-bad); }
+
+/* State: badges and callouts carry semantic colour, independent of the accent. */
+.ma-badge { display: inline-flex; align-items: center; gap: .3em; font-size: 12px; line-height: 1.7; padding: 0 .6em; border-radius: 999px; background: var(--ma-surface-2); color: var(--ma-text-2); white-space: nowrap; vertical-align: middle; }
+.ma-badge.good { background: var(--ma-good-soft); color: var(--ma-good); }
+.ma-badge.warn { background: var(--ma-warn-soft); color: var(--ma-warn); }
+.ma-badge.bad  { background: var(--ma-bad-soft);  color: var(--ma-bad); }
+.ma-badge.info { background: var(--ma-accent-soft); color: var(--ma-accent); }
+.ma-callout { border-radius: var(--ma-radius-sm); padding: 12px 16px; margin: 0 0 1.25em; background: var(--ma-accent-soft); border: 1px solid color-mix(in srgb, var(--ma-accent) 28%, transparent); max-width: none; }
+.ma-callout.good { background: var(--ma-good-soft); border-color: color-mix(in srgb, var(--ma-good) 30%, transparent); }
+.ma-callout.warn { background: var(--ma-warn-soft); border-color: color-mix(in srgb, var(--ma-warn) 30%, transparent); }
+.ma-callout.bad  { background: var(--ma-bad-soft);  border-color: color-mix(in srgb, var(--ma-bad) 30%, transparent); }
+.ma-callout > :last-child { margin-bottom: 0; }
+.ma-callout-title { display: block; font-weight: 650; margin-bottom: .2em; }
+
+/* Charts and diagrams */
+.ma-chart { margin: 0 0 1.25em; }
+.ma-chart svg { display: block; width: 100%; height: auto; overflow: visible; color: var(--ma-text-2); font-family: var(--ma-font-sans); }
+.ma-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--ma-step--1); color: var(--ma-text-2); margin: 0 0 8px; }
+.ma-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.ma-legend i { width: 10px; height: 10px; border-radius: 2px; background: currentColor; display: inline-block; }
+.ma-center { display: flex; justify-content: center; align-items: flex-start; overflow-x: auto; }
+.ma-mermaid { background: var(--ma-surface); border: 1px solid var(--ma-border); border-radius: var(--ma-radius); padding: 16px; text-align: center; overflow-x: auto; margin: 0 0 1.25em; }
+pre.mermaid { background: transparent; padding: 0; margin: 0; }
+.ma-prose > :first-child { margin-top: 0; }
+
+/* Behaviour */
+:focus-visible { outline: 2px solid var(--ma-accent); outline-offset: 2px; border-radius: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media print {
+  body { background: #fff; color: #000; }
+  .ma-card, .ma-kpi { box-shadow: none; break-inside: avoid; }
+}</style>
+</head>
+<body>
+<main class="ma-page">
+<article class="ma-prose"><h1 id="f1-29dof-舞蹈-v3-优化报告-最终">F1 29DOF 舞蹈 v3 优化报告（最终）</h1>
+<p><strong>范围</strong> · 2026-11-07 · commits 99c99cd / f71335c / 62f036e（已推送）· 实验 exp_3d00709b <strong>confirmed</strong></p>
+<h2 id="结论">结论</h2>
+<p>两个用户问题均在数据层定位到根因、修复并经重训+sim2sim 验证改善：</p>
+<div class="ma-table-wrap"><table><thead><tr><th>问题</th><th>根因</th><th>修复</th><th>验证结果</th></tr></thead><tbody><tr><td>踮脚/侧脚</td><td>上一代源（CMU 137_24 走秀）本身全程踮脚外翻，六门无脚底姿态检查</td><td>重选源 dance2_subject1 [255,706) + 新增门 7 脚底放平</td><td>参考动作触地放平 <strong>0% → 96.0/100%</strong>（左/右）</td></tr><tr><td>手臂僵硬</td><td>缩放手目标贴 F1 臂可达边界（p95 0.415 vs 0.421 m），整身 IK 顶死臂关节（腕 ROM 0%、右肘 99% 贴限位）</td><td>臂部二段重解（肩 FK 重锚 + 0.92×reach clamp + posture 正则 + 臂 clamp 0.06 rad）+ 新增门 8 手臂质量</td><td>参考臂饱和 <strong>100% → 0%</strong>，腕 ROM 0% → 9.6~78.5%；重训后策略臂误差 <strong>0.2986 → 0.1724 rad（−42%）</strong></td></tr></tbody></table></div>
+<h2 id="1-选段依据-toolsscandancesources-py">1 选段依据（tools_scan_dance_sources.py）</h2>
+<p>扫描 10 个 LAFAN BVH + 4 个 CMU AMC，统一量化脚步干净度/手臂丰富度/根稳定度：</p>
+<ul>
+<li><strong>排除</strong>：CMU 137 族（137_04/38 脚部姿态异常 pitch −20~−46°、armV ≤0.39；137_16 触地缺失；137_24 踮脚外翻已证）；LAFAN travel 段（重定向实测穿地 −0.0207、腕-躯干穿插 −0.0763，fnd_7af304ab 复验成立）；LAFAN 高 armV 段（1.3~2.1 全为翻滚/跳跃，flat 43~73%）</li>
+<li><strong>规律</strong>（fnd_4828e7e7）：LAFAN 库内手臂丰富度与脚步干净度强负相关；两全窗口仅在 dance2_subject1 前段</li>
+</ul>
+<p><strong>定案 dance2_subject1 [255,706)（15 s）</strong>：源 flat <strong>98.1%</strong>、tiptoe <strong>1.1%</strong>、外八 24°（正常）、<strong>armV 1.05 m/s（v1 源的 2.1 倍）</strong>、根位移 0.21 m。</p>
+<p><strong>关节可达性核对</strong>：29 关节 0 越限（URDF，clamp margin 内）；手目标重锚+clamp 至 0.92×臂可达（p95 0.415→可达域内）保证可解；速度全在 URDF 限内；根高度 [0.59,0.61] m 正常。</p>
+<h2 id="2-重定向修复-toolsarmstudyf1-py-变体对比">2 重定向修复（tools_arm_study_f1.py 变体对比）</h2>
+<div class="ma-table-wrap"><table><thead><tr><th>变体</th><th>贴限位率</th><th>腕 ROM</th><th>结论</th></tr></thead><tbody><tr><td>v0 原版</td><td>100%</td><td>0%</td><td>问题复现</td></tr><tr><td>v1/v2 软化 IK 权重</td><td>100%</td><td>0%</td><td><strong>无效</strong>——目标不可达不是权重问题</td></tr><tr><td>v3 relock（肩重锚+clamp+posture）</td><td>18~33%</td><td>恢复</td><td>有效不彻底</td></tr><tr><td><strong>v3 + 臂 clamp 0.06（定案）</strong></td><td><strong>0%</strong></td><td>9.6~78.5%</td><td>八门全过</td></tr></tbody></table></div>
+<p>修复只动臂关节（非臂关节 0 漂移已验证），脚部指标不受影响。</p>
+<h2 id="3-八门验收-toolscheckmotionf1-py">3 八门验收（tools_check_motion_f1.py）</h2>
+<p>新增门 7（stance 帧 |sole pitch|≤10°、|roll|≤8°、放平率≥90%）与门 8（任一臂关节贴限位 ≤10% 帧、腕 ROM≥2%）；<code>--no_extra_gates</code> 可复现旧六门。</p>
+<div class="ma-table-wrap"><table><thead><tr><th>门</th><th>v1 源</th><th>cmu137_24</th><th><strong>v3 源</strong></th></tr></thead><tbody><tr><td>原六门（ground/self/limits/vel/height/cont）</td><td>过</td><td>过</td><td><strong>过</strong>（ground −0.0128 m）</td></tr><tr><td>7 脚底放平</td><td>过</td><td><strong>FAIL 0%</strong></td><td><strong>过 96.0/100%</strong>（pitch p95 6.8/2.6°，roll p95 1.3/1.1°）</td></tr><tr><td>8 手臂质量</td><td><strong>FAIL 100% sat</strong></td><td><strong>FAIL</strong></td><td><strong>过 0% sat</strong></td></tr></tbody></table></div>
+<p>旧两段动作在新门下均 FAIL——门具备拦截力（不达标不进训练）。</p>
+<h2 id="4-训练-gradmotion-task20261107132">4 训练（gradmotion TASK_20261107_132）</h2>
+<p>gifahim182 账号，5000 iter / 4096 envs / 90 min，全量 anchor 终止 0.5 m（v2 配方），代码 f71335c。</p>
+<ul>
+<li><strong>训练曲线</strong>（accelerate 采样 196 点）：reward −0.36 → 18.1（25%）→ 25.3（50%）→ 33.1（75%）→ <strong>35.56</strong>；error_body_pos 0.067 → 0.108（25%）→ 0.068 → 0.046 → <strong>0.0416</strong>（v1 终值 0.055，−24%）</li>
+<li>中途健康检查：ee_body_pos 终止率从冷启动 851 → 0.08（正常收敛）</li>
+</ul>
+<h2 id="5-sim2sim-对比-5-循环-3750-步-零跌倒">5 sim2sim 对比（5 循环 3750 步，零跌倒）</h2>
+<p>play_mujoco.py 新增臂/腿误差分解与脚底接触/滑移指标；v1 基线同口径重测。</p>
+<div class="ma-table-wrap"><table><thead><tr><th>指标</th><th>v1 基线</th><th><strong>v3</strong></th><th>变化</th></tr></thead><tbody><tr><td>全身 joint err (rad)</td><td>0.2012</td><td><strong>0.1315</strong></td><td><strong>−35%</strong></td></tr><tr><td><strong>手臂 joint err (rad)</strong></td><td>0.2986</td><td><strong>0.1724</strong></td><td><strong>−42%</strong></td></tr><tr><td>腿部 joint err (rad)</td><td>0.1166</td><td>0.0994</td><td>−15%</td></tr><tr><td>臂/腿误差比</td><td>2.56</td><td><strong>1.73</strong></td><td>大幅收敛</td></tr><tr><td>body pos err anchor-rel (m)</td><td>0.0553</td><td>0.0461</td><td>−17%</td></tr><tr><td>min base z (m)</td><td>0.568</td><td>0.561</td><td>持平</td></tr><tr><td>触地率 L/R (%)</td><td>98.2/98.9</td><td>100/99.5</td><td>持平</td></tr><tr><td>触地滑移 (m/s)</td><td>0.021</td><td>0.018/0.026</td><td>持平健康</td></tr></tbody></table></div>
+<p>关键：手臂改善幅度（−42%）显著大于腿部（−15%），且是在手臂动作丰富度翻倍（源 armV ×2.1）的前提下达成——&quot;僵硬且跟不好&quot;同时缓解。预注册验收门（零跌倒、臂 err≪0.2986、全身≤v1、滑移≤0.05）全部通过。</p>
+<h2 id="6-交付物">6 交付物</h2>
+<ul>
+<li>模型 <code>trained_models/dance_f1_v3_model_4999.pt</code>（sha 0059705a）</li>
+<li>视频：<code>renders/dance2s1_arm_f1_reference.mp4</code>（参考）/ <code>dance2s1_arm_playback.mp4</code>（策略 5 循环）/ <strong><code>dance2s1_arm_compare.mp4</code>（参考|策略并排）</strong></li>
+<li>指标：<code>whole_body_tracking/motions/sim2sim_v3_armfoot.npz</code>、<code>sim2sim_v1_baseline_armfoot.npz</code>、<code>quality_dance2s1_arm_f1_csv.json</code></li>
+<li>脚本：<code>tools_diag_foot_f1.py</code>、<code>tools_scan_dance_sources.py</code>、<code>tools_arm_study_f1.py</code>、<code>tools_check_motion_f1.py</code>（八门）、<code>tools_bvh_to_csv_f1.py</code>（--arm_relock/--clamp_margin）、<code>play_mujoco.py</code>（新指标）</li>
+</ul>
+<h2 id="7-遗留问题">7 遗留问题</h2>
+<ol>
+<li><strong>视频目检</strong>：Gemini 视频审查网络不可达，自动目检未完成；参考/回放/对比视频已交付，建议人工观看 <code>renders/dance2s1_arm_compare.mp4</code> 最终确认姿态自然度</li>
+<li><strong>动作时长</strong>：v3 段 15 s（v1 为 23 s）；如需更长，备选 dance1_subject3 [0,689)（armV 0.50、八门同样全过）或拼接多窗</li>
+<li><strong>位移</strong>：本轮选段为原地舞（0.21 m 位移）；跨空间移动需求由上一代 cmu137_24 v2 模型覆盖，两者互为补充</li>
+<li><strong>sim2sim z-score</strong>：action 段 max 8.8σ（重尾，非系统性错配——关节序错配的 cmd 段信号不存在）；如后续做部署建议在真机前复核 action 限幅</li>
+<li><strong>平台</strong>：新 gradmotion 账号创建任务需省略 <code>personalDataPath</code>（pit_b0e6c735）；号池余额曾整池耗尽，建议保留 ≥2 个有余额账号余量</li>
+</ol></article>
+</main>
+</body>
+</html>

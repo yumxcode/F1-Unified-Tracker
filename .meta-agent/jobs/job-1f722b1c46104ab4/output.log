@@ -1,0 +1,30 @@
+  base_lin_vel      0.24    0.75     1.82
+  base_ang_vel      0.25    0.74     1.79
+  joint_pos         0.89    1.96     5.46
+  joint_vel         0.39    0.85     4.80
+  action            1.40    4.02    13.19
+[metrics] dumped to whole_body_tracking/motions/sim2sim_v4_travelarm.npz
+
+[sim2sim] {
+  "robot": "f1",
+  "steps": 3685,
+  "wall_s": 2.9,
+  "mean_body_pos_err_m": 0.0624,
+  "mean_body_pos_err_anchor_rel_m": 0.0366,
+  "mean_joint_pos_err_rad": 0.1467,
+  "mean_anchor_pos_err_m": 0.0531,
+  "min_base_z_m": 0.554,
+  "fall_detected": false,
+  "mean_arm_joint_err_rad": 0.2123,
+  "mean_leg_joint_err_rad": 0.0926,
+  "left_foot": {
+    "contact_pct": 98.5,
+    "planted_slip_m_per_s": 0.101,
+    "planted_slip_p95_m_per_s": 0.124
+  },
+  "right_foot": {
+    "contact_pct": 97.8,
+    "planted_slip_m_per_s": 0.05,
+    "planted_slip_p95_m_per_s": 0.122
+  }
+}

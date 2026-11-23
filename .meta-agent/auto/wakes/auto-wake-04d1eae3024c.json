@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "wakeId": "auto-wake-04d1eae3024c",
+  "sessionId": "82f46477-d253-4c75-9553-13f15641f41d",
+  "projectDir": "/Users/yumx/code/Beyondminic-Weilai-X1",
+  "fireAt": 1794055692546,
+  "reason": "backup 重定向（较慢的那个）完成后立即对两个窗口跑 8 门检查择优 — waiting until /Users/yumx/code/Beyondminic-Weilai-X1/whole_body_tracking/motions/csv/dance2s1_ta_f1d.csv exists",
+  "checkpoint": {
+    "waitCondition": {
+      "kind": "file",
+      "path": "/Users/yumx/code/Beyondminic-Weilai-X1/whole_body_tracking/motions/csv/dance2s1_ta_f1d.csv"
+    }
+  },
+  "goal": "F1 29DOF 舞蹈 v4 训练（仓库 ~/code/Beyondminic-Weilai-X1，main 分支，续 A10 v3 之后）。\n\n背景：v3（dance2_subject1 选段 15s）手臂误差已修复（-42%），但该舞脚步位移较少；更早的 travel-dance（CMU 137 走秀步）有位移但手臂动作少且脚底姿态差。本轮目标：选一支\"上肢丰富 + 脚步移动/步伐明显\"两者兼顾的舞蹈源。\n\n要求：\n1. 选源：在现有素材库（LAFAN dance 系列、CMU 等，含 tools_scan_dance_sources.py 扫描结论）中筛选同时满足手臂活动量大（对照 v3 源的 armV 指标）和脚步位移/步伐明显的候选；结合 F1 29DOF 关节限位与臂展（0.421m 钳制经验）核对可达性，给出选段理由与候选对比。\n2. 重定向：严格沿用 v3 最新管线——arm_relock（臂展 0.92 钳制 + 中心姿态重锁）、脚底平放处理、8 道质量门（含 foot_flatness ≥90% 平放、arm_quality 饱和≤10%/腕 ROM≥2%）全过才进训练；若位移大，沿用 travel-dance v2 的全锚点终止（full-anchor termination 0.5m）经验。\n3. 训练与验证：本地 Mac 只做轻量校验；训练提交 gradmotion（用 account-pool 账号，新账号记得省略 personalDataPath）；长周期观测用 timer park 挂起等待，不阻塞。训练完成后跑 sim2sim（MuJoCo 5 圈零跌倒标准），输出关节误差手臂/腿分解、脚底接触与滑移、位移保持率（如有位移），对比 v3 基线，并产出参考/回放/对比三个视频与最终报告。\n\n约束：改动全部 git 提交留痕；沿用 .gm/task_f1.yaml 登记习惯；交付 trained_models 新模型 + sim2sim 指标 + 报告。",
+  "goalRevision": 1,
+  "checkpointRevision": 14,
+  "historyMessageCount": 98,
+  "historyFingerprint": "16777232:5489173:317052:1794055687376897030:1794055687376897030:Infinity:67108864",
+  "runtime": {
+    "sessionDir": "/Users/yumx/.weixin-bot/weixin-bot/personal-agent/runtime-sessions",
+    "configFile": "/Users/yumx/.meta-agent/glm_config.json"
+  },
+  "status": "done",
+  "attempts": 1,
+  "createdAt": 1794055687482,
+  "updatedAt": 1794056612194,
+  "claim": {
+    "owner": "yumxdeMac-mini.local#7966",
+    "token": "e018251d-dc5b-4143-b608-0c9353c82562",
+    "claimedAt": 1794055692820,
+    "expiresAt": 1794057192920
+  }
+}
