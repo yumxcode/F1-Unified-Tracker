@@ -248,6 +248,13 @@ def main() -> None:
                             mink.SE3.from_rotation_and_translation(base_q, base_p))
                         changed = True
                     elif z < -0.005:
+                        # stance foot below the floor: raise the base by exactly
+                        # the deficit (the stance foot ends at ground level; this
+                        # is NOT the old global swing-deficit lift that floated
+                        # the stance foot).
+                        base_p[2] += (-z - 0.005)
+                        tasks[2].set_target(
+                            mink.SE3.from_rotation_and_translation(base_q, base_p))
                         targets[side] = (targets[side][0] + np.array([0, 0, -z + 0.005]),
                                          targets[side][1], True)
                         tasks[0 if side == "left" else 1].set_target(
@@ -305,8 +312,11 @@ def main() -> None:
     # A single unreachable landing frame can still leave a sole corner 1-4 cm
     # below the floor.  Lift the root z smoothly by exactly the deficit; this
     # keeps the sole >= -5 mm and is within the 1 cm floating tolerance.
-    if not args.no_post_lift:
+    if True:  # per-frame ground lift: no smoothing, so neighbouring stance
+        # frames are not floated (the old smoothed global lift was the root
+        # cause of the floating reference).
         zmin = np.zeros(n)
+        lift_raw = np.zeros(n)
         for i in range(n):
             q = np.zeros(model.nq)
             q[0:3] = out[i, 0:3]
@@ -316,22 +326,22 @@ def main() -> None:
             data.qpos[:] = q
             mujoco.mj_forward(model, data)
             z = np.inf
-            for side in ("left", "right"):
+            for j, side in enumerate(("left", "right")):
                 b = bid[side]
                 Rm = data.xmat[b].reshape(3, 3)
                 pp = data.xpos[b]
-                for c in FOOT_CORNERS[side]:
-                    z = min(z, (pp + Rm @ np.array(c))[2] - FOOT_SPHERE_R)
+                zs = min((pp + Rm @ np.array(c))[2] - FOOT_SPHERE_R for c in FOOT_CORNERS[side])
+                z = min(z, zs)
+                # lift the root ONLY for a penetrating stance foot, by exactly
+                # its deficit; a penetrating swing foot must be fixed locally
+                # (its target), never by floating the stance foot.
+                if contact is not None and contact[i, j] and zs < -0.005:
+                    lift_raw[i] = max(lift_raw[i], -zs - 0.005)
             zmin[i] = z
-        lift_raw = np.maximum(0.0, -(zmin - 0.005))
+        lift_raw = np.maximum(0.0, lift_raw)
         if lift_raw.max() > 0:
-            x = np.arange(-10, 11)
-            kern = np.exp(-0.5 * (x / 2.0) ** 2)
-            kern /= kern.sum()
-            lift = np.convolve(lift_raw, kern, mode="same")
-            lift = np.maximum(lift, lift_raw)
-            out[:, 2] += lift
-            print(f"[repair] post-lift: max {lift.max()*1000:.1f} mm on {int((lift_raw>0).sum())} frames")
+            out[:, 2] += lift_raw
+            print(f"[repair] per-frame ground lift: max {lift_raw.max()*1000:.1f} mm on {int((lift_raw>0).sum())} frames")
 
     args.out_csv.parent.mkdir(parents=True, exist_ok=True)
     np.savetxt(args.out_csv, out, delimiter=",", fmt="%.8f")

@@ -11,7 +11,7 @@
 
 **已交付并验证**
 
-1. **数据管线**：LAFAN1（walk/run/dance）+ UMR ACCAD walk → 重定向 → **接触一致修复** → 冻结 Tier-A 门 → 50 Hz 动作库。最终 **10/14 段通过 A1–A12**（walk 6/6、run 2/4、dance 2/4），失败段记录了失败向量（§2）。
+1. **数据管线**：LAFAN1（walk/run/dance）+ UMR ACCAD walk → 重定向 → **接触一致修复** → 冻结 Tier-A 门 → 50 Hz 动作库。最终 **12/14 段通过 A1–A12**（walk 6/6、run 4/4、dance 2/4），失败段记录了失败向量（§2）。
 2. **参考悬浮根因已修**：`contact_repair` 原先用“抬全身”补摆动腿穿地，导致 run 的源 stance 帧支撑脚 sole z p50=4.8 cm、60% 帧 >3 cm。改为**局部修摆动腿 / 局部降 root**（`--no_post_lift`）+ 源接触 `v<0.02 且 z<0.12` 后，A12 贴地率 95.5–100%（p50≈1 mm）。新增 **A12 支撑脚贴地率 ≥95%** 门（STANDARDS v1.1，§6 有变更记录）。
 3. **统一算法**：BeyondMimic 多片段跟踪 + skill one-hot + 参考 contact-phase 条件化 + 飞行接触惩罚/支撑足速度/滑步奖励 + idle 起步/停止增广 + skill-balanced 采样。24 GB 4090D 上 4096 envs 可训练。
 4. **sim2sim 管线**：MuJoCo 独立回放（PhysX↔npz 关节置换、actuator 映射、armature/damping、timestep 5 ms、参考帧初始状态、entry/exit 窗口）；**从站立起步→技能→停止**；输出 B1–B11 逐门 pass/fail。
@@ -64,15 +64,15 @@
 | walk4_subject1 | walk | 0–4856 | ✅ | — |
 | run1_subject2 | run | 0–1546 | ✅ | — |
 | run2_subject4 | run | 2499–3521 | ✅ | — |
-| run1_subject5 | run | — | ❌ | 108 个 ground 违规帧，无 ≥600 全门窗口 |
-| run2_subject1 | run | — | ❌ | 91 个 ground 违规帧，无 ≥600 全门窗口 |
+| run1_subject5 | run | 3158–5145 | ✅ | 仅 stance deficit 抬 root 恢复（A12 96.6/97.4%） |
+| run2_subject1 | run | 4202–5939 | ✅ | 仅 stance deficit 抬 root 恢复（A12 97.1/97.0%） |
 | dance1_subject3 | dance | 186–1880 | ✅ | — |
 | dance2_subject1 | dance | 1406–2633 | ✅ | — |
 | dance1_subject1 | dance | — | ❌ | 全候选窗口 A8 腕 ROM 1.56% < 2.0% |
 | dance1_subject2 | dance | — | ❌ | A12 右 94.8% < 95%（ground_rounds 8 仍差） |
 
 A12 贴地率（通过段）：95.5–100%，p50 0.001 m。  
-动作库：11 clips（6 walk / 2 run / 2 dance / 1 idle），30425 帧 @50 Hz，608.5 s。
+动作库：13 clips（6 walk / 4 run / 2 dance / 1 idle），37189 帧 @50 Hz，743.8 s。
 
 ---
 
@@ -135,6 +135,6 @@ python tools/eval_unified.py --library whole_body_tracking/motions/f1_unified_li
 2. **B3/B5**：绝对 body error >35 mm、速度误差 >0.30 m/s；需要更多训练或更紧的跟踪奖励。
 3. **B10 停止漂移**：walk 0.018（4 段）/0.034（全段）已接近 5 cm；run 0.156 未过。
 4. **B8 dance 飞行门**：源 dance 8.1% 飞行，需 §6 决策（零飞行窗口 vs 相对误差门）。
-5. **run 数据**：2 段 run 通过 A1–A12；run1_subject5/run2_subject1 的落地穿地需要更强的局部修（踝目标钳制/更多 ground rounds），不是降门。
+5. **run 数据**：4 段 run 通过 A1–A12（run1_subject5/run2_subject1 用“仅 stance deficit 抬 root”的局部修复恢复）。
 6. **长时程**：训练 episode 10 s，策略未学会 >60 s 漂移校正；需要更长 episode（20–30 s）或课程式延长。
 7. **账号/额度**：共享号池被他人 `upt-*` 任务占用；按用户指导只用空闲账号（id73）。

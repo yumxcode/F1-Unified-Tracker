@@ -1,0 +1,191 @@
+{
+  "walk1_subject1": {
+    "gait": "walk",
+    "bvh": "/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1/walk1_subject1.bvh",
+    "window": [
+      2605,
+      3708
+    ],
+    "frames": 1103,
+    "seconds": 36.77,
+    "csv": "/Users/yumx/code/f1_studio_develop/team/workspace/f1_unified/data/curated/walk1_subject1_walk.csv",
+    "pass": true
+  },
+  "walk1_subject2": {
+    "gait": "walk",
+    "bvh": "/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1/walk1_subject2.bvh",
+    "window": [
+      0,
+      860
+    ],
+    "frames": 860,
+    "seconds": 28.67,
+    "csv": "/Users/yumx/code/f1_studio_develop/team/workspace/f1_unified/data/curated/walk1_subject2_walk.csv",
+    "pass": true
+  },
+  "walk1_subject5": {
+    "gait": "walk",
+    "bvh": "/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1/walk1_subject5.bvh",
+    "window": [
+      3001,
+      4860
+    ],
+    "frames": 1859,
+    "seconds": 61.97,
+    "csv": "/Users/yumx/code/f1_studio_develop/team/workspace/f1_unified/data/curated/walk1_subject5_walk.csv",
+    "pass": true
+  },
+  "walk2_subject1": {
+    "gait": "walk",
+    "bvh": "/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1/walk2_subject1.bvh",
+    "window": [
+      3124,
+      4097
+    ],
+    "frames": 973,
+    "seconds": 32.43,
+    "csv": "/Users/yumx/code/f1_studio_develop/team/workspace/f1_unified/data/curated/walk2_subject1_walk.csv",
+    "pass": true
+  },
+  "walk3_subject1": {
+    "gait": "walk",
+    "bvh": "/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1/walk3_subject1.bvh",
+    "window": [
+      3832,
+      4976
+    ],
+    "frames": 1144,
+    "seconds": 38.13,
+    "csv": "/Users/yumx/code/f1_studio_develop/team/workspace/f1_unified/data/curated/walk3_subject1_walk.csv",
+    "pass": true
+  },
+  "walk4_subject1": {
+    "gait": "walk",
+    "bvh": "/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1/walk4_subject1.bvh",
+    "window": [
+      0,
+      4856
+    ],
+    "frames": 4856,
+    "seconds": 161.87,
+    "csv": "/Users/yumx/code/f1_studio_develop/team/workspace/f1_unified/data/curated/walk4_subject1_walk.csv",
+    "pass": true
+  },
+  "run1_subject2": {
+    "gait": "run",
+    "bvh": "/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1/run1_subject2.bvh",
+    "window": [
+      0,
+      1546
+    ],
+    "frames": 1546,
+    "seconds": 51.53,
+    "csv": "/Users/yumx/code/f1_studio_develop/team/workspace/f1_unified/data/curated/run1_subject2_run.csv",
+    "pass": true
+  },
+  "run1_subject5": {
+    "pass": true,
+    "window": [
+      3158,
+      5145
+    ],
+    "frames": 1987,
+    "seconds": 66.23,
+    "csv": "data/curated/run1_subject5_run.csv",
+    "note": "recovered: stance-only per-frame ground lift (no smoothing), full A1-A12 pass"
+  },
+  "run2_subject1": {
+    "pass": true,
+    "window": [
+      4202,
+      5939
+    ],
+    "frames": 1737,
+    "seconds": 57.9,
+    "csv": "data/curated/run2_subject1_run.csv",
+    "note": "recovered: stance-only per-frame ground lift (no smoothing), full A1-A12 pass"
+  },
+  "run2_subject4": {
+    "gait": "run",
+    "bvh": "/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1/run2_subject4.bvh",
+    "window": [
+      2499,
+      3521
+    ],
+    "frames": 1022,
+    "seconds": 34.07,
+    "csv": "/Users/yumx/code/f1_studio_develop/team/workspace/f1_unified/data/curated/run2_subject4_run.csv",
+    "pass": true
+  },
+  "dance1_subject1": {
+    "gait": "dance",
+    "bvh": "/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1/dance1_subject1.bvh",
+    "window": [
+      0,
+      1154
+    ],
+    "pass": false,
+    "error": "no full-gate window",
+    "gate_fail": {
+      "arm_quality": {
+        "any_sat_pct": 0.0,
+        "pass": false
+      }
+    }
+  },
+  "dance1_subject2": {
+    "gait": "dance",
+    "bvh": "/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1/dance1_subject2.bvh",
+    "window": [
+      2086,
+      2895
+    ],
+    "pass": false,
+    "error": "no full-gate window",
+    "gate_fail": {
+      "stance_grounded": {
+        "per_side": {
+          "left": {
+            "frames": 357,
+            "grounded_pct": 98.31932773109243,
+            "p50": 0.001009440218941303,
+            "p95": 0.003547700987504076,
+            "pass": true
+          },
+          "right": {
+            "frames": 306,
+            "grounded_pct": 94.77124183006535,
+            "p50": 0.001012766990038251,
+            "p95": 0.023050759055097736,
+            "pass": false
+          }
+        },
+        "pass": false
+      }
+    }
+  },
+  "dance1_subject3": {
+    "gait": "dance",
+    "bvh": "/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1/dance1_subject3.bvh",
+    "window": [
+      186,
+      1880
+    ],
+    "frames": 1694,
+    "seconds": 56.47,
+    "csv": "/Users/yumx/code/f1_studio_develop/team/workspace/f1_unified/data/curated/dance1_subject3_dance.csv",
+    "pass": true
+  },
+  "dance2_subject1": {
+    "gait": "dance",
+    "bvh": "/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1/dance2_subject1.bvh",
+    "window": [
+      1406,
+      2633
+    ],
+    "frames": 1227,
+    "seconds": 40.9,
+    "csv": "/Users/yumx/code/f1_studio_develop/team/workspace/f1_unified/data/curated/dance2_subject1_dance.csv",
+    "pass": true
+  }
+}
