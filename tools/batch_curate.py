@@ -94,35 +94,51 @@ def main() -> None:
                  "--gait", gait, "--scan_windows", "--min_window", str(min_win),
                  "--bvh", str(bvh), "--bvh_offset", "0",
                  "--json_out", str(rep_json)])
-        m = re.search(r"longest clean window: \[(\d+), (\d+)\) len=(\d+)", r.stdout)
-        if not m:
+        if not rep_json.exists():
             entry["error"] = "no clean window"
             entry["stdout_tail"] = r.stdout[-1000:]
             report[name] = entry
             print(f"[{name}] no clean window")
             continue
-        a, b, ln = int(m.group(1)), int(m.group(2)), int(m.group(3))
-        if ln < min_win:
-            entry["error"] = f"clean window {ln} < {min_win}"
+        windows = json.load(open(rep_json)).get("windows", [])
+        if not windows:
+            entry["error"] = f"no clean window >= {min_win}"
+            entry["stdout_tail"] = r.stdout[-1000:]
             report[name] = entry
-            print(f"[{name}] window too short {ln}")
+            print(f"[{name}] no clean window >= {min_win}")
             continue
         arr = np.loadtxt(rep_csv, delimiter=",")
         out_csv = OUT / f"{name}_{gait}.csv"
-        np.savetxt(out_csv, arr[a:b], delimiter=",", fmt="%.8f")
-        # gate report for the selected slice
         slice_json = OUT / f"{name}_{gait}.json"
-        r2 = run([PY, "tools_check_motion_f1.py", "--csv", str(out_csv),
-                  "--gait", gait, "--bvh", str(bvh), "--bvh_offset", str(a),
-                  "--json_out", str(slice_json)])
-        passed = False
-        if slice_json.exists():
-            d = json.load(open(slice_json))
-            passed = bool(d.get("overall_pass", False))
+        passed, chosen, fail_vec = False, None, None
+        for a, b in windows:
+            ln = b - a
+            np.savetxt(out_csv, arr[a:b], delimiter=",", fmt="%.8f")
+            run([PY, "tools_check_motion_f1.py", "--csv", str(out_csv),
+                 "--gait", gait, "--bvh", str(bvh), "--bvh_offset", str(a),
+                 "--json_out", str(slice_json)])
+            d = json.load(open(slice_json)) if slice_json.exists() else {}
+            if d.get("overall_pass", False):
+                passed, chosen = True, (a, b, ln)
+                break
+            fail_vec = d
+        if chosen is None:
+            entry.update({"window": windows[0], "pass": False,
+                          "error": "no full-gate window",
+                          "gate_fail": {k: {kk: vv for kk, vv in v.items()
+                                             if kk in ("pass", "min_foot_z_m", "flat_pct",
+                                                       "any_sat_pct", "skate_ok_pct",
+                                                       "grounded_pct", "per_side")}
+                                        for k, v in (fail_vec or {}).items()
+                                        if isinstance(v, dict) and v.get("pass") is False}})
+            report[name] = entry
+            print(f"[{name}] {gait}: all {len(windows)} clean windows failed a full gate")
+            continue
+        a, b, ln = chosen
         entry.update({"window": [a, b], "frames": ln, "seconds": round(ln / 30.0, 2),
-                      "csv": str(out_csv), "pass": passed})
+                      "csv": str(out_csv), "pass": True})
         report[name] = entry
-        print(f"[{name}] {gait} window {a}:{b} ({ln}f, {ln/30:.1f}s) pass={passed}")
+        print(f"[{name}] {gait} window {a}:{b} ({ln}f, {ln/30:.1f}s) pass=True")
 
     (OUT / "curation_report.json").write_text(json.dumps(report, indent=2))
     ok = sum(1 for v in report.values() if v.get("pass"))

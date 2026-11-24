@@ -522,27 +522,35 @@ def main():
                              "pass": bool(all(v["pass"] for v in per_side.values()))})
 
     if args.scan_windows:
-        best_len, best_start, cur_len, cur_start = 0, 0, 0, 0
-        for i in range(n_frames):
+        # collect **all** maximal clean runs (>= min_window); the caller must
+        # run the full Tier-A gate on each candidate -- per-frame cleanliness
+        # alone does not imply A8/A9/A10/A12 pass.
+        runs = []
+        i = 0
+        while i < n_frames:
             if not per_frame_bad[i]:
-                if cur_len == 0:
-                    cur_start = i
-                cur_len += 1
-                if cur_len > best_len:
-                    best_len, best_start = cur_len, cur_start
+                j = i
+                while j < n_frames and not per_frame_bad[j]:
+                    j += 1
+                runs.append((i, j, j - i))
+                i = j
             else:
-                cur_len = 0
+                i += 1
+        runs = [r for r in runs if r[2] >= args.min_window]
+        runs.sort(key=lambda r: -r[2])
         print(f"bad frames: {int(per_frame_bad.sum())}/{n_frames} "
               f"(ground={int(bad_reason['ground'].sum())}, self={int(bad_reason['self'].sum())}, "
               f"height={int(bad_reason['height'].sum())}, vel={int(vel_bad.sum())})")
-        print(f"longest clean window: [{best_start}, {best_start+best_len}) len={best_len} "
-              f"({best_len/fps:.1f}s @ {fps}fps)")
-        ok = best_len >= args.min_window
+        for k, (a, b, ln) in enumerate(runs[:5]):
+            print(f"  clean window {k}: [{a}, {b}) len={ln} ({ln/fps:.1f}s)")
+        ok = len(runs) > 0
         print("WINDOW_OK" if ok else "WINDOW_TOO_SHORT")
         if args.json_out:
             args.json_out.write_text(json.dumps({
-                "best_window": [int(best_start), int(best_start + best_len)],
-                "length_frames": int(best_len), "bad_frames": int(per_frame_bad.sum()),
+                "windows": [[int(a), int(b)] for a, b, _ in runs],
+                "lengths": [int(ln) for _, _, ln in runs],
+                "best_window": [int(runs[0][0]), int(runs[0][1])] if runs else None,
+                "bad_frames": int(per_frame_bad.sum()),
             }, indent=2))
         sys.exit(0 if ok else 2)
 

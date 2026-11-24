@@ -1,7 +1,7 @@
 # F1 29-DoF 运动重定向与 sim2sim 验收标准（v1，冻结）
 
-版本：v1.0  
-冻结日期：2026-11-23  
+版本：v1.1  
+冻结日期：2026-11-24（v1.0 冻结于 2026-11-23；v1.1 仅新增 A12，未改任何既有门限）  
 适用对象：Weichai F1 29-DoF（URDF `SYS-SPEC-0002-V1.1-F1整机模型29DOF.urdf`）  
 适用数据：LAFAN1 walk/run/sprint/dance 的 GMR/UMR 重定向结果，以及由这些动作训练出的统一跟踪策略的 MuJoCo sim2sim 回放。
 
@@ -37,6 +37,7 @@
 | A9 | 站姿开度 | 双支撑帧 `ankle_gap / hip_width` 的均值与 P5；双腿 hip roll 同内收（>3°）帧比例 | — / % |
 | A10 | 滑步 | 接触帧足底水平速度 `<10 cm/s` 的比例 | % |
 | A11 | 双支撑占比 | 双支撑帧 / 总帧 | % |
+| A12 | 支撑脚贴地率 | 源 stance 帧中支撑脚 sole z ≤0.02 m 的比例 | % |
 
 > **A7 不是从人体数据推导的。** 人脚在支撑相天然 toe-down 20–25°（`data/source_metrics.json`：walk stance pitch mean −14…−25°，`flat_pct_10deg` 中位数 2.5%）。F1 是 20.4 cm 刚性脚板，平贴是机器人特有的接触要求，90% 目标按 F1 dance v5 的实测平贴率（90.5/93.3%）校准，属于机器人规格门，不是源数据分位数门。
 
@@ -123,7 +124,7 @@
 ## 5. 报告模板（每个 clip 一行）
 
 ```
-clip | gait | window[start,end) | frames | coverage% | A1..A11 | overall_A
+clip | gait | window[start,end) | frames | coverage% | A1..A12 | overall_A
      | SR_sim2sim% | falls% | E_mpbpe | E_mpjpe | E_vel | mismatch% | slip_mm/s
      | flight% (ref/policy) | act_rad/frame | entry% | exit% | drift_cm | overall_B
 ```
@@ -133,6 +134,8 @@ clip | gait | window[start,end) | frames | coverage% | A1..A11 | overall_A
 ---
 
 ## 6. 变更流程
+
+> **变更记录 2026-11-24（v1.1）**：新增 A12（支撑脚贴地率，walk/run/dance 均 ≥95%）。起因：`contact_repair` 的 post-lift 为修摆动腿穿地把全身 root 抬高，run 的源 stance 帧支撑脚 sole z p50 达 4.8 cm、60% 帧 >3 cm；旧 Tier A 的 A7/A10 只在 sole z<0.03 的帧上统计，看不见该缺陷。A12 要求源 stance 帧 ≥95% 的支撑脚贴地（≤0.02 m），并据此把 repair 改为局部修摆动腿/局部降 root（`--no_post_lift`），不再全局抬身。A12 是新增门，不修改 A1–A11 的任何门限。
 
 1. 提出变更：写明门名、旧值、新值、理由。
 2. 给出源数据推导（数据集、clip 数、分位数、归一化、脚本输出路径）。

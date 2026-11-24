@@ -70,8 +70,11 @@ def load_bvh_contacts(bvh: Path, n: int, start: int, end: int, stride: int,
     Rf = np.array([f["RightFoot"][0] for f in frames])
     vL = np.linalg.norm(np.diff(L, axis=0), axis=1)
     vR = np.linalg.norm(np.diff(Rf, axis=0), axis=1)
-    cl = np.r_[vL < velfactor, False]
-    cr = np.r_[vR < velfactor, False]
+    # same contact rule as the clip labels and gate A12: slow **and** low.
+    # Velocity alone would treat a slow foot in the air as stance and pull it
+    # to the ground (observed on dance holds).
+    cl = np.r_[vL < velfactor, False] & (L[:, 2] < 0.12)
+    cr = np.r_[vR < velfactor, False] & (Rf[:, 2] < 0.12)
     c = np.stack([cl, cr], axis=1)[offset + start:offset + end:stride]
     assert len(c) == n, (len(c), n)
     return c

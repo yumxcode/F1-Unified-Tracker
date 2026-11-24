@@ -187,7 +187,8 @@ def main() -> None:
 
     last_action = np.zeros(len(joint_names_px), dtype=np.float32)
     metrics = {k: [] for k in [
-        "body_pos_err_rel", "joint_pos_err", "anchor_pos_err", "base_z",
+        "body_pos_err_rel", "body_pos_err_abs", "body_lin_vel_err",
+        "joint_pos_err", "anchor_pos_err", "base_z",
         "action_rate", "contact_mismatch", "slip", "flight_ref", "flight_robot",
         "robot_xy", "ref_xy", "skill",
     ]}
@@ -240,6 +241,9 @@ def main() -> None:
         delta_pos[2] = ref_body_pos[anchor_idx][2]
         ref_rel = delta_pos[None, :] + (ref_body_pos - ref_body_pos[anchor_idx][None, :]) @ pm.quat_to_rotmat(delta_ori).T
         metrics["body_pos_err_rel"].append(float(np.mean(np.linalg.norm(robot_body_pos - ref_rel, axis=1))))
+        metrics["body_pos_err_abs"].append(float(np.mean(np.linalg.norm(robot_body_pos - ref_body_pos, axis=1))))
+        metrics["body_lin_vel_err"].append(float(np.mean(np.linalg.norm(
+            data.cvel[bid][:, 3:6] - lib["body_lin_vel_w"][t], axis=1))))
         metrics["joint_pos_err"].append(float(np.mean(np.abs(joint_pos - lib["joint_pos"][t]))))
         metrics["anchor_pos_err"].append(float(np.linalg.norm(anchor_pos_b)))
         metrics["base_z"].append(float(data.qpos[2]))
@@ -292,7 +296,9 @@ def main() -> None:
                 and float(np.mean(metrics["contact_mismatch"][:n_entry]) / 2) <= 0.01)
     robot_xy = np.array(metrics["robot_xy"])
     exit_drift = float(np.linalg.norm(robot_xy[-1] - robot_xy[max(0, len(robot_xy) - n_exit)]))
-    exit_ok = (fall_step is None or fall_step < n_steps - n_exit) and exit_drift <= 0.05
+    # exit success requires no fall anywhere in the episode (a fall before the
+    # exit window must not be counted as a successful stop)
+    exit_ok = (fall_step is None) and exit_drift <= 0.05
     body_err = np.array(metrics["body_pos_err_rel"])
     success = (not fell) and float(body_err.max()) < 0.5
     out = {
@@ -309,6 +315,8 @@ def main() -> None:
         "exit_drift_m": round(exit_drift, 4),
         "body_pos_err_rel_mean": round(float(body_err.mean()), 4),
         "body_pos_err_rel_p95": round(float(np.percentile(body_err, 95)), 4),
+        "body_pos_err_abs_mean_m": round(float(np.mean(metrics["body_pos_err_abs"])), 4),
+        "body_lin_vel_err_mean_mps": round(float(np.mean(metrics["body_lin_vel_err"])), 4),
         "joint_pos_err_mean": round(float(np.mean(metrics["joint_pos_err"])), 4),
         "anchor_pos_err_mean": round(float(np.mean(metrics["anchor_pos_err"])), 4),
         "contact_mismatch_pct": round(float(np.mean(metrics["contact_mismatch"]) / 2 * 100), 3),
