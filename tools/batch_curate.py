@@ -79,7 +79,8 @@ def main() -> None:
                         "--out_csv", str(rep_csv), "--bvh", str(bvh),
                         "--iters", "40", "--vel_scale", "1.0",
                         "--flat_cost", "1000", "--foot_cost", "1000",
-                        "--base_cost", "1.0", "--ground_rounds", "4"]
+                        "--base_cost", "1.0", "--ground_rounds", "4",
+                        "--velfactor", "0.02", "--no_post_lift"]
             if gait == "dance":
                 rep_args += ["--stance_widen_repair", "0.03"]
             r = run(rep_args)
@@ -91,6 +92,7 @@ def main() -> None:
         # scan the repaired full clip for the longest clean window
         r = run([PY, "tools_check_motion_f1.py", "--csv", str(rep_csv),
                  "--gait", gait, "--scan_windows", "--min_window", str(min_win),
+                 "--bvh", str(bvh), "--bvh_offset", "0",
                  "--json_out", str(rep_json)])
         m = re.search(r"longest clean window: \[(\d+), (\d+)\) len=(\d+)", r.stdout)
         if not m:
@@ -111,7 +113,8 @@ def main() -> None:
         # gate report for the selected slice
         slice_json = OUT / f"{name}_{gait}.json"
         r2 = run([PY, "tools_check_motion_f1.py", "--csv", str(out_csv),
-                  "--gait", gait, "--json_out", str(slice_json)])
+                  "--gait", gait, "--bvh", str(bvh), "--bvh_offset", str(a),
+                  "--json_out", str(slice_json)])
         passed = False
         if slice_json.exists():
             d = json.load(open(slice_json))

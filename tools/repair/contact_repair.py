@@ -128,6 +128,8 @@ def main() -> None:
                     help="disable the final root-z ground-clearance pass")
     ap.add_argument("--no_lock", action="store_true",
                     help="do not lock the stance foot at contact onset")
+    ap.add_argument("--velfactor", type=float, default=0.02,
+                    help="source contact velocity threshold (m/frame); must match the clip labels")
     args = ap.parse_args()
 
     raw = np.loadtxt(args.csv, delimiter=",")
@@ -139,6 +141,7 @@ def main() -> None:
 
     if args.bvh is not None:
         contact = smooth_runs(load_bvh_contacts(args.bvh, n, args.start, end, args.stride,
+                                                velfactor=args.velfactor,
                                                 offset=args.bvh_offset))
         print(f"[repair] source contact: DS {np.mean(contact[:,0] & contact[:,1]):.2f} "
               f"L {contact[:,0].mean():.2f} R {contact[:,1].mean():.2f}")
@@ -221,23 +224,41 @@ def main() -> None:
                                 safety_break=False)
             cfg.integrate_inplace(vel, dt)
 
-        # ground correction: if a sole corner is still below the floor, raise
-        # that foot's target and re-solve (max 2 rounds).
+        # ground correction: keep the stance foot planted and the swing foot
+        # clear **locally** -- never lift the whole root (that floats the
+        # stance foot and poisons the contact labels).
         for _round in range(args.ground_rounds):
             mujoco.mj_forward(model, cfg.data)
-            worst = 0.0
+            changed = False
             for side in ("left", "right"):
                 b = bid[side]
                 Rm = cfg.data.xmat[b].reshape(3, 3)
                 p = cfg.data.xpos[b]
                 z = min((p + Rm @ np.array(c))[2] - FOOT_SPHERE_R for c in FOOT_CORNERS[side])
-                worst = min(worst, z)
-                if z < -0.005 and targets[side][2]:
-                    targets[side] = (targets[side][0] + np.array([0, 0, -z + 0.005]),
-                                     targets[side][1], True)
-                    tasks[0 if side == "left" else 1].set_target(
-                        mink.SE3.from_rotation_and_translation(targets[side][1], targets[side][0]))
-            if worst >= -0.005:
+                if targets[side][2]:
+                    # stance: the sole must sit at ~5 mm.  If the leg cannot
+                    # reach it, lower the base target for this frame instead
+                    # of lifting the whole body.
+                    if z > 0.008:
+                        base_p[2] = max(0.35, base_p[2] - (z - 0.005))
+                        tasks[2].set_target(
+                            mink.SE3.from_rotation_and_translation(base_q, base_p))
+                        changed = True
+                    elif z < -0.005:
+                        targets[side] = (targets[side][0] + np.array([0, 0, -z + 0.005]),
+                                         targets[side][1], True)
+                        tasks[0 if side == "left" else 1].set_target(
+                            mink.SE3.from_rotation_and_translation(targets[side][1], targets[side][0]))
+                        changed = True
+                else:
+                    # swing: lift only this foot's target
+                    if z < 0.005:
+                        targets[side] = (targets[side][0] + np.array([0, 0, 0.005 - z]),
+                                         targets[side][1], False)
+                        tasks[0 if side == "left" else 1].set_target(
+                            mink.SE3.from_rotation_and_translation(targets[side][1], targets[side][0]))
+                        changed = True
+            if not changed:
                 break
             for _ in range(10):
                 vel = mink.solve_ik(cfg, [tasks[0], tasks[1], tasks[2], posture], dt,

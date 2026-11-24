@@ -2,6 +2,7 @@
 """Build per-clip npz (with idle entry/exit) from every curated CSV."""
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -9,6 +10,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 PY = sys.executable
 OUT = REPO / "data/clips"
+REPORT = REPO / "data/curated/curation_report.json"
 BVH_DIR = Path("/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1")
 # curated window offset inside the source BVH (only non-zero for windowed clips)
 BVH_OFFSET = {"dance2_subject1_dance": 3918}
@@ -28,6 +30,15 @@ def main() -> None:
                 break
         if gait is None:
             print(f"[skip] {csv} (no gait suffix)")
+            continue
+        if REPORT.exists():
+            rep = json.load(open(REPORT))
+            base = stem.rsplit("_", 1)[0]
+            if base in rep and not rep[base].get("pass", False):
+                print(f"[skip] {csv.name} (Tier-A/A12 fail)")
+                continue
+        if stem.startswith("accad_") or stem.startswith("v5_"):
+            print(f"[skip] {csv.name} (no source contact schedule)")
             continue
         name = stem
         out = OUT / f"{name}.npz"

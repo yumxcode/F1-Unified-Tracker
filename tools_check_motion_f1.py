@@ -192,6 +192,11 @@ def main():
     ap.add_argument("--json_out", type=Path, default=None)
     ap.add_argument("--scan_windows", action="store_true")
     ap.add_argument("--min_window", type=int, default=600)
+    ap.add_argument("--bvh", type=Path, default=None,
+                    help="source LAFAN BVH; enables gate A12 (stance-foot grounded)")
+    ap.add_argument("--bvh_offset", type=int, default=0)
+    ap.add_argument("--stance_grounded_min_pct", type=float, default=95.0,
+                    help="gate A12: min %% of source-stance frames with sole z <= 0.02 m")
     args = ap.parse_args()
     # Per-gait profiles.  Gate 9's 1.15 was calibrated on dance2s1 (source P5
     # 0.53); applying it to walking forces a 2.7x wider-than-source stance.
@@ -488,6 +493,34 @@ def main():
                           "pass": bool(ok_all)})
         per_frame_bad[:] = per_frame_bad  # no per-frame flag; aggregate gate
 
+    # ---- gate A12: stance foot grounded (source stance frames) -------------
+    grounded_rep = {"gating": args.bvh is not None}
+    if args.bvh is not None:
+        sys.path.insert(0, str(Path(__file__).resolve().parent / "GMR"))
+        from general_motion_retargeting.utils.lafan1 import load_bvh_file
+        bvh_frames, _ = load_bvh_file(str(args.bvh), format="lafan1")
+        Lb = np.array([f["LeftFoot"][0] for f in bvh_frames])
+        Rb = np.array([f["RightFoot"][0] for f in bvh_frames])
+        vL = np.r_[np.linalg.norm(np.diff(Lb, axis=0), axis=1), False]
+        vR = np.r_[np.linalg.norm(np.diff(Rb, axis=0), axis=1), False]
+        src = np.stack([(vL < 0.02) & (Lb[:, 2] < 0.12),
+                        (vR < 0.02) & (Rb[:, 2] < 0.12)], axis=1)
+        per_side = {}
+        for j, side in enumerate(("left", "right")):
+            m = src[args.bvh_offset:args.bvh_offset + n_frames, j]
+            if m.sum() < 10:
+                per_side[side] = {"frames": int(m.sum()), "pass": False}
+            else:
+                z = sole_z[side].min(axis=1)[m]
+                pct = float((z <= 0.02).mean() * 100)
+                per_side[side] = {"frames": int(m.sum()), "grounded_pct": pct,
+                                  "p50": float(np.median(z)),
+                                  "p95": float(np.percentile(z, 95)),
+                                  "pass": pct >= args.stance_grounded_min_pct}
+        grounded_rep.update({"per_side": per_side,
+                             "threshold_pct": args.stance_grounded_min_pct,
+                             "pass": bool(all(v["pass"] for v in per_side.values()))})
+
     if args.scan_windows:
         best_len, best_start, cur_len, cur_start = 0, 0, 0, 0
         for i in range(n_frames):
@@ -533,6 +566,7 @@ def main():
         "arm_quality": arm_rep,
         "stance_openness": stance_rep,
         "foot_skating": skate_rep,
+        "stance_grounded": grounded_rep,
         "jerk_advisory": {"max_ang_acc_rad_s2": jerk_max, "gating": False},
         "overall_pass": None,
     }
@@ -540,6 +574,8 @@ def main():
         if not args.no_extra_gates else True
     if not args.no_extra_gates:
         extra_pass = extra_pass and report["stance_openness"]["pass"] and report["foot_skating"]["pass"]
+    if report["stance_grounded"]["gating"]:
+        extra_pass = extra_pass and report["stance_grounded"]["pass"]
     report["overall_pass"] = bool(report["ground"]["pass"] and report["self_penetration"]["pass"]
                                   and report["joint_limits"]["pass"] and report["joint_velocities"]["pass"]
                                   and report["root_height"]["pass"] and report["continuity"]["pass"]
