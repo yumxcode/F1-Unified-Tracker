@@ -22,7 +22,7 @@
 - **Tier-B 仅 idle 全绿**：walk/dance 在 4 段协议无跌倒，但 B3（绝对 body error >35 mm）、B5（速度误差）、B6（接触不一致 19.8–35.7% vs ≤1%）、B7（滑步 0.10–1.13 m/s）、B8（飞行）未过；run 在 57 s 全段跌倒。
 - **长时程**：全 11 段（最长 162 s）walk 83.3%、dance 50%、run 0%；>60 s 漂移累积导致跌倒。
 - **B8 dance 飞行门**：STANDARDS 写“walk/dance 飞行=0”，但 LAFAN dance 源本身有 8.1% 飞行；该门按现有数据必然失败，需走 §6 决定“选零飞行舞蹈窗口”或“改为与源相对误差 ≤20%”。本报告按现门记为 fail，不静默改门。
-- **run 专项**：run specialist（TASK_20261124_396，id73 空闲账号，10k）在训；若通过 run 两段，将作为 run 交付策略补入。
+- **run 专项**：4-run specialist（TASK_20261124_447，id73）训练 11 min 后被平台额度回收（status=6）；id71/id72 有他人 `upt-*` 任务，按用户指导不使用。run 仍是未完成项，待额度重置/新账号重试。
 - **策略是可复现基线，不是 Tier-B 全绿交付**。
 
 ---
@@ -137,4 +137,4 @@ python tools/eval_unified.py --library whole_body_tracking/motions/f1_unified_li
 4. **B8 dance 飞行门**：源 dance 8.1% 飞行，需 §6 决策（零飞行窗口 vs 相对误差门）。
 5. **run 数据**：4 段 run 通过 A1–A12（run1_subject5/run2_subject1 用“仅 stance deficit 抬 root”的局部修复恢复）。
 6. **长时程**：训练 episode 10 s，策略未学会 >60 s 漂移校正；需要更长 episode（20–30 s）或课程式延长。
-7. **账号/额度**：共享号池被他人 `upt-*` 任务占用；按用户指导只用空闲账号（id73）。
+7. **账号/额度**：共享号池 id71/id72 有他人 `upt-*` 活跃任务，id73 已用满额度（447 训练 11 min 即 status=6）；按用户指导只用空闲账号，待额度重置/新账号重试 4-run specialist。
