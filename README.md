@@ -10,70 +10,85 @@ calibrated quality standard.
 | Path | Purpose |
 |---|---|
 | `whole_body_tracking/` | BeyondMimic-style tracking training (IsaacLab / rsl_rl), extended with a multi-clip motion library, skill + contact-phase observations, flight/stance rewards and idle transition augmentation |
-| `whole_body_tracking/motions/f1_unified_library.npz` | 17-clip, 50 Hz motion library: 8 walk (2 UMR ACCAD), 4 run, 4 dance, 1 idle; 139,930 frames (46.6 min) |
-| `tools/` | Retargeting curation, contact-consistent repair, clip/library builders, source metrics |
-| `docs/STANDARDS.md` | Frozen Tier-A retargeting and Tier-B sim2sim gates, with source-data derivation and change-control rules |
+| `whole_body_tracking/motions/f1_unified_library.npz` | **13-clip**, 50 Hz library: 6 walk, 4 run, 2 dance, 1 idle; 37,189 frames (743.8 s) |
+| `whole_body_tracking/motions/f1_run_library.npz` | 4-run + idle specialist library (242 s) |
+| `trained_models/v5b_15000.pt` | Final unified policy (15k iterations, 4096 envs, 4090D 24 GB) |
+| `tools/` | Retargeting curation, contact-consistent repair, clip/library builders, source metrics, Tier-B evaluation |
+| `docs/STANDARDS.md` | Frozen Tier-A (A1–A12) and Tier-B (B1–B11) gates, source-data derivation, change control |
+| `docs/REPORT.md` | Experiment report: data, method, per-gate results, limitations |
+| `videos/` | Sim2sim clips: idle / walk / run / dance (v5b_15000) |
 | `whole_body_tracking/scripts/play_unified.py` | Sim2sim playback from a standing start to a stop; entry/in-motion/exit metrics |
 
 ## Method
 
 1. **Contact-consistent retargeting repair.** GMR/UMR map the human foot pitch
-   onto a rigid 20 cm F1 sole, which digs the toe into the floor and keeps the
-   swing foot on the ground. `tools/repair/contact_repair.py` re-solves
-   whole-body IK per frame with flat feet, stance-foot locking at contact
-   onset, swing clearance, a per-joint velocity clamp and a final ground-lift
-   pass. Contact is taken from the **source mocap** (LAFAN velocity 0.002
-   m/frame), not from the retargeted foot height.
-2. **Frozen quality gates.** Tier A (FK, per clip): penetration, self-collision,
-   joint limits/velocity, root height, continuity, flat-foot, arm quality,
-   stance openness, foot skating. Tier B (sim2sim): success, falls, tracking
-   error, contact mismatch, slip, flight fraction, action rate, entry/exit.
-   Thresholds are derived from `tools/source_metrics.py` and frozen in
-   `docs/STANDARDS.md`; post-hoc lowering is prohibited.
-3. **Unified tracker.** A multi-clip `MotionCommand` samples clips and time
-   bins adaptively, with a 15 % idle share. The policy observes
+   onto a rigid 20 cm F1 sole. `tools/repair/contact_repair.py` re-solves
+   whole-body IK per frame with flat feet, stance-foot locking, swing clearance,
+   a velocity clamp and a **local ground correction**: a floating stance foot
+   lowers the base; a penetrating stance foot raises the base by exactly its
+   deficit; a penetrating swing foot lifts only its own target. The old global
+   post-lift (which floated the stance foot) is disabled. Contact is taken from
+   the **source mocap** (`v < 0.02 m/frame` **and** `z < 0.12 m`).
+2. **Frozen quality gates.** Tier A (FK, per clip): A1–A12, including the new
+   **A12 stance-foot grounded rate ≥95 %** (source stance frames, sole z ≤2 cm).
+   Tier B (sim2sim): success, falls, tracking error, contact mismatch, slip,
+   flight fraction, action rate, entry/exit. Thresholds are derived from
+   `tools/source_metrics.py` and frozen in `docs/STANDARDS.md` (v1.1).
+3. **Unified tracker.** Multi-clip `MotionCommand` with skill-balanced sampling
+   (walk/run/dance equal, 15 % idle). The policy observes 167-D
    `[ref joint pos/vel, anchor pose, base velocity, joint state, last action,
-   skill one-hot, reference contact phase]` (167-D) and is trained with the
-   BeyondMimic tracking reward plus a CLF-RL flight contact penalty and
-   stance-foot anti-skate terms. Idle prefixes/suffixes are built into every
-   clip, so the policy learns to start from a stand and stop.
-4. **Sim2sim protocol.** `play_unified.py` starts from the default stand, plays
-   `3 s idle → 0.5 s settle → motion → 2 s stop hold`, never loops, and reports
-   entry, in-motion and exit success separately.
+   skill one-hot, reference contact phase]` and is trained with the BeyondMimic
+   tracking reward plus a CLF-RL flight contact penalty and stance-foot
+   anti-skate terms. Idle prefixes/suffixes are built into every clip.
+4. **Sim2sim protocol.** `play_unified.py` starts from the reference stand,
+   plays the clip once (idle entry → skill → idle exit), never loops, and reports
+   entry / in-motion / exit separately with B1–B11 gates (`tools/eval_unified.py`).
 
 ## Train (gradmotion, 1×4090D 24 GB)
 
 ```bash
 gm-run F1-Unified-Tracker/whole_body_tracking/scripts/entry_f1_train.py \
   --task=Tracking-Flat-F1-v0 \
-  --motion_file ../motions/f1_unified_library.npz \
-  --headless --num_envs 4096 --max_iterations 8000
+  --motion_file motions/f1_unified_library.npz \
+  --headless --num_envs 4096 --max_iterations 15000
 ```
-
-The entry script `pip install -e source/whole_body_tracking --no-deps`, then
-launches `rsl_rl/train.py`.
 
 ## Evaluate
 
 ```bash
 python whole_body_tracking/scripts/play_unified.py \
   --library whole_body_tracking/motions/f1_unified_library.npz \
-  --checkpoint trained_models/unified_model_7999.pt \
-  --clip walk1_subject1_walk --headless --metrics out/walk1.npz
+  --checkpoint trained_models/v5b_15000.pt \
+  --clip walk1_subject1_walk --headless --record out.mp4
+
+python tools/eval_unified.py \
+  --library whole_body_tracking/motions/f1_unified_library.npz \
+  --checkpoint trained_models/v5b_15000.pt --out_dir eval/v5b
 ```
+
+## Results (v5b_15000, see `docs/REPORT.md`)
+
+- **Tier A**: 12/14 clips pass A1–A12 (walk 6/6, run 4/4, dance 2/4); the two
+  dance failures are A8 wrist ROM 1.56 % < 2 % and A12 94.8 % < 95 %.
+- **Tier B, 4-clip stand→skill→stop protocol**: idle passes **all** B1–B11;
+  walk and dance track without falls but fail B3/B5/B6/B8 (walk also B7);
+  run falls.
+- **Tier B, full 11 clips**: idle 100 %, walk 83.3 %, run 0 %, dance 50 %.
+- **Run specialist** (4-run library) is blocked by gradmotion account balance;
+  see `docs/REPORT.md` §5.
 
 ## Data and licence
 
-- **LAFAN1** (Ubisoft La Forge) — CC BY-NC-ND 4.0; used for internal,
-  non-commercial research. Derived motion is not redistributed publicly.
+- **LAFAN1** (Ubisoft La Forge) — CC BY-NC-ND 4.0; internal, non-commercial
+  research. Derived motion is not redistributed publicly.
 - **UMR** retargeting (local `UMR_weilai`) for the two ACCAD walk clips.
 - **GMR** (MIT) for the LAFAN BVH clips.
 
 ## Status
 
 - [x] F1 29-DoF asset audit and PD gains
-- [x] 17-clip Tier-A-passing motion library (8 walk / 4 run / 4 dance / 1 idle)
-- [x] Multi-clip command, skill/contact obs, flight/stance rewards
-- [x] Sim2sim protocol with joint-order self-check
-- [ ] Training on gradmotion (TASK_20261123_325) and Tier-B evaluation
-- [ ] Final report and videos
+- [x] Contact-consistent repair + A12 stance-grounded gate; 12/14 Tier-A clips
+- [x] 13-clip library + 4-run library
+- [x] Unified policy v5b_15000; sim2sim from stand to stop
+- [x] Tier-B per-gate evaluation and report/videos
+- [ ] Run specialist (blocked by account balance; run remains the open skill)
