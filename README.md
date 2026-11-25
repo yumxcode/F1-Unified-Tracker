@@ -12,7 +12,7 @@ calibrated quality standard.
 | `whole_body_tracking/` | BeyondMimic-style tracking training (IsaacLab / rsl_rl), extended with a multi-clip motion library, skill + contact-phase observations, flight/stance rewards and idle transition augmentation |
 | `whole_body_tracking/motions/f1_unified_library.npz` | **13-clip**, 50 Hz library: 6 walk, 4 run, 2 dance, 1 idle; 37,189 frames (743.8 s) |
 | `whole_body_tracking/motions/f1_run_library.npz` | 4-run + idle specialist library (242 s) |
-| `trained_models/v5b_15000.pt` | Final unified policy (15k iterations, 4096 envs, 4090D 24 GB) |
+| `trained_models/v5c2_15000.pt` | Final unified policy (15k iterations, aligned contact labels, 4096 envs, 4090D 24 GB) |
 | `tools/` | Retargeting curation, contact-consistent repair, clip/library builders, source metrics, Tier-B evaluation |
 | `docs/STANDARDS.md` | Frozen Tier-A (A1–A12) and Tier-B (B1–B11) gates, source-data derivation, change control |
 | `docs/REPORT.md` | Experiment report: data, method, per-gate results, limitations |
@@ -70,18 +70,17 @@ python tools/eval_unified.py \
 
 - **Tier A**: 12/14 clips pass A1–A12 (walk 6/6, run 4/4, dance 2/4); the two
   dance failures are A8 wrist ROM 1.56 % < 2 % and A12 94.8 % < 95 %.
-- **Tier B, 4-clip stand→skill→stop protocol**: idle passes **all** B1–B11;
-  walk and dance track without falls but fail B3/B5/B6/B8 (walk also B7/B10);
-  run falls.
-- **Tier B, full 13 clips (aligned contact labels)**: idle 100 %, walk 66.7 %,
-  run 0 %, dance 50 %.
+- **Tier B, full 13 clips (v5c2, aligned labels)**: idle 100 % (all B1–B11),
+  walk 83.3 % (1 fall), run 25 % (slowest clip passes; 1.64–1.9 m/s clips fall),
+  dance 50 %.
+- **Run specialist (v9c, aligned labels)**: 25 % (run1_subject2 passes; the
+  three faster clips fall).
 - **Contact-label alignment fix**: the BVH offsets of 8/12 clips were wrong
   (window[0] not used); fixed and asserted (BVH vs FK stance agreement ≥90%).
   Re-evaluating v5b on aligned labels drops walk B6 35.7→18.4 % and B7
   1.13→0.23 m/s; the old B6/B7 attribution is void.
-- **Run specialist**: three attempts (v7 10k, v8 5.5k, v8 10k with a 2.0 s
-  idle→run blend) did not stably pass; run remains an open limitation, see
-  `docs/REPORT.md` §3.3.
+- **Run**: after label alignment, v5c2/v9c pass the slowest clip only (25 %);
+  fast run remains an open limitation, see `docs/REPORT.md` §3.3/§3.5.
 
 ## Data and licence
 
@@ -97,4 +96,4 @@ python tools/eval_unified.py \
 - [x] 13-clip library + 4-run library
 - [x] Unified policy v5b_15000; sim2sim from stand to stop
 - [x] Tier-B per-gate evaluation and report/videos
-- [ ] Run: v7/v8 4-run specialists did not stably pass; run remains the open skill (v9 on aligned labels in training)
+- [ ] Run: fast clips (1.64–1.9 m/s) still fall; only the slowest run clip passes (25 %)

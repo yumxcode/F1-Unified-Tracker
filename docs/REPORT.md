@@ -19,6 +19,8 @@
 
 **未达到 / 需继续**
 
+- **对齐标签重训后的最好结果**：v5c2 统一 idle tierB 全过；walk 83.3%（1 跌）；run 25%（最慢段通过）；dance 50%。严格 Tier-B（B3/B5/B6/B7/B8）未过；fast run 仍跌。
+
 - **Tier-B 仅 idle 全绿**：walk/dance 在 4 段协议无跌倒，但 B3/B5/B6/B7/B8 未过；**接触标签错位已修**（对齐后 walk B6 35.7%→18.4%、B7 1.13→0.23 m/s），旧 B6/B7 归因作废；run 仍跌倒。
 - **长时程**：全 11 段（最长 162 s）walk 83.3%、dance 50%、run 0%；>60 s 漂移累积导致跌倒。
 - **B8 dance 飞行门**：STANDARDS 写“walk/dance 飞行=0”，但 LAFAN dance 源本身有 8.1% 飞行；该门按现有数据必然失败，需走 §6 决定“选零飞行舞蹈窗口”或“改为与源相对误差 ≤20%”。本报告按现门记为 fail，不静默改门。
@@ -110,6 +112,17 @@ B3 = 绝对 body error ≤35 mm；B5 = body 速度误差 ≤0.30 m/s；B6 = 接�
 | v8（2.0 s blend，10k） | 跌倒 | 跌倒 | 跌倒 | 跌倒 |
 
 v7 5.5k 的训练 episode 平均长度仅 81/500 步（anchor_pos 终止 35.7/episode），说明 run 参考在训练中也难以跟踪；v8 在 5.5k 曾有 1/4 通过，10k 回退，训练不稳定。结论：**run 在当前 F1 29-DoF + LAFAN fast-run 数据下未学会**；不是 sim2sim 或账号问题。
+
+### 3.5 对齐标签重训（v5c2 / v9c，2026-11-26）
+
+用对齐标签重训：
+
+| 模型 | idle | walk | run | dance |
+|---|---|---|---|---|
+| v5c2 统一（15k，对齐） | 100%（tierB ✅） | 83.3%（5/6，walk2_subject1 跌） | 25%（run1_subject2 通过 body 0.0875；其余 3 段跌） | 50%（dance1_subject3 通过） |
+| v9c run specialist（10k，对齐） | — | — | 25%（run1_subject2 通过 body 0.091；其余 3 段跌） | — |
+
+结论：标签对齐把 run 从 0/4 提到 1/4（最慢的 run1_subject2，1.45 m/s），walk 从 66.7% 提到 83.3%；但 fast run（1.64–1.9 m/s）仍跌，Tier-B 严格门（B3/B5/B6/B7/B8）仍未过。run 与严格 Tier-B 是当前数据/机器人下的开放限制。
 
 ### 3.4 接触标签对齐后的复评（2026-11-25，零训练成本）
 
