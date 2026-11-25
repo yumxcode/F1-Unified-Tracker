@@ -71,9 +71,14 @@ python tools/eval_unified.py \
 - **Tier A**: 12/14 clips pass A1–A12 (walk 6/6, run 4/4, dance 2/4); the two
   dance failures are A8 wrist ROM 1.56 % < 2 % and A12 94.8 % < 95 %.
 - **Tier B, 4-clip stand→skill→stop protocol**: idle passes **all** B1–B11;
-  walk and dance track without falls but fail B3/B5/B6/B8 (walk also B7);
+  walk and dance track without falls but fail B3/B5/B6/B8 (walk also B7/B10);
   run falls.
-- **Tier B, full 11 clips**: idle 100 %, walk 83.3 %, run 0 %, dance 50 %.
+- **Tier B, full 13 clips (aligned contact labels)**: idle 100 %, walk 66.7 %,
+  run 0 %, dance 50 %.
+- **Contact-label alignment fix**: the BVH offsets of 8/12 clips were wrong
+  (window[0] not used); fixed and asserted (BVH vs FK stance agreement ≥90%).
+  Re-evaluating v5b on aligned labels drops walk B6 35.7→18.4 % and B7
+  1.13→0.23 m/s; the old B6/B7 attribution is void.
 - **Run specialist**: three attempts (v7 10k, v8 5.5k, v8 10k with a 2.0 s
   idle→run blend) did not stably pass; run remains an open limitation, see
   `docs/REPORT.md` §3.3.
@@ -92,4 +97,4 @@ python tools/eval_unified.py \
 - [x] 13-clip library + 4-run library
 - [x] Unified policy v5b_15000; sim2sim from stand to stop
 - [x] Tier-B per-gate evaluation and report/videos
-- [ ] Run: v7/v8 4-run specialists did not stably pass; run remains the open skill
+- [ ] Run: v7/v8 4-run specialists did not stably pass; run remains the open skill (v9 on aligned labels in training)
