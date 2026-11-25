@@ -3,7 +3,7 @@
 日期：2026-11-24  
 代码/数据/模型仓库：`yumxcode/F1-Unified-Tracker`（交付时设为 PRIVATE）  
 标准：`docs/STANDARDS.md` v1.1（Tier-A A1–A12，Tier-B B1–B11）  
-策略：单一统一策略（一套权重，skill one-hot + contact-phase 条件化）；最终模型 `trained_models/v5b_15000.pt`（15k iter）
+策略：单一统一策略（一套权重，skill one-hot + contact-phase 条件化）；最终模型 `trained_models/v5c2_15000.pt`（15k，对齐接触标签）
 
 ---
 
@@ -15,7 +15,7 @@
 2. **参考悬浮根因已修**：`contact_repair` 原先用“抬全身”补摆动腿穿地，导致 run 的源 stance 帧支撑脚 sole z p50=4.8 cm、60% 帧 >3 cm。改为**局部修摆动腿 / 局部降 root**（`--no_post_lift`）+ 源接触 `v<0.02 且 z<0.12` 后，A12 贴地率 95.5–100%（p50≈1 mm）。新增 **A12 支撑脚贴地率 ≥95%** 门（STANDARDS v1.1，§6 有变更记录）。
 3. **统一算法**：BeyondMimic 多片段跟踪 + skill one-hot + 参考 contact-phase 条件化 + 飞行接触惩罚/支撑足速度/滑步奖励 + idle 起步/停止增广 + skill-balanced 采样。24 GB 4090D 上 4096 envs 可训练。
 4. **sim2sim 管线**：MuJoCo 独立回放（PhysX↔npz 关节置换、actuator 映射、armature/damping、timestep 5 ms、参考帧初始状态、entry/exit 窗口）；**从站立起步→技能→停止**；输出 B1–B11 逐门 pass/fail。
-5. **最终模型 v5b_15000**：4 段协议（idle/walk/run/dance，站立起步→技能→停止）中 **idle 全门通过（tierB=true）**；walk/dance **无跌倒、success=true**，但 B3/B5/B6/B7/B8 未过；**run 仍跌倒**。全 11 段：idle 100%、walk 83.3%、run 0%、dance 50%。视频：`videos/*_v5b_15000.mp4`。
+5. **最终模型 v5c2_15000（对齐标签，15k）**：全 13 段 idle 100%/tierB 全过；walk 83.3%（1 跌）；**run 25%**（run1_subject2 通过 body 0.0875，其余 3 段跌）；dance 50%。视频：`videos/*_v5c2_15000.mp4`。
 
 **未达到 / 需继续**
 
@@ -123,6 +123,17 @@ v7 5.5k 的训练 episode 平均长度仅 81/500 步（anchor_pos 终止 35.7/ep
 | v9c run specialist（10k，对齐） | — | — | 25%（run1_subject2 通过 body 0.091；其余 3 段跌） | — |
 
 结论：标签对齐把 run 从 0/4 提到 1/4（最慢的 run1_subject2，1.45 m/s），walk 从 66.7% 提到 83.3%；但 fast run（1.64–1.9 m/s）仍跌，Tier-B 严格门（B3/B5/B6/B7/B8）仍未过。run 与严格 Tier-B 是当前数据/机器人下的开放限制。
+
+### 3.6 run 难度分层（per-clip，v5c2 / v9c）
+
+| clip | 根速度 mean/p95 (m/s) | 飞行占比 | 时长 | v9c fall_step | v5c2 fall_step | 结果 |
+|---|---|---|---|---|---|---|
+| run1_subject2 | 1.17 / 3.15 | 28.2% | 51.5 s | — | — | **通过**（body 0.091/0.088） |
+| run1_subject5 | 2.07 / 4.84 | 30.3% | 66.2 s | 208 (4.2 s) | 304 (6.1 s) | 跌 |
+| run2_subject1 | 1.65 / 4.63 | 18.7% | 57.9 s | 154 (3.1 s) | 201 (4.0 s) | 跌 |
+| run2_subject4 | 1.24 / 3.86 | 12.7% | 34.1 s | 153 (3.1 s) | 153 (3.1 s) | 跌（entry 段） |
+
+判读：唯一通过的是最慢的 run1_subject2；run2_subject4 虽慢（1.24）但在 idle→run 过渡后 3.1 s 跌倒，说明**入口加速**也是独立失败模式；fast run 1.65–2.07 在 3–6 s 跌。下一步 A/B 单变量：A 用 ≤1.2 m/s jog 窗口（4 段，A1–A12 全过）+ episode 20 s；B 保持 fast run + episode 20 s（只改训练）。A/B 任务 TASK_20261126_023/024 在训。
 
 ### 3.4 接触标签对齐后的复评（2026-11-25，零训练成本）
 
