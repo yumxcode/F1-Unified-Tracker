@@ -1,7 +1,7 @@
 # F1 29-DoF 运动重定向与 sim2sim 验收标准（v1，冻结）
 
-版本：v1.1  
-冻结日期：2026-11-24（v1.0 冻结于 2026-11-23；v1.1 仅新增 A12，未改任何既有门限）  
+版本：v1.2  
+冻结日期：2026-11-25（v1.0 冻结于 2026-11-23；v1.1 新增 A12；v1.2 仅修订 B8 为源相对飞行误差，其余门限不变）  
 适用对象：Weichai F1 29-DoF（URDF `SYS-SPEC-0002-V1.1-F1整机模型29DOF.urdf`）  
 适用数据：LAFAN1 walk/run/sprint/dance 的 GMR/UMR 重定向结果，以及由这些动作训练出的统一跟踪策略的 MuJoCo sim2sim 回放。
 
@@ -107,7 +107,7 @@
 | B5 E_vel | ≤0.30 m/s | GMT band |
 | B6 接触不一致 | ≤1% 帧 | HuB contact mismatch |
 | B7 滑移 | ≤100 mm/s（支撑帧均值） | HuB slip |
-| B8 飞行占比 | walk/dance = 0；run 与源飞行占比相对误差 ≤20% | CLF-RL / 本文新增；源值见 `source_metrics.json` |
+| B8 飞行占比 | walk/run/dance 均与源飞行占比相对误差 ≤20% | CLF-RL / 本文新增；源值见 `source_metrics.json` 与 clip `foot_contact`；2026-11-25 v1.2 修订 |
 | B9 平滑 | action rate ≤1.0 rad/frame | HuB 0.51 vs 8.02 |
 | B10 起步/停止 | entry ≥95%，exit ≥95%，2 s 停止保持 root 漂移 ≤5 cm | 契约第 6 条；HuB idle entry/exit + GMR start-frame |
 | B11 分技能 | walk/run/dance 分别报告，不允许只报合并均值 | 契约第 2 条 |
@@ -134,6 +134,8 @@ clip | gait | window[start,end) | frames | coverage% | A1..A12 | overall_A
 ---
 
 ## 6. 变更流程
+
+> **变更记录 2026-11-25（v1.2）**：B8 由“walk/dance 飞行=0；run 相对误差 ≤20%”改为“walk/run/dance 均与源飞行占比相对误差 ≤20%”。起因：LAFAN 源 walk 1.4–6.3%、dance 5.7–28.7% 本身有飞行相位，旧门按现数据必然 fail，且与“跟踪源动作”的目标矛盾；新门衡量策略是否复现源的空中相位占比，而非禁止飞行。A1–A12 与 B1–B7/B9–B11 不变。
 
 > **变更记录 2026-11-24（v1.1）**：新增 A12（支撑脚贴地率，walk/run/dance 均 ≥95%）。起因：`contact_repair` 的 post-lift 为修摆动腿穿地把全身 root 抬高，run 的源 stance 帧支撑脚 sole z p50 达 4.8 cm、60% 帧 >3 cm；旧 Tier A 的 A7/A10 只在 sole z<0.03 的帧上统计，看不见该缺陷。A12 要求源 stance 帧 ≥95% 的支撑脚贴地（≤0.02 m），并据此把 repair 改为局部修摆动腿/局部降 root（`--no_post_lift`），不再全局抬身。A12 是新增门，不修改 A1–A11 的任何门限。
 

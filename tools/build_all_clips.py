@@ -12,8 +12,23 @@ PY = sys.executable
 OUT = REPO / "data/clips"
 REPORT = REPO / "data/curated/curation_report.json"
 BVH_DIR = Path("/Users/yumx/code/Beyondminic-Weilai-X1/downloads/lafan1")
-# curated window offset inside the source BVH (only non-zero for windowed clips)
-BVH_OFFSET = {"dance2_subject1_dance": 3918}
+
+
+def bvh_offset_for(stem: str) -> int:
+    """Offset of the curated CSV window inside the source BVH.
+
+    The CSV in data/curated is a slice [window[0], window[1]) of the BVH, so the
+    source contact table must be taken from the same start frame.  Hard-coding
+    0 (or a stale 3918) misaligns every contact label and poisons both the
+    contact_phase observation and the contact rewards.
+    """
+    if REPORT.exists():
+        rep = json.load(open(REPORT))
+        base = stem.rsplit("_", 1)[0]
+        w = rep.get(base, {}).get("window")
+        if w:
+            return int(w[0])
+    return 0
 
 SKILL = {"walk": 1, "run": 2, "dance": 3}
 
@@ -53,7 +68,7 @@ def main() -> None:
             base = name.rsplit("_", 1)[0]
             bvh = BVH_DIR / f"{base}.bvh"
             if bvh.exists():
-                cmd += ["--bvh", str(bvh), "--bvh_offset", str(BVH_OFFSET.get(name, 0))]
+                cmd += ["--bvh", str(bvh), "--bvh_offset", str(bvh_offset_for(name))]
         r = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True)
         print(r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr[-300:])
         if r.returncode != 0:

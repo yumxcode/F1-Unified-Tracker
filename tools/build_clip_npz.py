@@ -240,6 +240,18 @@ def main() -> None:
     # idle frames: both feet planted by construction
     foot_contact[idle_mask > 0.5] = 1.0
     if contact_in is not None:
+        # source contact must agree with the retargeted geometry on stance
+        # frames; a mismatch means the BVH table is offset from the CSV window
+        # and would poison contact_phase + the contact rewards.
+        fk_contact = foot_contact.copy()
+        stance = contact_in > 0.5
+        if stance.any():
+            agree = float((fk_contact[stance] == stance[stance]).mean())
+            print(f"[contact] source-stance agreement {agree*100:.1f}% "
+                  f"({int(stance.sum())} frames)")
+            assert agree >= 0.90, (
+                f"source contact disagrees with FK sole-z on stance frames "
+                f"({agree*100:.1f}% < 90%): check the BVH window offset")
         foot_contact = contact_in.astype(np.float32)
         foot_contact[idle_mask > 0.5] = 1.0
     # the stand quaternion is xyzw identity; catch a wxyz/xyzw convention mixup

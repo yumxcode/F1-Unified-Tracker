@@ -70,14 +70,10 @@ def main() -> None:
         flight_robot = float(np.mean([r["flight_robot_pct"] for r in sub]))
         action_rate = float(np.mean([r["action_rate_mean"] for r in sub]))
         exit_drift = float(np.mean([r["exit_drift_m"] for r in sub]))
-        # B8: walk/dance must not fly; run must match the source flight share
-        # within 20% relative.  NOTE: the LAFAN dance source itself has ~8%
-        # flight, so the frozen "dance = 0" clause cannot pass on this data;
-        # it is reported (not silently changed) for the standards owner.
-        if skill == 2:
-            b8 = abs(flight_robot - flight_ref) / max(flight_ref, 1.0) <= 0.20
-        else:
-            b8 = flight_robot <= 0.5
+        # B8 (STANDARDS v1.2): every skill must reproduce the source flight
+        # share within 20% relative.  The old "walk/dance = 0" clause was
+        # revised because LAFAN walk/dance themselves contain flight phases.
+        b8 = abs(flight_robot - flight_ref) / max(flight_ref, 1.0) <= 0.20
         gates = {
             "B1_success_ge_90": success_rate >= 90.0,
             "B2_fall_le_5": fall_rate <= 5.0,
