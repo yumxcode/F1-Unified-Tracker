@@ -74,8 +74,9 @@ python tools/eval_unified.py \
   walk and dance track without falls but fail B3/B5/B6/B8 (walk also B7);
   run falls.
 - **Tier B, full 11 clips**: idle 100 %, walk 83.3 %, run 0 %, dance 50 %.
-- **Run specialist** (4-run library) is blocked by gradmotion account balance;
-  see `docs/REPORT.md` §5.
+- **Run specialist**: three attempts (v7 10k, v8 5.5k, v8 10k with a 2.0 s
+  idle→run blend) did not stably pass; run remains an open limitation, see
+  `docs/REPORT.md` §3.3.
 
 ## Data and licence
 
@@ -91,4 +92,4 @@ python tools/eval_unified.py \
 - [x] 13-clip library + 4-run library
 - [x] Unified policy v5b_15000; sim2sim from stand to stop
 - [x] Tier-B per-gate evaluation and report/videos
-- [ ] Run specialist (blocked by account balance; run remains the open skill)
+- [ ] Run: v7/v8 4-run specialists did not stably pass; run remains the open skill

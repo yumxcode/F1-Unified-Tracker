@@ -22,7 +22,7 @@
 - **Tier-B 仅 idle 全绿**：walk/dance 在 4 段协议无跌倒，但 B3（绝对 body error >35 mm）、B5（速度误差）、B6（接触不一致 19.8–35.7% vs ≤1%）、B7（滑步 0.10–1.13 m/s）、B8（飞行）未过；run 在 57 s 全段跌倒。
 - **长时程**：全 11 段（最长 162 s）walk 83.3%、dance 50%、run 0%；>60 s 漂移累积导致跌倒。
 - **B8 dance 飞行门**：STANDARDS 写“walk/dance 飞行=0”，但 LAFAN dance 源本身有 8.1% 飞行；该门按现有数据必然失败，需走 §6 决定“选零飞行舞蹈窗口”或“改为与源相对误差 ≤20%”。本报告按现门记为 fail，不静默改门。
-- **run 专项**：4-run specialist（TASK_20261124_447，id73）训练 11 min 后被平台额度回收（status=6）；id71/id72 有他人 `upt-*` 任务，按用户指导不使用。run 仍是未完成项，待额度重置/新账号重试。
+- **run 专项（未通过）**：4-run specialist 三次尝试均未稳定通过：v7（0.8s blend，10k）4/4 跌；v8（2.0s blend，5.5k）仅 run1_subject2 无跌倒（body 0.087）；v8（10k）回退到 4/4 跌。run 是当前数据/机器人下的开放限制，见 §3.3 与 §5。
 - **策略是可复现基线，不是 Tier-B 全绿交付**。
 
 ---
@@ -101,6 +101,16 @@ B3 = 绝对 body error ≤35 mm；B5 = body 速度误差 ≤0.30 m/s；B6 = 接�
 
 **判读**：策略在 idle 全门通过；walk/dance 短片段无跌倒但严格门未过；run 短片段跌倒；长片段（>60 s）漂移累积。B6 接触不一致在 20–36%，说明参考/机器人足底高度仍有系统差（policy 浮动或接触阈值口径），需要进一步校准。
 
+### 3.3 run 专项尝试（4-run specialist，均未通过）
+
+| 模型 | run1_subject2 | run1_subject5 | run2_subject1 | run2_subject4 |
+|---|---|---|---|---|
+| v7（0.8 s blend，10k） | 跌倒 | 跌倒 | 跌倒 | 跌倒 |
+| v8（2.0 s blend，5.5k） | **无跌倒**（body 0.087） | 跌倒 | 跌倒 | 跌倒 |
+| v8（2.0 s blend，10k） | 跌倒 | 跌倒 | 跌倒 | 跌倒 |
+
+v7 5.5k 的训练 episode 平均长度仅 81/500 步（anchor_pos 终止 35.7/episode），说明 run 参考在训练中也难以跟踪；v8 在 5.5k 曾有 1/4 通过，10k 回退，训练不稳定。结论：**run 在当前 F1 29-DoF + LAFAN fast-run 数据下未学会**；不是 sim2sim 或账号问题。
+
 ---
 
 ## 4. 复现
@@ -135,6 +145,6 @@ python tools/eval_unified.py --library whole_body_tracking/motions/f1_unified_li
 2. **B3/B5**：绝对 body error >35 mm、速度误差 >0.30 m/s；需要更多训练或更紧的跟踪奖励。
 3. **B10 停止漂移**：walk 0.018（4 段）/0.034（全段）已接近 5 cm；run 0.156 未过。
 4. **B8 dance 飞行门**：源 dance 8.1% 飞行，需 §6 决策（零飞行窗口 vs 相对误差门）。
-5. **run 数据**：4 段 run 通过 A1–A12（run1_subject5/run2_subject1 用“仅 stance deficit 抬 root”的局部修复恢复）。
+5. **run**：4 段 run 通过 A1–A12，但 4-run specialist 三次训练均未稳定通过（v7 10k 4/4 跌；v8 5.5k 1/4；v8 10k 4/4 跌）。下一步需换路线：更慢的 run/jog 数据、从 v5b 微调（低 LR）、更长 episode 或课程式加速；不是继续堆同一配置。
 6. **长时程**：训练 episode 10 s，策略未学会 >60 s 漂移校正；需要更长 episode（20–30 s）或课程式延长。
 7. **账号/额度**：共享号池 id71/id72 有他人 `upt-*` 活跃任务，id73 已用满额度（447 训练 11 min 即 status=6）；按用户指导只用空闲账号，待额度重置/新账号重试 4-run specialist。
