@@ -127,6 +127,22 @@ def stance_foot_height(
     return torch.exp(-(phase * excess).sum(dim=-1) / std)
 
 
+def swing_clearance(
+    env: ManagerBasedRLEnv, command_name: str, std: float = 0.05
+) -> torch.Tensor:
+    """Penalise a low swing foot (the B6 "drag" failure mode).
+
+    When the reference is in swing, the robot's ankle should be above ~5 cm;
+    a foot at 2-3 cm drags on the floor and causes contact mismatch.
+    """
+    command: MotionCommand = env.command_manager.get_term(command_name)
+    swing = 1.0 - command.contact_phase[:, :2]
+    idx = [command.cfg.body_names.index(n) for n in ("left_ankle_roll", "right_ankle_roll")]
+    z = command.robot_body_pos_w[:, idx, 2]
+    deficit = torch.clamp(0.05 - z, min=0.0) * swing
+    return torch.exp(-deficit.sum(dim=-1) / std)
+
+
 def flight_mismatch(
     env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, std: float = 0.5
 ) -> torch.Tensor:

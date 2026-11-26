@@ -277,6 +277,11 @@ class RewardsCfg:
         weight=0.5,
         params={"command_name": "motion", "std": 0.05},
     )
+    swing_clearance = RewTerm(
+        func=mdp.swing_clearance,
+        weight=0.5,
+        params={"command_name": "motion", "std": 0.05},
+    )
     flight_mismatch = RewTerm(
         func=mdp.flight_mismatch,
         weight=0.5,
