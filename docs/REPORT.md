@@ -53,7 +53,7 @@
 
 ---
 
-## 2. Tier-A 结果（10/14）
+## 2. Tier-A 结果（12/14）
 
 | 段 | gait | window | pass | 失败门（若 fail） |
 |---|---|---|---|---|
@@ -218,7 +218,9 @@ v7 5.5k 的训练 episode 平均长度仅 81/500 步（anchor_pos 终止 35.7/ep
 2. **B6 主要是拖步**：参考摆动但机器人脚 <3 cm 的帧占 walk 24.7%、dance 34.6%、run 45–48%；悬浮帧（参考支撑、机器人 >3 cm）仅 0.7–10%。机器人**摆动脚抬不起来/触地时序偏移**是主因。
 3. **B7 双分母**：仅参考支撑 vs 参考支撑∩机器人接触的滑移为 0.24/0.185（walk）、0.059/0.050（dance）、0.20/0.16（run）；两者都远超 0.10，滑移是真实策略问题（支撑脚移动），不只是分母。
 4. **B5 同口径**：体原点有限差分（5 Hz 低通）与 cvel 分别为 1.27/1.54（walk）、0.43/0.60（dance）、1.08/1.36（run）；差 15–30%，但两者都 >0.30，B5 失败不是坐标语义问题。
-5. **下一步**：针对摆动脚抬起（swing clearance）与触地时序的奖励/数据，而不是继续叠加支撑高度/飞行奖励（v5d 的 stance_foot_height+flight_mismatch 在 5k 反而更差：walk 61.1%、B6 29%）。严格门（B6 1%、B3 35 mm）与当前基线差 20–30×，需新的跟踪/接触建模路线。
+5. **接触奖励路线（已停止叠加）**：v5d（stance_foot_height+flight_mismatch）与 v5e（再加 swing_clearance，**三项捆绑**，非单变量）、v5f（v5e + body pos/vel 权重 2.0/std 0.25/0.8）在 5–5.5k 均明显差于 v5c2（walk 61–64% vs 88.9%，B3 235–238 mm vs 185 mm，B6 27–28% vs 21.6%）；此前“v5d 5k 更差”是 5k vs 15k 的**非同步比较**，不能用于排除支撑高度/飞行奖励，现撤回。v5e→v5f 才是单变量（跟踪权重）。按预注册读数：若 15k 仍不能把 walk B3 <100 mm 或 B6 <10%，停止叠加奖励项，转入跟踪/接触建模路线。
+6. **训练侧 vs sim2sim（零训练诊断）**：v5c2 训练日志 `error_body_pos` 0.135 m、`error_body_lin_vel` 2.5–2.6 m/s；sim2sim B3 中位数 0.185 m、B5 1.11 m/s —— 同一量级，说明瓶颈在**策略/训练**而非 sim2sim 迁移链；v5f 的强跟踪是对路的测试，但 5k 早期反而更差，需看 15k。
+7. **dance2_subject1 跌倒诊断**：fall_step 247（4.9 s），前 100 帧 body 0.035、tilt 1°（正常），100–200 帧 body 升至 0.28、tilt 14°，247 帧 body 0.59 后倾倒（tilt 138°、z 0.14）。属**动作中段动态失稳**（该 clip 比 dance1_subject3 更快/更动态），不是 entry/blend 问题；需 dance 专项的平衡/跟踪强化。
 
 ### 3.9 策略集：v5c2（walk/dance/idle）+ jog_A2c（run）
 
@@ -269,6 +271,6 @@ python tools/eval_unified.py --library whole_body_tracking/motions/f1_unified_li
 2. **B3/B5**：body 误差中位数 146–207 mm（门 35 mm）、速度误差 0.43–1.19 m/s（门 0.30）；需要更强的跟踪（参考速度/接触建模）。
 3. **B10 entry**：失败来自 blend 后接触不一致（3–24%），不是跌倒/CoM；需在 entry 窗口内提升接触一致性。
 4. **B8**：已按 §6 v1.2 修订；walk 仍差（robot 3.06 vs ref 4.07）。
-5. **run**：jog（≤1.2 m/s，A2c 10k，2.0 s blend）标准口径 **success 100%、fall 0%、entry/exit 100%、drift 0.0216 m（B1/B2/B10 通过）**；B3 128 mm、B5 0.80、B6 17.8%、B7 0.111、B8 未过；fast run 1.65–2.1 m/s 不可行。v5d（接触/飞行奖励）已停（5k 更差）。
+5. **run**：jog（≤1.2 m/s，A2c 10k，2.0 s blend）标准口径 **success 100%、fall 0%、entry/exit 100%、drift 0.0216 m（B1/B2/B10 通过）**；B3 128 mm、B5 0.80、B6 17.8%、B7 0.111、B8 未过；fast run 1.65–2.1 m/s 不可行。
 6. **长时程**：训练 episode 20 s；>60 s 漂移仍导致 walk/dance 部分段跌倒。
-7. **账号/额度**：id82（A2c 10k）已完成；id83（v5d）已停；其余账号额度耗尽。用户已选择 provide_more_accounts（ht-7ade0e6ec8984bf8 已回执），无待决工单。
+7. **账号/额度**：id84（v5e 15k）与 id81（v5f 15k）在训；id82（A2c）已完成；id83（v5d）已停；其余账号额度耗尽。用户已选择 require_research（ht-66342e97d9874089 已回执）。
