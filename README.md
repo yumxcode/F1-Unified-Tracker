@@ -81,6 +81,9 @@ python tools/eval_unified.py \
 - **Policy set**: v5c2 covers walk/dance/idle; jog_A2c covers run. Both use the
   same algorithm/observation/reward/sim2sim pipeline; run needs a separate jog
   speed regime on this robot. Strict B3–B8 remain open for all dynamic skills.
+- **Scope (user, 2026-11-26)**: jog (≤1.2 m/s) is accepted as the contract's
+  "running" range (B1/B2/B10 pass); fast run and strict B3–B8 are recorded as
+  open limitations.
 - **Contact-label alignment fix**: the BVH offsets of 8/12 clips were wrong
   (window[0] not used); fixed and asserted (BVH vs FK stance agreement ≥90%).
   Re-evaluating v5b on aligned labels drops walk B6 35.7→18.4 % and B7
