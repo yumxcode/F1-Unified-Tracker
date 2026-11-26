@@ -74,8 +74,10 @@ python tools/eval_unified.py \
   idle 100 % (all B1–B11, B3 median 28.7 mm); walk 88.9 % success but
   B2 11.1 %, B3 185 mm, B6 21.6 %, B7 0.226 m/s, entry 33.3 %/exit 72.2 %;
   run 16.7 %; dance 50 %. See `docs/REPORT.md` §3.7 for the standard→code map.
-- **Run (jog experiments)**: jog library (≤1.2 m/s) 75 % success at 10k with
-  entry 50 %/exit 75 %; fast run 1.65–2.1 m/s 0/4.
+- **Run (jog, ≤1.2 m/s, A2c 10k + 2.0 s blend, 3 seeds x 2)**: success 100 %,
+  fall 0 %, entry/exit 100 %, stop drift 2.2 cm — **B1/B2/B10 pass**; B3 128 mm,
+  B5 0.80 m/s, B6 17.8 %, B7 0.111 m/s, B8 still fail. Fast run 1.65–2.1 m/s
+  remains infeasible.
 - **Contact-label alignment fix**: the BVH offsets of 8/12 clips were wrong
   (window[0] not used); fixed and asserted (BVH vs FK stance agreement ≥90%).
   Re-evaluating v5b on aligned labels drops walk B6 35.7→18.4 % and B7
@@ -97,4 +99,4 @@ python tools/eval_unified.py \
 - [x] 13-clip library + 4-run library
 - [x] Unified policy v5b_15000; sim2sim from stand to stop
 - [x] Tier-B per-gate evaluation and report/videos
-- [ ] Run: fast clips (1.64–1.9 m/s) still fall; only the slowest run clip passes (25 %)
+- [ ] Run: jog (≤1.2 m/s) passes B1/B2/B10; fast clips and strict B3–B8 remain open

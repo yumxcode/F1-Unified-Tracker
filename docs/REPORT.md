@@ -22,7 +22,7 @@
 - **严格 Tier-B 仍未过**：idle 全绿；walk B1 88.9% 接近，但 B2/B3/B6/B7/B8/B10 未过；run 16.7%（fast run 1.65–2.1 m/s 不可行；jog ≤1.2 m/s 标准口径 58.3%）；dance 50%。
 - **entry 失败子原因（§3.8）**：walk/dance/run 的 entry 失败**不是**跌倒或 CoM 出支撑面，而是 **0.8 s blend 后的接触不一致 3–24%**；B6 分解显示 **拖步帧占 25–48%**（参考摆动、机器人脚 <3 cm），悬浮帧仅 1–10%。这是策略的摆动脚抬不起来/触地时序问题，不是度量误触发。
 - **B8 已按 §6 v1.2 修订**（与源飞行相对误差 ≤20%），dance/run 可过、walk 仍差。
-- **run 专项**：jog 数据把 run 从 25% 提到 58.3%（标准口径），2.0 s blend 使 entry 100%，但 fast run 不可行；严格门仍远。
+- **run 专项（jog，≤1.2 m/s）**：A2c（jog + 2.0 s blend，10k）标准口径 **success 100%（4/4，24/24 回合）、fall 0%、entry 100%、exit 100%、drift 0.0216 m**——**B1/B2/B10 通过**；B3 128 mm、B5 0.80 m/s、B6 17.8%、B7 0.111 m/s、B8 3.1 vs 7.5 仍未过。fast run 1.65–2.1 m/s 不可行。
 - **策略是可复现基线，不是 Tier-B 全绿交付**。
 
 ---
@@ -190,7 +190,13 @@ v7 5.5k 的训练 episode 平均长度仅 81/500 步（anchor_pos 终止 35.7/ep
 | run | 16.7% | 83.3% | 2.61 m | 1.82 | 41.3% | 0.493 | ❌ | 16.7/0 | ❌ |
 | dance | 50% | 50% | 860 mm | 0.97 | 34.7% | 0.332 | ❌ | 0/50 | ❌ |
 
-**jog 专项（jog_A_10000，标准口径，4 clips × 3 seed × 2）**
+**jog 专项（A2c 10k，jog + 2.0 s blend，标准口径，4 clips × 3 seed × 2）**
+
+| skill | success | fall | B3 median | B5 | B6 | B7 stance | B8 | entry/exit | drift |
+|---|---|---|---|---|---|---|---|---|---|
+| run (jog) | **100%** | **0%** | 128 mm | 0.80 | 17.8% | 0.111 | ❌ (3.1 vs 7.5) | **100/100** | **0.0216 m** |
+
+**旧 jog 口径（jog_A_10000，0.8 s blend）****
 
 | skill | success | fall | B3 median | B5 | B6 | B7 stance | B8 | entry/exit |
 |---|---|---|---|---|---|---|---|---|
@@ -247,6 +253,6 @@ python tools/eval_unified.py --library whole_body_tracking/motions/f1_unified_li
 2. **B3/B5**：body 误差中位数 146–207 mm（门 35 mm）、速度误差 0.43–1.19 m/s（门 0.30）；需要更强的跟踪（参考速度/接触建模）。
 3. **B10 entry**：失败来自 blend 后接触不一致（3–24%），不是跌倒/CoM；需在 entry 窗口内提升接触一致性。
 4. **B8**：已按 §6 v1.2 修订；walk 仍差（robot 3.06 vs ref 4.07）。
-5. **run**：jog（≤1.2 m/s）标准口径 58.3%（entry 100%、exit 58.3%、B3 146 mm）；fast run 1.65–2.1 m/s 不可行；A2c（jog 2.0 s blend）在训，v5d（接触/飞行奖励）已停（5k 更差）。
+5. **run**：jog（≤1.2 m/s，A2c 10k，2.0 s blend）标准口径 **success 100%、fall 0%、entry/exit 100%、drift 0.0216 m（B1/B2/B10 通过）**；B3 128 mm、B5 0.80、B6 17.8%、B7 0.111、B8 未过；fast run 1.65–2.1 m/s 不可行。v5d（接触/飞行奖励）已停（5k 更差）。
 6. **长时程**：训练 episode 20 s；>60 s 漂移仍导致 walk/dance 部分段跌倒。
 7. **账号/额度**：id82（A2c）在训；id83（v5d）已停；其余账号额度耗尽。run 交付范围（jog 58% vs 继续冲严格门）仍待用户决定（ht-7ade0e6ec8984bf8）。
