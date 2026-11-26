@@ -141,7 +141,8 @@ v7 5.5k 的训练 episode 平均长度仅 81/500 步（anchor_pos 终止 35.7/ep
 |---|---|---|---|---|---|---|
 | v9c（基线） | fast 4-run | 10 s | 25% | 0% | 0% | 仅最慢段 |
 | A | jog ≤1.2 m/s 4 段 | 20 s | **75%**（3/4） | 50% | 75% | body 0.058–0.067（通过段）；A1–A12 全过 |
-| A2 | jog + 2.0 s blend | 20 s | 25%（3k 中期） | **100%** | 25% | 2.0 s blend 明显改善 entry；10k 在训 |
+| A2 | jog + 2.0 s blend | 20 s | 25%（3k 中期） | **100%** | 25% | 2.0 s blend 明显改善 entry；10k 因额度耗尽未跑完 |
+| A2b | jog + 2.0 s blend（重跑） | 20 s | 25%（3k） | **100%** | 25% | 同上；账号额度耗尽 |
 | B | fast 4-run | 20 s | 0/4（5.5k 中期，已停） | — | — | episode 长度不是 fast run 瓶颈 |
 
 结论：**速度是判别变量**（jog 数据把 run 从 25% 提到 75%），2.0 s blend 改善 entry；fast run 1.65–2.07 m/s 在当前 F1 29-DoF 下仍不可行。但严格 Tier-B（B3/B5/B6/B7/B8）在 jog 上仍未过：A 的 B6 28.4%、B7 0.44 m/s、B8 飞行 15.8% vs 源 8.2%、B3 绝对误差 >35 mm；这不是继续堆同一配置能解决的，需要接触/飞行匹配奖励与更强的跟踪（下一步）。
@@ -198,4 +199,4 @@ python tools/eval_unified.py --library whole_body_tracking/motions/f1_unified_li
 4. **B8 dance 飞行门**：源 dance 8.1% 飞行，需 §6 决策（零飞行窗口 vs 相对误差门）。
 5. **run**：4 段 run 通过 A1–A12，但 4-run specialist 三次训练均未稳定通过（v7 10k 4/4 跌；v8 5.5k 1/4；v8 10k 4/4 跌）。下一步需换路线：更慢的 run/jog 数据、从 v5b 微调（低 LR）、更长 episode 或课程式加速；不是继续堆同一配置。
 6. **长时程**：训练 episode 10 s，策略未学会 >60 s 漂移校正；需要更长 episode（20–30 s）或课程式延长。
-7. **账号/额度**：共享号池 id71/id72 有他人 `upt-*` 活跃任务，id73 已用满额度（447 训练 11 min 即 status=6）；按用户指导只用空闲账号，待额度重置/新账号重试 4-run specialist。
+7. **账号/额度**：所有 gradmotion 账号（id71–77）额度已耗尽；A2b（jog 2.0 s blend）在 3k 被平台终止。run 交付范围（jog 75% vs 继续投入冲严格门）已建工单 ht-7ade0e6ec8984bf8 待用户决定。
