@@ -78,6 +78,9 @@ python tools/eval_unified.py \
   fall 0 %, entry/exit 100 %, stop drift 2.2 cm — **B1/B2/B10 pass**; B3 128 mm,
   B5 0.80 m/s, B6 17.8 %, B7 0.111 m/s, B8 still fail. Fast run 1.65–2.1 m/s
   remains infeasible.
+- **Policy set**: v5c2 covers walk/dance/idle; jog_A2c covers run. Both use the
+  same algorithm/observation/reward/sim2sim pipeline; run needs a separate jog
+  speed regime on this robot. Strict B3–B8 remain open for all dynamic skills.
 - **Contact-label alignment fix**: the BVH offsets of 8/12 clips were wrong
   (window[0] not used); fixed and asserted (BVH vs FK stance agreement ≥90%).
   Re-evaluating v5b on aligned labels drops walk B6 35.7→18.4 % and B7

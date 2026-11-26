@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
-"""Run sim2sim on every clip of a library and aggregate Tier-B metrics.
+"""Tier-B evaluation aligned with docs/STANDARDS.md v1.2.
 
-Usage:
-    python tools/eval_unified.py --library whole_body_tracking/motions/f1_unified_library.npz \
-        --checkpoint trained_models/unified_model_7999.pt --out_dir eval/unified_v1
+For every clip: 3 random seeds x 2 complete replays (seed perturbs the initial
+state; repeat 2 adds action noise).  Aggregation follows the standard:
+  B1 success (0.5 m anchor radius, no fall) rate over episodes
+  B2 fall rate (root z / tilt / mean body error)
+  B3 median of per-episode median |body pos error| (m)
+  B4 mean joint error (rad)
+  B5 mean body velocity error (m/s)
+  B6 contact mismatch (% frames)
+  B7 mean stance-frame slip (m/s)
+  B8 |robot flight - source flight| / max(source,1%) <= 20%
+  B9 action rate (rad/frame)
+  B10 entry/exit >= 95%, exit drift <= 5 cm
+  B11 per skill
 """
 from __future__ import annotations
 
@@ -25,85 +35,88 @@ def main() -> None:
     ap.add_argument("--checkpoint", type=Path, required=True)
     ap.add_argument("--out_dir", type=Path, required=True)
     ap.add_argument("--clips", type=str, nargs="*", default=None)
-    ap.add_argument("--max_steps", type=int, default=0)
+    ap.add_argument("--seeds", type=int, nargs="*", default=[0, 1, 2])
+    ap.add_argument("--repeats", type=int, default=2)
+    ap.add_argument("--noise", type=float, default=0.005)
     args = ap.parse_args()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     lib = np.load(args.library, allow_pickle=True)
     names = [str(x) for x in lib["clip_names"]]
     skills = [int(x) for x in lib["skill_ids"]]
+    # name -> skill (must be looked up by name: --clips filters the list, so
+    # positional indexing would mislabel walk as idle / run as dance)
+    name_to_skill = {n: s for n, s in zip(names, skills)}
     if args.clips:
         names = [n for n in names if n in set(args.clips)]
     rows = []
     for name in names:
-        out_json = args.out_dir / f"{name}.json"
-        cmd = [PY, "whole_body_tracking/scripts/play_unified.py",
-               "--library", str(args.library), "--checkpoint", str(args.checkpoint),
-               "--clip", name, "--headless", "--json_out", str(out_json),
-               "--metrics", str(args.out_dir / f"{name}.npz")]
-        if args.max_steps:
-            cmd += ["--max_steps", str(args.max_steps)]
-        r = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True)
-        if out_json.exists():
-            d = json.load(open(out_json))
-            d["skill"] = skills[names.index(name)]
-            rows.append(d)
-            print(f"[{name}] success={d['success']} entry={d['entry_ok']} exit={d['exit_ok']} "
-                  f"falls={d['falls']} body_err={d['body_pos_err_rel_mean']}")
-        else:
-            print(f"[{name}] FAILED\n{r.stdout[-500:]}\n{r.stderr[-800:]}")
+        for seed in args.seeds:
+            for rep in range(args.repeats):
+                out_json = args.out_dir / f"{name}_s{seed}_r{rep}.json"
+                cmd = [PY, "whole_body_tracking/scripts/play_unified.py",
+                       "--library", str(args.library), "--checkpoint", str(args.checkpoint),
+                       "--clip", name, "--headless", "--json_out", str(out_json),
+                       "--seed", str(seed),
+                       "--action_noise", str(0.0 if rep == 0 else args.noise)]
+                subprocess.run(cmd, cwd=REPO, capture_output=True, text=True)
+                if out_json.exists():
+                    d = json.load(open(out_json))
+                    d["skill"] = name_to_skill[name]
+                    d["seed"] = seed
+                    d["rep"] = rep
+                    rows.append(d)
+                    print(f"[{name} s{seed} r{rep}] success={d['success']} entry={d['entry_ok']} "
+                          f"exit={d['exit_ok']} falls={d['falls']} body_abs_med={d['body_pos_err_abs_median_m']}")
+                else:
+                    print(f"[{name} s{seed} r{rep}] FAILED")
 
     def agg(skill: int):
         sub = [r for r in rows if r["skill"] == skill]
         if not sub:
             return {}
-        success_rate = float(np.mean([r["success"] for r in sub])) * 100
-        entry_rate = float(np.mean([r["entry_ok"] for r in sub])) * 100
-        exit_rate = float(np.mean([r["exit_ok"] for r in sub])) * 100
-        fall_rate = float(np.mean([r["falls"] for r in sub])) * 100
-        body_abs = float(np.mean([r.get("body_pos_err_abs_mean_m", r["body_pos_err_rel_mean"] * 0.588) for r in sub]))
-        joint_err = float(np.mean([r["joint_pos_err_mean"] for r in sub]))
-        vel_err = float(np.mean([r.get("body_lin_vel_err_mean_mps", 0.0) for r in sub]))
-        mismatch = float(np.mean([r["contact_mismatch_pct"] for r in sub]))
-        slip = float(np.mean([r["slip_mean_mps"] for r in sub]))
-        flight_ref = float(np.mean([r["flight_ref_pct"] for r in sub]))
-        flight_robot = float(np.mean([r["flight_robot_pct"] for r in sub]))
-        action_rate = float(np.mean([r["action_rate_mean"] for r in sub]))
-        exit_drift = float(np.mean([r["exit_drift_m"] for r in sub]))
-        # B8 (STANDARDS v1.2): every skill must reproduce the source flight
-        # share within 20% relative.  The old "walk/dance = 0" clause was
-        # revised because LAFAN walk/dance themselves contain flight phases.
-        b8 = abs(flight_robot - flight_ref) / max(flight_ref, 1.0) <= 0.20
+        success = float(np.mean([r["success"] for r in sub])) * 100
+        fall = float(np.mean([r["falls"] for r in sub])) * 100
+        b3 = float(np.median([r["body_pos_err_abs_median_m"] for r in sub]))
+        b4 = float(np.mean([r["joint_pos_err_mean"] for r in sub]))
+        b5 = float(np.mean([r["body_lin_vel_err_mean_mps"] for r in sub]))
+        b6 = float(np.mean([r["contact_mismatch_pct"] for r in sub]))
+        b7 = float(np.mean([r["slip_stance_mean_mps"] for r in sub]))
+        fr = float(np.mean([r["flight_ref_pct"] for r in sub]))
+        fro = float(np.mean([r["flight_robot_pct"] for r in sub]))
+        b8 = abs(fro - fr) / max(fr, 1.0) <= 0.20
+        b9 = float(np.mean([r["action_rate_mean"] for r in sub]))
+        entry = float(np.mean([r["entry_ok"] for r in sub])) * 100
+        exit_ = float(np.mean([r["exit_ok"] for r in sub])) * 100
+        drift = float(np.mean([r["exit_drift_m"] for r in sub]))
         gates = {
-            "B1_success_ge_90": success_rate >= 90.0,
-            "B2_fall_le_5": fall_rate <= 5.0,
-            "B3_body_abs_le_35mm": body_abs <= 0.035,
-            "B4_joint_le_0.65rad": joint_err <= 0.65,
-            "B5_vel_le_0.30mps": vel_err <= 0.30,
-            "B6_contact_mismatch_le_1pct": mismatch <= 1.0,
-            "B7_slip_le_0.10mps": slip <= 0.10,
+            "B1_success_ge_90": success >= 90.0,
+            "B2_fall_le_5": fall <= 5.0,
+            "B3_body_abs_median_le_35mm": b3 <= 0.035,
+            "B4_joint_le_0.65rad": b4 <= 0.65,
+            "B5_vel_le_0.30mps": b5 <= 0.30,
+            "B6_contact_mismatch_le_1pct": b6 <= 1.0,
+            "B7_slip_stance_le_0.10mps": b7 <= 0.10,
             "B8_flight": bool(b8),
-            "B9_action_rate_le_1.0": action_rate <= 1.0,
-            "B10_entry_exit_ge_95_drift_le_5cm": (entry_rate >= 95.0 and exit_rate >= 95.0
-                                                   and exit_drift <= 0.05),
+            "B9_action_rate_le_1.0": b9 <= 1.0,
+            "B10_entry_exit_ge_95_drift_le_5cm": (entry >= 95.0 and exit_ >= 95.0 and drift <= 0.05),
             "B11_per_skill": True,
         }
         return {
-            "n": len(sub),
-            "success_rate": round(success_rate, 1),
-            "entry_rate": round(entry_rate, 1),
-            "exit_rate": round(exit_rate, 1),
-            "fall_rate": round(fall_rate, 1),
-            "body_pos_err_abs_mean_m": round(body_abs, 4),
-            "body_pos_err_mean": round(float(np.mean([r["body_pos_err_rel_mean"] for r in sub])), 4),
-            "joint_pos_err_mean": round(joint_err, 4),
-            "body_lin_vel_err_mean_mps": round(vel_err, 4),
-            "contact_mismatch_pct": round(mismatch, 3),
-            "slip_mean_mps": round(slip, 4),
-            "exit_drift_mean_m": round(exit_drift, 4),
-            "flight_ref_pct": round(flight_ref, 2),
-            "flight_robot_pct": round(flight_robot, 2),
-            "action_rate_mean": round(action_rate, 4),
+            "n_episodes": len(sub),
+            "success_rate": round(success, 1),
+            "fall_rate": round(fall, 1),
+            "body_pos_err_abs_median_m": round(b3, 4),
+            "joint_pos_err_mean": round(b4, 4),
+            "body_lin_vel_err_mean_mps": round(b5, 4),
+            "contact_mismatch_pct": round(b6, 3),
+            "slip_stance_mean_mps": round(b7, 4),
+            "flight_ref_pct": round(fr, 2),
+            "flight_robot_pct": round(fro, 2),
+            "action_rate_mean": round(b9, 4),
+            "entry_rate": round(entry, 1),
+            "exit_rate": round(exit_, 1),
+            "exit_drift_mean_m": round(drift, 4),
             "gates": gates,
             "tier_b_pass": all(gates.values()),
         }
@@ -111,9 +124,11 @@ def main() -> None:
     summary = {
         "checkpoint": str(args.checkpoint),
         "library": str(args.library),
-        "n_clips": len(rows),
+        "seeds": args.seeds,
+        "repeats": args.repeats,
+        "n_clips": len(names),
         "per_skill": {"idle": agg(0), "walk": agg(1), "run": agg(2), "dance": agg(3)},
-        "clips": rows,
+        "episodes": rows,
     }
     (args.out_dir / "summary.json").write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary["per_skill"], indent=2))

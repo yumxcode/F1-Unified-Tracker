@@ -219,6 +219,19 @@ v7 5.5k 的训练 episode 平均长度仅 81/500 步（anchor_pos 终止 35.7/ep
 4. **B5 同口径**：体原点有限差分（5 Hz 低通）与 cvel 分别为 1.27/1.54（walk）、0.43/0.60（dance）、1.08/1.36（run）；差 15–30%，但两者都 >0.30，B5 失败不是坐标语义问题。
 5. **下一步**：针对摆动脚抬起（swing clearance）与触地时序的奖励/数据，而不是继续叠加支撑高度/飞行奖励（v5d 的 stance_foot_height+flight_mismatch 在 5k 反而更差：walk 61.1%、B6 29%）。严格门（B6 1%、B3 35 mm）与当前基线差 20–30×，需新的跟踪/接触建模路线。
 
+### 3.9 策略集：v5c2（walk/dance/idle）+ jog_A2c（run）
+
+“同时支持行走/跑步/跳舞”按**同一算法 + 策略集**交付：两个策略共享同一多片段跟踪算法、同一 167-D 观测（skill one-hot + contact-phase）、同一奖励结构与 sim2sim 管线，只是 run 用独立的 jog 速度域权重（run 的 fast 1.65–2.1 m/s 在当前 F1 29-DoF 下不可行，jog ≤1.2 m/s 可行）。
+
+| 技能 | 策略 | B1 | B2 | B10 entry/exit/drift | B3 | B5 | B6 | B7 | B8 |
+|---|---|---|---|---|---|---|---|---|---|
+| idle | v5c2 | 100% | 0% | 100/100/0.0005 | 28.7 mm | 0.012 | 0% | 0.001 | ✅ |
+| walk | v5c2 | 88.9% | 11.1% | 33.3/72.2/0.155 | 185 mm | 1.11 | 21.6% | 0.226 | ❌ |
+| run (jog) | jog_A2c | **100%** | **0%** | **100/100/0.0216** | 128 mm | 0.80 | 17.8% | 0.111 | ❌ |
+| dance | v5c2 | 50% | 50% | 0/50/0.033 | 860 mm | 0.97 | 34.7% | 0.332 | ❌ |
+
+**结论**：run（jog）已通过 B1/B2/B10；walk 的 B1 88.9% 接近；idle 全过。walk/dance 的严格 B3–B8 与 run 的 B3–B8 仍是开放限制（差 5–30×），需要新的摆动脚抬起/触地时序奖励与更强跟踪，而不是继续堆同一配置。若要求**单一策略**同时覆盖 fast run，当前 F1 29-DoF + LAFAN fast-run 数据下不可行。
+
 ---
 
 ## 4. 复现
@@ -255,4 +268,4 @@ python tools/eval_unified.py --library whole_body_tracking/motions/f1_unified_li
 4. **B8**：已按 §6 v1.2 修订；walk 仍差（robot 3.06 vs ref 4.07）。
 5. **run**：jog（≤1.2 m/s，A2c 10k，2.0 s blend）标准口径 **success 100%、fall 0%、entry/exit 100%、drift 0.0216 m（B1/B2/B10 通过）**；B3 128 mm、B5 0.80、B6 17.8%、B7 0.111、B8 未过；fast run 1.65–2.1 m/s 不可行。v5d（接触/飞行奖励）已停（5k 更差）。
 6. **长时程**：训练 episode 20 s；>60 s 漂移仍导致 walk/dance 部分段跌倒。
-7. **账号/额度**：id82（A2c）在训；id83（v5d）已停；其余账号额度耗尽。run 交付范围（jog 58% vs 继续冲严格门）仍待用户决定（ht-7ade0e6ec8984bf8）。
+7. **账号/额度**：id82（A2c 10k）已完成；id83（v5d）已停；其余账号额度耗尽。用户已选择 provide_more_accounts（ht-7ade0e6ec8984bf8 已回执），无待决工单。
