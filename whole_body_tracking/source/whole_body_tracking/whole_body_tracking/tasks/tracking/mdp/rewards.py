@@ -110,6 +110,36 @@ def stance_foot_velocity(
     return torch.exp(-(phase * speed).sum(dim=-1) / std)
 
 
+def stance_foot_height(
+    env: ManagerBasedRLEnv, command_name: str, std: float = 0.05
+) -> torch.Tensor:
+    """Penalise a reference-stance foot whose ankle is still high.
+
+    The contact-phase reward only checks forces; a foot can be "in contact"
+    with the sole 3-5 cm above the floor (floating reference / soft PD).  This
+    term plants the stance foot by penalising ankle z above 6 cm.
+    """
+    command: MotionCommand = env.command_manager.get_term(command_name)
+    phase = command.contact_phase[:, :2]
+    idx = [command.cfg.body_names.index(n) for n in ("left_ankle_roll", "right_ankle_roll")]
+    z = command.robot_body_pos_w[:, idx, 2]
+    excess = torch.clamp(z - 0.06, min=0.0)
+    return torch.exp(-(phase * excess).sum(dim=-1) / std)
+
+
+def flight_mismatch(
+    env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, std: float = 0.5
+) -> torch.Tensor:
+    """Match the reference aerial phase (binary) with the robot's foot forces."""
+    command: MotionCommand = env.command_manager.get_term(command_name)
+    ref_flight = command.contact_phase[:, 2]
+    sensor = env.scene.sensors[sensor_cfg.name]
+    forces = sensor.data.net_forces_w[:, sensor_cfg.body_ids, :]
+    f = torch.norm(forces, dim=-1).sum(dim=-1)
+    robot_flight = (f < 1.0).float()
+    return torch.exp(-torch.abs(robot_flight - ref_flight) / std)
+
+
 def foot_slippage(
     env: ManagerBasedRLEnv, command_name: str, std: float = 0.3
 ) -> torch.Tensor:

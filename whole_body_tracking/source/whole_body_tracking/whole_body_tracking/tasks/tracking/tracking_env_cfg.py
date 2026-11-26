@@ -272,6 +272,20 @@ class RewardsCfg:
         weight=0.5,
         params={"command_name": "motion", "std": 0.3},
     )
+    stance_foot_height = RewTerm(
+        func=mdp.stance_foot_height,
+        weight=0.5,
+        params={"command_name": "motion", "std": 0.05},
+    )
+    flight_mismatch = RewTerm(
+        func=mdp.flight_mismatch,
+        weight=0.5,
+        params={
+            "command_name": "motion",
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["left_ankle_roll", "right_ankle_roll"]),
+            "std": 0.5,
+        },
+    )
 
 
 @configclass
