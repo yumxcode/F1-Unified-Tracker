@@ -70,11 +70,12 @@ python tools/eval_unified.py \
 
 - **Tier A**: 12/14 clips pass A1–A12 (walk 6/6, run 4/4, dance 2/4); the two
   dance failures are A8 wrist ROM 1.56 % < 2 % and A12 94.8 % < 95 %.
-- **Tier B, full 13 clips (v5c2, aligned labels)**: idle 100 % (all B1–B11),
-  walk 83.3 % (1 fall), run 25 % (slowest clip passes; 1.64–1.9 m/s clips fall),
-  dance 50 %.
-- **Run specialist (v9c, aligned labels)**: 25 % (run1_subject2 passes; the
-  three faster clips fall).
+- **Tier B, full 13 clips (v5c2, STANDARDS v1.2, 3 seeds x 2 replays)**:
+  idle 100 % (all B1–B11, B3 median 28.7 mm); walk 88.9 % success but
+  B2 11.1 %, B3 185 mm, B6 21.6 %, B7 0.226 m/s, entry 33.3 %/exit 72.2 %;
+  run 16.7 %; dance 50 %. See `docs/REPORT.md` §3.7 for the standard→code map.
+- **Run (jog experiments)**: jog library (≤1.2 m/s) 75 % success at 10k with
+  entry 50 %/exit 75 %; fast run 1.65–2.1 m/s 0/4.
 - **Contact-label alignment fix**: the BVH offsets of 8/12 clips were wrong
   (window[0] not used); fixed and asserted (BVH vs FK stance agreement ≥90%).
   Re-evaluating v5b on aligned labels drops walk B6 35.7→18.4 % and B7

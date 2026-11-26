@@ -78,7 +78,9 @@ A12 贴地率（通过段）：95.5–100%，p50 0.001 m。
 
 ---
 
-## 3. sim2sim Tier-B 结果（v5b_15000）
+## 3. sim2sim Tier-B 结果
+
+> **口径说明（2026-11-26）**：§3.1–3.3 的数字来自旧评测实现（每 clip 单次、B3 均值、B7 全帧、B1 最大相对误差、B2 仅 root z、B10 无 CoM），只能作为预实验。**标准口径（STANDARDS v1.2）的零训练复评见 §3.7**：3 seed×2 回放、B3 中位数、B7 支撑帧、B1 0.5 m anchor、B2 三判据、B10 CoM。
 
 ### 3.1 四段协议（idle/walk/run/dance，站立起步→技能→停止）
 
@@ -162,6 +164,35 @@ v7 5.5k 的训练 episode 平均长度仅 81/500 步（anchor_pos 终止 35.7/ep
 | run B6 mismatch | 31.4% | 31.4%（仍跌倒） |
 
 结论：错位标签显著虚高了 walk 的 B6/B7，旧归因（“B6 源于足底高度口径/策略浮动”、“v7 0.8 s blend 过陡”）**作废**；对齐后 walk 的 B6/B7 明显回落但仍未过 1%/0.10 门，dance 的 B6 未改善。v5b 是在错位标签上训练的，需用对齐标签重训（v5c）后再判；run v9（对齐标签）在训。B8 已按 STANDARDS §6 修订为“与源飞行占比相对误差 ≤20%”（v1.2），因为 LAFAN walk/dance 源本身有 1.4–6.3%/5.7–28.7% 飞行，旧“=0”门与数据矛盾。
+
+### 3.7 评测口径对齐 STANDARDS v1.2（零训练复评，2026-11-26）
+
+**标准 → 代码对照（B1–B11）**
+
+| 门 | 标准定义 | 实现 | 统计量/分母 |
+|---|---|---|---|
+| B1 | 0.5 m 半径成功率 | `play_unified.py` success | `anchor_pos_err_mean ≤ 0.5` 且无跌倒；3 seed×2 回放的成功率 |
+| B2 | root z<0.55×站立 或 tilt>45° 或平均 body err>0.5 | 逐步检查 | 任一触发即跌倒；按 episode 计跌倒率 |
+| B3 | E_mpbpe ≤35 mm（中位数） | `body_pos_err_abs_median_m` | 每 episode 逐帧 body 误差的中位数；跨 episode 取中位数 |
+| B4 | E_mpjpe ≤0.65 rad | `joint_pos_err_mean` | episode 均值 |
+| B5 | E_vel ≤0.30 m/s | `body_lin_vel_err_mean_mps` | episode 均值 |
+| B6 | 接触不一致 ≤1% 帧 | `contact_mismatch_pct` | 双脚逐帧 mismatch / 2 |
+| B7 | 滑移 ≤100 mm/s（支撑帧均值） | `slip_stance_mean_mps` | 仅参考 stance 帧 |
+| B8 | 与源飞行占比相对误差 ≤20% | `flight_robot_pct` vs `flight_ref_pct` | 跨 episode 均值 |
+| B9 | action rate ≤1.0 rad/frame | `action_rate_mean` | 逐步 |
+| B10 | entry/exit ≥95%，停止漂移 ≤5 cm | entry/exit + `exit_drift_m` | entry：前 3.5 s 无跌倒、mismatch≤1%、CoM 在支撑面内；exit：全程无跌倒+漂移 |
+| B11 | 分技能 | `per_skill` | idle/walk/run/dance |
+
+**v5c2 零训练复评（13 clips，3 seed×2，标准口径）**
+
+| skill | success | fall | B3 median | B5 | B6 | B7 stance | B8 | entry/exit | tierB |
+|---|---|---|---|---|---|---|---|---|---|
+| idle | 100% | 0% | **28.7 mm** | 0.012 | 0.0% | 0.001 | ✅ | 100/100 | ✅ |
+| walk | **88.9%** | 11.1% | 185 mm | 1.11 | 21.6% | 0.226 | ❌ (3.06 vs 4.07) | 33.3/72.2 | ❌ |
+| run | 16.7% | 83.3% | 2.61 m | 1.82 | 41.3% | 0.493 | ❌ | 16.7/0 | ❌ |
+| dance | 50% | 50% | 860 mm | 0.97 | 34.7% | 0.332 | ❌ | 0/50 | ❌ |
+
+判读：idle 全门通过；walk 的 B1 已到 88.9%（接近 90%），但 B2 11.1%>5%、B3 185 mm、B6 21.6%、B7 0.226、entry 33.3% 仍远未过；run/dance 更远。旧 B3/B7/B10 数字与归因作废（旧 B3 用均值且为相对误差，旧 B7 含非支撑帧，旧 B1/B2/B10 判据不同）。
 
 ---
 
