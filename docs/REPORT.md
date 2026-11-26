@@ -2,7 +2,7 @@
 
 日期：2026-11-24  
 代码/数据/模型仓库：`yumxcode/F1-Unified-Tracker`（交付时设为 PRIVATE）  
-标准：`docs/STANDARDS.md` v1.1（Tier-A A1–A12，Tier-B B1–B11）  
+标准：`docs/STANDARDS.md` v1.3（Tier-A A1–A12，Tier-B B1–B11，B10 entry 操作定义见 §6）  
 策略：单一统一策略（一套权重，skill one-hot + contact-phase 条件化）；最终模型 `trained_models/v5c2_15000.pt`（15k，对齐接触标签）
 
 ---
@@ -15,16 +15,14 @@
 2. **参考悬浮根因已修**：`contact_repair` 原先用“抬全身”补摆动腿穿地，导致 run 的源 stance 帧支撑脚 sole z p50=4.8 cm、60% 帧 >3 cm。改为**局部修摆动腿 / 局部降 root**（`--no_post_lift`）+ 源接触 `v<0.02 且 z<0.12` 后，A12 贴地率 95.5–100%（p50≈1 mm）。新增 **A12 支撑脚贴地率 ≥95%** 门（STANDARDS v1.1，§6 有变更记录）。
 3. **统一算法**：BeyondMimic 多片段跟踪 + skill one-hot + 参考 contact-phase 条件化 + 飞行接触惩罚/支撑足速度/滑步奖励 + idle 起步/停止增广 + skill-balanced 采样。24 GB 4090D 上 4096 envs 可训练。
 4. **sim2sim 管线**：MuJoCo 独立回放（PhysX↔npz 关节置换、actuator 映射、armature/damping、timestep 5 ms、参考帧初始状态、entry/exit 窗口）；**从站立起步→技能→停止**；输出 B1–B11 逐门 pass/fail。
-5. **最终模型 v5c2_15000（对齐标签，15k）**：全 13 段 idle 100%/tierB 全过；walk 83.3%（1 跌）；**run 25%**（run1_subject2 通过 body 0.0875，其余 3 段跌）；dance 50%。视频：`videos/*_v5c2_15000.mp4`。
+5. **最终模型 v5c2_15000（对齐标签，15k，标准口径 3 seed×2）**：idle 100%/tierB 全过（B3 中位数 28.7 mm）；walk **88.9%**（B1 接近 90%）但 B2 11.1%、B3 185 mm、B6 21.6%、B7 0.226、entry 33.3% 未过；**run 16.7%**；dance 50%。视频：`videos/*_v5c2_15000.mp4`。
 
 **未达到 / 需继续**
 
-- **对齐标签重训后的最好结果**：v5c2 统一 idle tierB 全过；walk 83.3%（1 跌）；run 25%（最慢段通过）；dance 50%。严格 Tier-B（B3/B5/B6/B7/B8）未过；fast run 仍跌。
-
-- **Tier-B 仅 idle 全绿**：walk/dance 在 4 段协议无跌倒，但 B3/B5/B6/B7/B8 未过；**接触标签错位已修**（对齐后 walk B6 35.7%→18.4%、B7 1.13→0.23 m/s），旧 B6/B7 归因作废；run 仍跌倒。
-- **长时程**：全 11 段（最长 162 s）walk 83.3%、dance 50%、run 0%；>60 s 漂移累积导致跌倒。
-- **B8 dance 飞行门**：STANDARDS 写“walk/dance 飞行=0”，但 LAFAN dance 源本身有 8.1% 飞行；该门按现有数据必然失败，需走 §6 决定“选零飞行舞蹈窗口”或“改为与源相对误差 ≤20%”。本报告按现门记为 fail，不静默改门。
-- **run 专项（未通过）**：4-run specialist 三次尝试均未稳定通过：v7（0.8s blend，10k）4/4 跌；v8（2.0s blend，5.5k）仅 run1_subject2 无跌倒（body 0.087）；v8（10k）回退到 4/4 跌。run 是当前数据/机器人下的开放限制，见 §3.3 与 §5。
+- **严格 Tier-B 仍未过**：idle 全绿；walk B1 88.9% 接近，但 B2/B3/B6/B7/B8/B10 未过；run 16.7%（fast run 1.65–2.1 m/s 不可行；jog ≤1.2 m/s 标准口径 58.3%）；dance 50%。
+- **entry 失败子原因（§3.8）**：walk/dance/run 的 entry 失败**不是**跌倒或 CoM 出支撑面，而是 **0.8 s blend 后的接触不一致 3–24%**；B6 分解显示 **拖步帧占 25–48%**（参考摆动、机器人脚 <3 cm），悬浮帧仅 1–10%。这是策略的摆动脚抬不起来/触地时序问题，不是度量误触发。
+- **B8 已按 §6 v1.2 修订**（与源飞行相对误差 ≤20%），dance/run 可过、walk 仍差。
+- **run 专项**：jog 数据把 run 从 25% 提到 58.3%（标准口径），2.0 s blend 使 entry 100%，但 fast run 不可行；严格门仍远。
 - **策略是可复现基线，不是 Tier-B 全绿交付**。
 
 ---
@@ -200,6 +198,21 @@ v7 5.5k 的训练 episode 平均长度仅 81/500 步（anchor_pos 终止 35.7/ep
 
 判读：idle 全门通过；walk 的 B1 已到 88.9%（接近 90%），但 B2 11.1%>5%、B3 185 mm、B6 21.6%、B7 0.226、entry 33.3% 仍远未过；run（含 jog）与 dance 更远。旧 B3/B7/B10 数字与归因作废（旧 B3 用均值且为相对误差，旧 B7 含非支撑帧，旧 B1/B2/B10 判据不同；旧 A 的 75% 为单次旧口径，标准口径 58.3%）。
 
+### 3.8 entry 子原因与 B6/B7/B5 分解（v5c2，零训练，3 seed×2）
+
+| clip | entry_old | entry_new | entry_fall | mm_post(%) | com_ds | first_ss | first_lift | float(%) | drag(%) | B7 ref/∩contact | B5 fd/cvel |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| walk1_subject1 | false | false | false | 18.6 | 0 | 147 | -1 | 4.6 | 24.7 | 0.24/0.185 | 1.27/1.54 |
+| dance1_subject3 | false | false | false | 22.9–24.3 | 0 | 160 | 148 | 0.7–0.9 | 34.3–34.7 | 0.059/0.050 | 0.43/0.60 |
+| run1_subject2 | true | false | false | 2.9–4.3 | 0 | -1 | 158 | 2.5–10.1 | 44.8–48.2 | 0.20/0.16 | 1.08/1.36 |
+
+**判读（关键）**：
+1. **entry 失败不是 CoM/跌倒**：三个 clip 的 `entry_fall=false`、`com_ds=0`；失败全部来自 **blend 后接触不一致**（walk 18.6%、dance 23%、run 3–4%）。单支撑 CoM 假设被证伪。
+2. **B6 主要是拖步**：参考摆动但机器人脚 <3 cm 的帧占 walk 24.7%、dance 34.6%、run 45–48%；悬浮帧（参考支撑、机器人 >3 cm）仅 0.7–10%。机器人**摆动脚抬不起来/触地时序偏移**是主因。
+3. **B7 双分母**：仅参考支撑 vs 参考支撑∩机器人接触的滑移为 0.24/0.185（walk）、0.059/0.050（dance）、0.20/0.16（run）；两者都远超 0.10，滑移是真实策略问题（支撑脚移动），不只是分母。
+4. **B5 同口径**：体原点有限差分（5 Hz 低通）与 cvel 分别为 1.27/1.54（walk）、0.43/0.60（dance）、1.08/1.36（run）；差 15–30%，但两者都 >0.30，B5 失败不是坐标语义问题。
+5. **下一步**：针对摆动脚抬起（swing clearance）与触地时序的奖励/数据，而不是继续叠加支撑高度/飞行奖励（v5d 的 stance_foot_height+flight_mismatch 在 5k 反而更差：walk 61.1%、B6 29%）。严格门（B6 1%、B3 35 mm）与当前基线差 20–30×，需新的跟踪/接触建模路线。
+
 ---
 
 ## 4. 复现
@@ -230,10 +243,10 @@ python tools/eval_unified.py --library whole_body_tracking/motions/f1_unified_li
 
 ## 5. 限制与下一步
 
-1. **B6 接触不一致（20–36%）**：核对机器人足底高度口径（0.03 阈值）与参考接触标签；检查 policy 是否在支撑相浮动。
-2. **B3/B5**：绝对 body error >35 mm、速度误差 >0.30 m/s；需要更多训练或更紧的跟踪奖励。
-3. **B10 停止漂移**：walk 0.018（4 段）/0.034（全段）已接近 5 cm；run 0.156 未过。
-4. **B8 dance 飞行门**：源 dance 8.1% 飞行，需 §6 决策（零飞行窗口 vs 相对误差门）。
-5. **run**：4 段 run 通过 A1–A12，但 4-run specialist 三次训练均未稳定通过（v7 10k 4/4 跌；v8 5.5k 1/4；v8 10k 4/4 跌）。下一步需换路线：更慢的 run/jog 数据、从 v5b 微调（低 LR）、更长 episode 或课程式加速；不是继续堆同一配置。
-6. **长时程**：训练 episode 10 s，策略未学会 >60 s 漂移校正；需要更长 episode（20–30 s）或课程式延长。
-7. **账号/额度**：所有 gradmotion 账号（id71–77）额度已耗尽；A2b（jog 2.0 s blend）在 3k 被平台终止。run 交付范围（jog 75% vs 继续投入冲严格门）已建工单 ht-7ade0e6ec8984bf8 待用户决定。
+1. **B6 拖步（25–48%）**：机器人摆动脚抬不起来/触地时序偏移，参考摆动时脚 <3 cm；需要 swing-clearance/触地时序奖励与数据，而不是继续支撑高度奖励。
+2. **B3/B5**：body 误差中位数 146–207 mm（门 35 mm）、速度误差 0.43–1.19 m/s（门 0.30）；需要更强的跟踪（参考速度/接触建模）。
+3. **B10 entry**：失败来自 blend 后接触不一致（3–24%），不是跌倒/CoM；需在 entry 窗口内提升接触一致性。
+4. **B8**：已按 §6 v1.2 修订；walk 仍差（robot 3.06 vs ref 4.07）。
+5. **run**：jog（≤1.2 m/s）标准口径 58.3%（entry 100%、exit 58.3%、B3 146 mm）；fast run 1.65–2.1 m/s 不可行；A2c（jog 2.0 s blend）在训，v5d（接触/飞行奖励）已停（5k 更差）。
+6. **长时程**：训练 episode 20 s；>60 s 漂移仍导致 walk/dance 部分段跌倒。
+7. **账号/额度**：id82（A2c）在训；id83（v5d）已停；其余账号额度耗尽。run 交付范围（jog 58% vs 继续冲严格门）仍待用户决定（ht-7ade0e6ec8984bf8）。

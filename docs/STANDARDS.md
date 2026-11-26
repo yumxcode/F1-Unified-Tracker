@@ -1,7 +1,7 @@
 # F1 29-DoF 运动重定向与 sim2sim 验收标准（v1，冻结）
 
-版本：v1.2  
-冻结日期：2026-11-25（v1.0 冻结于 2026-11-23；v1.1 新增 A12；v1.2 仅修订 B8 为源相对飞行误差，其余门限不变）  
+版本：v1.3  
+冻结日期：2026-11-26（v1.0 冻结于 2026-11-23；v1.1 新增 A12；v1.2 修订 B8；v1.3 明确 B10 entry 操作定义，门限不变）  
 适用对象：Weichai F1 29-DoF（URDF `SYS-SPEC-0002-V1.1-F1整机模型29DOF.urdf`）  
 适用数据：LAFAN1 walk/run/sprint/dance 的 GMR/UMR 重定向结果，以及由这些动作训练出的统一跟踪策略的 MuJoCo sim2sim 回放。
 
@@ -109,7 +109,7 @@
 | B7 滑移 | ≤100 mm/s（支撑帧均值） | HuB slip |
 | B8 飞行占比 | walk/run/dance 均与源飞行占比相对误差 ≤20% | CLF-RL / 本文新增；源值见 `source_metrics.json` 与 clip `foot_contact`；2026-11-25 v1.2 修订 |
 | B9 平滑 | action rate ≤1.0 rad/frame | HuB 0.51 vs 8.02 |
-| B10 起步/停止 | entry ≥95%，exit ≥95%，2 s 停止保持 root 漂移 ≤5 cm | 契约第 6 条；HuB idle entry/exit + GMR start-frame |
+| B10 起步/停止 | entry ≥95%，exit ≥95%，2 s 停止保持 root 漂移 ≤5 cm；entry 操作定义见 §6 v1.3 | 契约第 6 条；HuB idle entry/exit + GMR start-frame |
 | B11 分技能 | walk/run/dance 分别报告，不允许只报合并均值 | 契约第 2 条 |
 
 **起步/停止协议（固定）**：
@@ -134,6 +134,8 @@ clip | gait | window[start,end) | frames | coverage% | A1..A12 | overall_A
 ---
 
 ## 6. 变更流程
+
+> **变更记录 2026-11-26（v1.3，B10 entry 操作定义）**：entry 成功 = 前 3.5 s 无跌倒 **且** 0.8 s blend 后（帧 140–175）接触不一致 ≤1% **且** CoM 仅在**双支撑相**出支撑面计失败。单支撑相 CoM 在支撑脚外属正常步态，不再计失败；blend 段参考接触正在切换，接触不一致从 blend 结束后统计。此定义不改变 B10 的 95%/5 cm 门限，只明确统计窗口与分母。子原因（跌倒/接触不一致/CoM）在评测 JSON 中分别记录。
 
 > **变更记录 2026-11-25（v1.2）**：B8 由“walk/dance 飞行=0；run 相对误差 ≤20%”改为“walk/run/dance 均与源飞行占比相对误差 ≤20%”。起因：LAFAN 源 walk 1.4–6.3%、dance 5.7–28.7% 本身有飞行相位，旧门按现数据必然 fail，且与“跟踪源动作”的目标矛盾；新门衡量策略是否复现源的空中相位占比，而非禁止飞行。A1–A12 与 B1–B7/B9–B11 不变。
 
