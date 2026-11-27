@@ -59,9 +59,18 @@ def main() -> None:
                        "--clip", name, "--headless", "--json_out", str(out_json),
                        "--seed", str(seed),
                        "--action_noise", str(0.0 if rep == 0 else args.noise)]
-                subprocess.run(cmd, cwd=REPO, capture_output=True, text=True)
+                r = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True)
+                if r.returncode != 0:
+                    raise SystemExit(f"play_unified failed for {name} s{seed} r{rep}:\n{r.stderr[-800:]}")
                 if out_json.exists():
                     d = json.load(open(out_json))
+                    # required fields of the standard evaluator; a missing field
+                    # means the evaluator is not the reference version
+                    for f in ("entry_ok", "entry_blend_end_frame", "fall_reason",
+                              "body_pos_err_abs_median_m", "entry_first_lift_frame",
+                              "slip_stance_mean_mps", "tilt_max_deg"):
+                        if f not in d:
+                            raise SystemExit(f"missing field {f!r} in {out_json}")
                     d["skill"] = name_to_skill[name]
                     d["seed"] = seed
                     d["rep"] = rep

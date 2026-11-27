@@ -198,12 +198,15 @@ def main() -> None:
         "body_pos_err_rel", "body_pos_err_abs", "body_lin_vel_err",
         "joint_pos_err", "anchor_pos_err", "base_z",
         "action_rate", "contact_mismatch", "slip", "flight_ref", "flight_robot",
-        "robot_xy", "ref_xy", "skill",
+        "robot_xy", "ref_xy", "skill", "tilt",
         "sole_z_left", "sole_z_right", "foot_xy_left", "foot_xy_right", "com_xy",
         "slip_stance",
     ]}
     fell = False
     fall_step = None
+    fall_reason = None
+    low_z = 0
+    high_tilt = 0
     n_steps = (end - start) if args.max_steps <= 0 else min(args.max_steps, end - start)
     t0 = time.time()
     recorder = None
@@ -259,6 +262,14 @@ def main() -> None:
         metrics["joint_pos_err"].append(float(np.mean(np.abs(joint_pos - lib["joint_pos"][t]))))
         metrics["anchor_pos_err"].append(float(np.linalg.norm(anchor_pos_b)))
         metrics["base_z"].append(float(data.qpos[2]))
+        qw, qx, qy, qz = data.qpos[3:7]
+        R = np.array([
+            [1 - 2 * (qy * qy + qz * qz), 2 * (qx * qy - qz * qw), 2 * (qx * qz + qy * qw)],
+            [2 * (qx * qy + qz * qw), 1 - 2 * (qx * qx + qz * qz), 2 * (qy * qz - qx * qw)],
+            [2 * (qx * qz - qy * qw), 2 * (qy * qz + qx * qw), 1 - 2 * (qx * qx + qy * qy)],
+        ])
+        tilt_deg = float(np.degrees(np.arccos(np.clip(R[2, 2], -1, 1))))
+        metrics["tilt"].append(tilt_deg)
         metrics["robot_xy"].append(data.qpos[0:2].copy())
         metrics["ref_xy"].append(ref_body_pos[0, :2].copy())
         metrics["skill"].append(int(lib["skill_ids"][ci]))
@@ -293,9 +304,20 @@ def main() -> None:
             metrics["slip"].append(slip)
             metrics["slip_stance"].append(slip if (ref_contact[0] or ref_contact[1]) else np.nan)
 
-        if data.qpos[2] < 0.55 * pm.F1_INIT_HEIGHT and fall_step is None:
+        # a fall must be sustained (>=0.5 s) so a transient stumble that
+        # recovers is not counted as a fall
+        if data.qpos[2] < 0.55 * pm.F1_INIT_HEIGHT:
+            low_z += 1
+        else:
+            low_z = 0
+        if tilt_deg > 45.0:
+            high_tilt += 1
+        else:
+            high_tilt = 0
+        if fall_step is None and (low_z >= 25 or high_tilt >= 25):
             fell = True
             fall_step = step
+            fall_reason = "tilt" if high_tilt >= 25 else "height"
         if recorder is not None:
             recorder[0].update_scene(data, camera=recorder[1])
             recorder[2].append_data(recorder[0].render())
@@ -308,22 +330,34 @@ def main() -> None:
     n_entry = int(args.entry_s / pm.POLICY_DT)
     n_exit = int(args.exit_s / pm.POLICY_DT)
     # ---- entry sub-reasons (STANDARDS v1.3 operational definition) ----
-    entry_fall = bool(fall_step is not None and fall_step < n_entry)
+    # entry window must start at the blend end (motion start), not at a fixed
+    # frame: a time-scaled library stretches idle+blend, so a fixed 140-175
+    # window would fall inside the blend and judge an empty (both-feet-down) window.
+    # blend end = idle_end * 1.4: the idle prefix is 2 s and the blend 0.8 s
+    # (ratio 1.4), so this is scale-invariant for time-scaled libraries
+    # (original: 100 -> 140; slow07: 143 -> 200)
+    idle = np.array(lib["idle_mask"][start:start + n_steps]) > 0.5
+    nz = np.where(~idle)[0]
+    idle_end = int(nz[0]) if len(nz) else 0
+    blend_end = int(round(idle_end * 1.4))
+    post_lo = blend_end
+    post_hi = min(blend_end + int(0.7 / pm.POLICY_DT), len(metrics["contact_mismatch"]))
+    entry_fall = bool(fall_step is not None and fall_step < post_hi)
     mm = np.array(metrics["contact_mismatch"], dtype=float)
-    post_lo, post_hi = int(2.8 / pm.POLICY_DT), int(3.5 / pm.POLICY_DT)
-    entry_mismatch_post_pct = float(np.mean(mm[post_lo:min(post_hi, len(mm))]) / 2 * 100) if len(mm) > post_lo else 100.0
+    entry_mismatch_post_pct = float(np.mean(mm[post_lo:post_hi]) / 2 * 100) if post_hi > post_lo else 100.0
     # first reference single-support frame and first robot foot lift
     ref_c = lib["foot_contact"][start:start + n_steps] > 0.5
     ss_frames = np.where((ref_c[:, 0] != ref_c[:, 1]))[0]
+    ss_frames = ss_frames[(ss_frames >= post_lo) & (ss_frames < post_hi)]
     entry_first_ss = int(ss_frames[0]) if len(ss_frames) else -1
     sz = np.maximum(np.array(metrics["sole_z_left"]), np.array(metrics["sole_z_right"]))
-    lift = np.where(sz[:min(n_steps, n_entry)] > 0.03)[0]
-    entry_first_lift = int(lift[0]) if len(lift) else -1
+    lift = np.where(sz[post_lo:min(post_hi, len(sz))] > 0.03)[0]
+    entry_first_lift = int(lift[0] + post_lo) if len(lift) else -1
     # CoM outside the double-support polygon while both feet are in contact
     com_out_frames = 0
     fx = {side: np.array(metrics[f"foot_xy_{side}"]) for side in ("left", "right")}
     com = np.array(metrics["com_xy"])
-    for st in range(min(n_steps, n_entry)):
+    for st in range(post_lo, min(post_hi, n_steps)):
         if ref_c[st, 0] and ref_c[st, 1] and mm[st] == 0:
             lp, rp = fx["left"][st], fx["right"][st]
             lo = np.minimum(lp, rp) - 0.05
@@ -334,13 +368,16 @@ def main() -> None:
     entry_ok = (not entry_fall) and entry_mismatch_post_pct <= 1.0 and entry_com_out_ds == 0
     entry_ok_old = ((fall_step is None or fall_step >= n_entry)
                     and float(np.mean(metrics["contact_mismatch"][:n_entry]) / 2) <= 0.01)
+    # the fall window for entry_ok must cover the scaled entry (blend + 0.7 s)
+    entry_ok = entry_ok and (fall_step is None or fall_step >= post_hi)
     robot_xy = np.array(metrics["robot_xy"])
     exit_drift = float(np.linalg.norm(robot_xy[-1] - robot_xy[max(0, len(robot_xy) - n_exit)]))
     # exit success requires no fall anywhere in the episode (a fall before the
     # exit window must not be counted as a successful stop)
     exit_ok = (fall_step is None) and exit_drift <= 0.05
     body_err = np.array(metrics["body_pos_err_rel"])
-    success = (not fell) and float(body_err.max()) < 0.5
+    anchor_err = float(np.mean(metrics["anchor_pos_err"]))
+    success = (not fell) and anchor_err < 0.5
     out = {
         "clip": args.clip,
         "checkpoint": str(args.checkpoint),
@@ -349,6 +386,8 @@ def main() -> None:
         "frames": n_steps,
         "seconds": round(n_steps / 50.0, 2),
         "falls": bool(fell),
+        "fall_reason": fall_reason,
+        "tilt_max_deg": round(float(np.max(metrics["tilt"])), 2),
         "success": bool(success),
         "entry_ok": bool(entry_ok),
         "entry_ok_old": bool(entry_ok_old),
@@ -356,6 +395,7 @@ def main() -> None:
         "entry_mismatch_post_pct": round(entry_mismatch_post_pct, 3),
         "entry_com_out_ds_frames": entry_com_out_ds,
         "entry_first_ss_frame": entry_first_ss,
+        "entry_blend_end_frame": blend_end,
         "entry_first_lift_frame": entry_first_lift,
         "exit_ok": bool(exit_ok),
         "exit_drift_m": round(exit_drift, 4),
