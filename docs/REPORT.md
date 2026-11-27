@@ -1,9 +1,9 @@
 # F1 29-DoF 统一运控：行走 / 跑步 / 跳舞 —— 实验报告
 
-日期：2026-11-24  
+日期：2026-11-28  
 代码/数据/模型仓库：`yumxcode/F1-Unified-Tracker`（交付时设为 PRIVATE）  
-标准：`docs/STANDARDS.md` v1.3（Tier-A A1–A12，Tier-B B1–B11，B10 entry 操作定义见 §6）  
-策略：单一统一策略（一套权重，skill one-hot + contact-phase 条件化）；最终模型 `trained_models/v5c2_15000.pt`（15k，对齐接触标签）
+标准：`docs/STANDARDS.md` v1.4（Tier-A A1–A12，Tier-B B1–B11；B2 主表不变；B10 entry 操作定义见 §6）  
+策略：统一多片段跟踪算法 + 稳定优先策略集（walk 专项 `walkspec_8000.pt`、run `jog_A2c_10000.pt`、dance 专项 `dancespec_8000.pt`、idle `v5c2_15000.pt`）；恢复评测器口径，冻结 B2
 
 ---
 
@@ -255,7 +255,9 @@ v7 5.5k 的训练 episode 平均长度仅 81/500 步（anchor_pos 终止 35.7/ep
 - **B2 口径敏感性**（同一批回合，冻结 tilt>45° vs 持续≥0.5 s）：v5c2 walk 75.0→77.8（1 回合翻转）、slowclean walk 83.3→88.9（2 回合）、walkspec 97.2 不变、dancespec 91.7 不变、jog 100 不变。翻转回合均为 tilt 51–62° 的瞬时分神；本表采用冻结口径（不放水）。
 - **dance2_subject1 跌倒诊断**（dancespec 8k，12 回合仅 1 跌）：fall_step 2928（58.6 s，clip 末段）、参考相位单支撑、reason height、tilt 179.6°、B3 171 mm——**长 clip 末段动态失稳**，不是早期 blend；12k 继续训。
 - **walk1_subject5 跌倒**（walkspec 8k，36 回合仅 1 跌）：fall_step 785（15.7 s）、单支撑、tilt 177°、B3 1263 mm——中段失稳。
-- 严格 B3–B8（跟踪精度）仍未过；本节只声明稳定优先口径。
+- **步态有效性（关键限制）**：walk 专项 36 回合中 **61%（22/36）在 entry 窗口内抬脚从未 >3 cm**（entry_first_lift=-1），flight robot/ref = **1.75%/4.2%**（仅参考的 42%），B6 25.3%；dance 专项 12 回合中 **42%（5/12）无 entry 抬脚**，flight robot/ref = **1.26%/12.48%**（仅参考的 10%），B6 27.2%。**B1/B2 的“稳定”很大程度是曳步（不抬脚贴地滑行），不是真迈步**；真迈步需要步态时钟条件化/摆动保真（见经验 exp_mw5t04w1），属于下一步研究，不在本交付内。
+- **dance 12k 两次续训均在 5–6k 失败（status 6）**，中间读数 66.7/33.3 劣于 8k；残余跌倒（walk 15.7 s、dance 58.6 s）在训练 episode（10 s）之外，加迭代不针对成因；账号余额已耗尽，未再续训。
+- 严格 B3–B8（跟踪精度）与 B10 entry（站立起步接触一致，walk 16.7%/dance 0%）仍未过；本节只声明稳定优先口径（B1≥95/B2≤5）。
 
 ---
 

@@ -33,7 +33,7 @@ calibrated quality standard.
    **A12 stance-foot grounded rate ≥95 %** (source stance frames, sole z ≤2 cm).
    Tier B (sim2sim): success, falls, tracking error, contact mismatch, slip,
    flight fraction, action rate, entry/exit. Thresholds are derived from
-   `tools/source_metrics.py` and frozen in `docs/STANDARDS.md` (v1.1).
+   `tools/source_metrics.py` and frozen in `docs/STANDARDS.md` (v1.4).
 3. **Unified tracker.** Multi-clip `MotionCommand` with skill-balanced sampling
    (walk/run/dance equal, 15 % idle). The policy observes 167-D
    `[ref joint pos/vel, anchor pose, base velocity, joint state, last action,
@@ -66,14 +66,15 @@ python tools/eval_unified.py \
   --checkpoint trained_models/v5b_15000.pt --out_dir eval/v5b
 ```
 
-## Results (v5b_15000, see `docs/REPORT.md`)
+## Results (stability-first policy set, see `docs/REPORT.md`)
 
 - **Tier A**: 12/14 clips pass A1–A12 (walk 6/6, run 4/4, dance 2/4); the two
   dance failures are A8 wrist ROM 1.56 % < 2 % and A12 94.8 % < 95 %.
-- **Tier B, full 13 clips (v5c2, STANDARDS v1.2, 3 seeds x 2 replays)**:
-  idle 100 % (all B1–B11, B3 median 28.7 mm); walk 88.9 % success but
-  B2 11.1 %, B3 185 mm, B6 21.6 %, B7 0.226 m/s, entry 33.3 %/exit 72.2 %;
-  run 16.7 %; dance 50 %. See `docs/REPORT.md` §3.7 for the standard→code map.
+- **Tier B, full 13 clips (v5c2, old evaluator, 3 seeds x 2)**: idle 100 %
+  (all B1–B11, B3 median 28.7 mm); walk 88.9 % success but B2 11.1 %,
+  B3 185 mm, B6 21.6 %, B7 0.226 m/s, entry 33.3 %/exit 72.2 %; run 16.7 %;
+  dance 50 %. **Old-evaluator numbers, not comparable with the restored
+  evaluator**; restored-evaluator results are in `docs/REPORT.md` §3.10.
 - **Stability-first policy set (restored evaluator, frozen B2, 3 seeds x 2)**:
   walk specialist **97.2 % / 2.8 % fall**, run (jog ≤1.2 m/s) **100 % / 0 %**,
   dance specialist 91.7 % / 8.3 %, idle 100 %. Entry/stop: walk exit 97.2 %
