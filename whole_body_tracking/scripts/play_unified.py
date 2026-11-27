@@ -101,7 +101,10 @@ def main() -> None:
     ap.add_argument("--legacy_obs", action="store_true", help="160-D obs (no skill/contact)")
     ap.add_argument("--entry_s", type=float, default=3.5)
     ap.add_argument("--exit_s", type=float, default=2.0)
+    ap.add_argument("--seed", type=int, default=0, help="perturbs the initial state (3 seeds x 2 replays)")
+    ap.add_argument("--action_noise", type=float, default=0.0, help="Gaussian action noise std (rep2)")
     args = ap.parse_args()
+    rng = np.random.default_rng(args.seed)
 
     lib = dict(np.load(args.library, allow_pickle=True))
     clip_names = [str(x) for x in lib["clip_names"]]
@@ -183,6 +186,11 @@ def main() -> None:
     data.qvel[0:3] = lib["body_lin_vel_w"][start, 0]
     data.qvel[3:6] = lib["body_ang_vel_w"][start, 0]
     data.qvel[dadr] = lib["joint_vel"][start]
+    # seed perturbation of the initial joint state (the 3-seed protocol):
+    # a small deterministic joint-space perturbation, base untouched
+    if args.seed:
+        data.qpos[qadr] = data.qpos[qadr] + 0.01 * rng.standard_normal(len(qadr))
+        data.qvel[dadr] = data.qvel[dadr] + 0.05 * rng.standard_normal(len(dadr))
     mujoco.mj_forward(model, data)
 
     last_action = np.zeros(len(joint_names_px), dtype=np.float32)
@@ -191,6 +199,8 @@ def main() -> None:
         "joint_pos_err", "anchor_pos_err", "base_z",
         "action_rate", "contact_mismatch", "slip", "flight_ref", "flight_robot",
         "robot_xy", "ref_xy", "skill",
+        "sole_z_left", "sole_z_right", "foot_xy_left", "foot_xy_right", "com_xy",
+        "slip_stance",
     ]}
     fell = False
     fall_step = None
@@ -218,6 +228,8 @@ def main() -> None:
                       bid, anchor_idx, to_px, args.legacy_obs)
         with torch.no_grad():
             action = actor(pm.normalize_obs(torch.from_numpy(obs_np).unsqueeze(0), normalizer)).squeeze(0).numpy().astype(np.float32)
+        if args.action_noise > 0:
+            action = action + args.action_noise * rng.standard_normal(action.shape).astype(np.float32)
         metrics["action_rate"].append(float(np.mean(np.abs(action - last_action))))
         last_action = action.copy()
         action_npz = from_px(action)
@@ -259,6 +271,9 @@ def main() -> None:
             p = data.xpos[b]
             z = min((p + Rm @ np.array(c))[2] for c in FOOT_CORNERS)
             robot_contact.append(z < 0.03)
+            metrics[f"sole_z_{side}"].append(float(z))
+            metrics[f"foot_xy_{side}"].append(p[:2].copy())
+        metrics["com_xy"].append(data.subtree_com[0][:2].copy())
         ref_contact = lib["foot_contact"][t] > 0.5
         mismatch = int(robot_contact[0] != ref_contact[0]) + int(robot_contact[1] != ref_contact[1])
         metrics["contact_mismatch"].append(mismatch)
@@ -276,6 +291,7 @@ def main() -> None:
                 if ref_contact[0 if side == "left" else 1]:
                     slip = max(slip, v)
             metrics["slip"].append(slip)
+            metrics["slip_stance"].append(slip if (ref_contact[0] or ref_contact[1]) else np.nan)
 
         if data.qpos[2] < 0.55 * pm.F1_INIT_HEIGHT and fall_step is None:
             fell = True
@@ -291,9 +307,33 @@ def main() -> None:
     # ---- summary ---------------------------------------------------------
     n_entry = int(args.entry_s / pm.POLICY_DT)
     n_exit = int(args.exit_s / pm.POLICY_DT)
-    # entry success: no fall inside the entry window and contact mismatch <=1%
-    entry_ok = ((fall_step is None or fall_step >= n_entry)
-                and float(np.mean(metrics["contact_mismatch"][:n_entry]) / 2) <= 0.01)
+    # ---- entry sub-reasons (STANDARDS v1.3 operational definition) ----
+    entry_fall = bool(fall_step is not None and fall_step < n_entry)
+    mm = np.array(metrics["contact_mismatch"], dtype=float)
+    post_lo, post_hi = int(2.8 / pm.POLICY_DT), int(3.5 / pm.POLICY_DT)
+    entry_mismatch_post_pct = float(np.mean(mm[post_lo:min(post_hi, len(mm))]) / 2 * 100) if len(mm) > post_lo else 100.0
+    # first reference single-support frame and first robot foot lift
+    ref_c = lib["foot_contact"][start:start + n_steps] > 0.5
+    ss_frames = np.where((ref_c[:, 0] != ref_c[:, 1]))[0]
+    entry_first_ss = int(ss_frames[0]) if len(ss_frames) else -1
+    sz = np.maximum(np.array(metrics["sole_z_left"]), np.array(metrics["sole_z_right"]))
+    lift = np.where(sz[:min(n_steps, n_entry)] > 0.03)[0]
+    entry_first_lift = int(lift[0]) if len(lift) else -1
+    # CoM outside the double-support polygon while both feet are in contact
+    com_out_frames = 0
+    fx = {side: np.array(metrics[f"foot_xy_{side}"]) for side in ("left", "right")}
+    com = np.array(metrics["com_xy"])
+    for st in range(min(n_steps, n_entry)):
+        if ref_c[st, 0] and ref_c[st, 1] and mm[st] == 0:
+            lp, rp = fx["left"][st], fx["right"][st]
+            lo = np.minimum(lp, rp) - 0.05
+            hi = np.maximum(lp, rp) + 0.05
+            if not (lo[0] <= com[st, 0] <= hi[0] and lo[1] <= com[st, 1] <= hi[1]):
+                com_out_frames += 1
+    entry_com_out_ds = int(com_out_frames)
+    entry_ok = (not entry_fall) and entry_mismatch_post_pct <= 1.0 and entry_com_out_ds == 0
+    entry_ok_old = ((fall_step is None or fall_step >= n_entry)
+                    and float(np.mean(metrics["contact_mismatch"][:n_entry]) / 2) <= 0.01)
     robot_xy = np.array(metrics["robot_xy"])
     exit_drift = float(np.linalg.norm(robot_xy[-1] - robot_xy[max(0, len(robot_xy) - n_exit)]))
     # exit success requires no fall anywhere in the episode (a fall before the
@@ -311,16 +351,24 @@ def main() -> None:
         "falls": bool(fell),
         "success": bool(success),
         "entry_ok": bool(entry_ok),
+        "entry_ok_old": bool(entry_ok_old),
+        "entry_fall": bool(entry_fall),
+        "entry_mismatch_post_pct": round(entry_mismatch_post_pct, 3),
+        "entry_com_out_ds_frames": entry_com_out_ds,
+        "entry_first_ss_frame": entry_first_ss,
+        "entry_first_lift_frame": entry_first_lift,
         "exit_ok": bool(exit_ok),
         "exit_drift_m": round(exit_drift, 4),
         "body_pos_err_rel_mean": round(float(body_err.mean()), 4),
         "body_pos_err_rel_p95": round(float(np.percentile(body_err, 95)), 4),
         "body_pos_err_abs_mean_m": round(float(np.mean(metrics["body_pos_err_abs"])), 4),
+        "body_pos_err_abs_median_m": round(float(np.median(metrics["body_pos_err_abs"])), 4),
         "body_lin_vel_err_mean_mps": round(float(np.mean(metrics["body_lin_vel_err"])), 4),
         "joint_pos_err_mean": round(float(np.mean(metrics["joint_pos_err"])), 4),
         "anchor_pos_err_mean": round(float(np.mean(metrics["anchor_pos_err"])), 4),
         "contact_mismatch_pct": round(float(np.mean(metrics["contact_mismatch"]) / 2 * 100), 3),
         "slip_mean_mps": round(float(np.mean(metrics["slip"])), 4),
+        "slip_stance_mean_mps": round(float(np.nanmean(metrics["slip_stance"])), 4),
         "slip_p95_mps": round(float(np.percentile(metrics["slip"], 95)), 4),
         "flight_ref_pct": round(float(np.mean(metrics["flight_ref"]) * 100), 2),
         "flight_robot_pct": round(float(np.mean(metrics["flight_robot"]) * 100), 2),

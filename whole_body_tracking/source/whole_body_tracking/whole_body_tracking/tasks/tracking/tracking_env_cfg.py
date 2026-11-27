@@ -215,8 +215,8 @@ class RewardsCfg:
     )
     motion_body_pos = RewTerm(
         func=mdp.motion_relative_body_position_error_exp,
-        weight=2.0,
-        params={"command_name": "motion", "std": 0.25},
+        weight=1.0,
+        params={"command_name": "motion", "std": 0.3},
     )
     motion_body_ori = RewTerm(
         func=mdp.motion_relative_body_orientation_error_exp,
@@ -225,8 +225,8 @@ class RewardsCfg:
     )
     motion_body_lin_vel = RewTerm(
         func=mdp.motion_global_body_linear_velocity_error_exp,
-        weight=2.0,
-        params={"command_name": "motion", "std": 0.8},
+        weight=1.0,
+        params={"command_name": "motion", "std": 1.0},
     )
     motion_body_ang_vel = RewTerm(
         func=mdp.motion_global_body_angular_velocity_error_exp,
@@ -271,25 +271,6 @@ class RewardsCfg:
         func=mdp.foot_slippage,
         weight=0.5,
         params={"command_name": "motion", "std": 0.3},
-    )
-    stance_foot_height = RewTerm(
-        func=mdp.stance_foot_height,
-        weight=0.5,
-        params={"command_name": "motion", "std": 0.05},
-    )
-    swing_clearance = RewTerm(
-        func=mdp.swing_clearance,
-        weight=0.5,
-        params={"command_name": "motion", "std": 0.05},
-    )
-    flight_mismatch = RewTerm(
-        func=mdp.flight_mismatch,
-        weight=0.5,
-        params={
-            "command_name": "motion",
-            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["left_ankle_roll", "right_ankle_roll"]),
-            "std": 0.5,
-        },
     )
 
 
