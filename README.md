@@ -74,10 +74,12 @@ python tools/eval_unified.py \
   idle 100 % (all B1–B11, B3 median 28.7 mm); walk 88.9 % success but
   B2 11.1 %, B3 185 mm, B6 21.6 %, B7 0.226 m/s, entry 33.3 %/exit 72.2 %;
   run 16.7 %; dance 50 %. See `docs/REPORT.md` §3.7 for the standard→code map.
-- **Run (jog, ≤1.2 m/s, A2c 10k + 2.0 s blend, 3 seeds x 2)**: success 100 %,
-  fall 0 %, entry/exit 100 %, stop drift 2.2 cm — **B1/B2/B10 pass**; B3 128 mm,
-  B5 0.80 m/s, B6 17.8 %, B7 0.111 m/s, B8 still fail. Fast run 1.65–2.1 m/s
-  remains infeasible.
+- **Stability-first policy set (restored evaluator, frozen B2, 3 seeds x 2)**:
+  walk specialist **97.2 % / 2.8 % fall**, run (jog ≤1.2 m/s) **100 % / 0 %**,
+  dance specialist 91.7 % / 8.3 %, idle 100 %. Entry/stop: walk exit 97.2 %
+  (drift 1.1 cm), run 100/100 (2.2 cm), dance exit 91.7 % (1.0 cm); walk/dance
+  entry contact-mismatch gates remain open. Strict tracking gates B3–B8 remain
+  open (B3 125–177 mm vs 35 mm). Fast run 1.65–2.1 m/s remains infeasible.
 - **Policy set**: v5c2 covers walk/dance/idle; jog_A2c covers run. Both use the
   same algorithm/observation/reward/sim2sim pipeline; run needs a separate jog
   speed regime on this robot. Strict B3–B8 remain open for all dynamic skills.

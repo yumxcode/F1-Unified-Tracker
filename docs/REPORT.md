@@ -15,7 +15,7 @@
 2. **参考悬浮根因已修**：`contact_repair` 原先用“抬全身”补摆动腿穿地，导致 run 的源 stance 帧支撑脚 sole z p50=4.8 cm、60% 帧 >3 cm。改为**局部修摆动腿 / 局部降 root**（`--no_post_lift`）+ 源接触 `v<0.02 且 z<0.12` 后，A12 贴地率 95.5–100%（p50≈1 mm）。新增 **A12 支撑脚贴地率 ≥95%** 门（STANDARDS v1.1，§6 有变更记录）。
 3. **统一算法**：BeyondMimic 多片段跟踪 + skill one-hot + 参考 contact-phase 条件化 + 飞行接触惩罚/支撑足速度/滑步奖励 + idle 起步/停止增广 + skill-balanced 采样。24 GB 4090D 上 4096 envs 可训练。
 4. **sim2sim 管线**：MuJoCo 独立回放（PhysX↔npz 关节置换、actuator 映射、armature/damping、timestep 5 ms、参考帧初始状态、entry/exit 窗口）；**从站立起步→技能→停止**；输出 B1–B11 逐门 pass/fail。
-5. **最终模型 v5c2_15000（对齐标签，15k，标准口径 3 seed×2）**：idle 100%/tierB 全过（B3 中位数 28.7 mm）；walk **88.9%**（B1 接近 90%）但 B2 11.1%、B3 185 mm、B6 21.6%、B7 0.226、entry 33.3% 未过；**run 16.7%**；dance 50%。视频：`videos/*_v5c2_15000.mp4`。
+5. **最终模型 v5c2_15000（对齐标签，15k，旧评测器口径 3 seed×2；恢复口径见 §3.10）**：idle 100%/tierB 全过（B3 中位数 28.7 mm）；walk **88.9%**（B1 接近 90%）但 B2 11.1%、B3 185 mm、B6 21.6%、B7 0.226、entry 33.3% 未过；**run 16.7%**；dance 50%。视频：`videos/*_v5c2_15000.mp4`。**恢复评测器口径**：v5c2 walk 75.0%/fall 25.0%/B3 188 mm/B6 22.9%/entry 22.2%；run 20.8%；dance 50%；idle 全过。**稳定优先策略集（§3.10，冻结 B2）**：walk 专项 97.2%/2.8%、run（jog）100%/0%、dance 专项 91.7%/8.3%。
 
 **未达到 / 需继续**
 
@@ -224,7 +224,7 @@ v7 5.5k 的训练 episode 平均长度仅 81/500 步（anchor_pos 终止 35.7/ep
 6. **训练侧 vs sim2sim（零训练诊断）**：v5c2 训练日志 `error_body_pos` 0.135 m、`error_body_lin_vel` 2.5–2.6 m/s；sim2sim B3 中位数 0.185 m、B5 1.11 m/s —— 同一量级，说明瓶颈在**策略/训练**而非 sim2sim 迁移链；v5f 的强跟踪是对路的测试，但 5k 早期反而更差，需看 15k。
 7. **dance2_subject1 跌倒诊断**：fall_step 247（4.9 s），前 100 帧 body 0.035、tilt 1°（正常），100–200 帧 body 升至 0.28、tilt 14°，247 帧 body 0.59 后倾倒（tilt 138°、z 0.14）。属**动作中段动态失稳**（该 clip 比 dance1_subject3 更快/更动态），不是 entry/blend 问题；需 dance 专项的平衡/跟踪强化。
 
-### 3.9 策略集：v5c2（walk/dance/idle）+ jog_A2c（run）
+### 3.9 策略集：v5c2（walk/dance/idle）+ jog_A2c（run）（旧评测器口径）
 
 “同时支持行走/跑步/跳舞”按**同一算法 + 策略集**交付：两个策略共享同一多片段跟踪算法、同一 167-D 观测（skill one-hot + contact-phase）、同一奖励结构与 sim2sim 管线，只是 run 用独立的 jog 速度域权重（run 的 fast 1.65–2.1 m/s 在当前 F1 29-DoF 下不可行，jog ≤1.2 m/s 可行）。
 
@@ -238,6 +238,24 @@ v7 5.5k 的训练 episode 平均长度仅 81/500 步（anchor_pos 终止 35.7/ep
 **结论**：run（jog）已通过 B1/B2/B10；walk 的 B1 88.9% 接近；idle 全过。walk/dance 的严格 B3–B8 与 run 的 B3–B8 仍是开放限制（差 5–30×），需要新的摆动脚抬起/触地时序奖励与更强跟踪，而不是继续堆同一配置。若要求**单一策略**同时覆盖 fast run，当前 F1 29-DoF + LAFAN fast-run 数据下不可行。
 
 > **范围确认（用户，2026-11-26，ht-80a8143920d543b6）**：用户选择 `accept_jog_scope`——“可接受较低速度 run”。因此契约“跑步”的交付范围定为 **jog ≤1.2 m/s**（站立→run→停止，B1 100%/B2 0%/B10 entry/exit 100%/drift 2.2 cm 通过）；fast run（1.65–2.1 m/s）与严格 B3–B8 作为开放限制记录，不再作为本交付的阻塞。
+
+### 3.10 稳定优先策略集（slow07 + 专项，恢复评测器 + 冻结 B2）
+
+用户确认“速度可放松、必须稳定”后，用 0.7× 降速库（slow07）+ 技能专项训练。**所有数字出自恢复后的评测器（commit 5704988+）与冻结 B2（root z<0.55×站立 或 tilt>45° 即跌倒）**：
+
+| 技能 | 策略 | B1 success | B2 fall | B3 median | B6 | B7 | entry/exit | drift |
+|---|---|---|---|---|---|---|---|---|
+| idle | v5c2 / slowclean | 100% | 0% | 29–34 mm | 0% | 0.001 | 100/100 | 0.0004 |
+| walk | **walkspec_8000** | **97.2%** | **2.8%** | 177 mm | 25.3% | 0.110 | 16.7/97.2 | 0.011 |
+| run (jog ≤1.2 m/s) | **jog_A2c_10000** | **100%** | **0%** | 125 mm | 17.7% | 0.109 | 100/100 | 0.022 |
+| dance | dancespec_8000 | 91.7% | 8.3% | 174 mm | 27.2% | 0.091 | 0/91.7 | 0.010 |
+
+- **walk 与 run 达到稳定优先目标 B1≥95/B2≤5**；dance 91.7/8.3 接近（12k 在训）。
+- 统一 slowclean_10000（v5c2 cfg + slow07）：walk 83.3/run 20.8/dance 50（冻结 B2）——专项优于统一。
+- **B2 口径敏感性**（同一批回合，冻结 tilt>45° vs 持续≥0.5 s）：v5c2 walk 75.0→77.8（1 回合翻转）、slowclean walk 83.3→88.9（2 回合）、walkspec 97.2 不变、dancespec 91.7 不变、jog 100 不变。翻转回合均为 tilt 51–62° 的瞬时分神；本表采用冻结口径（不放水）。
+- **dance2_subject1 跌倒诊断**（dancespec 8k，12 回合仅 1 跌）：fall_step 2928（58.6 s，clip 末段）、参考相位单支撑、reason height、tilt 179.6°、B3 171 mm——**长 clip 末段动态失稳**，不是早期 blend；12k 继续训。
+- **walk1_subject5 跌倒**（walkspec 8k，36 回合仅 1 跌）：fall_step 785（15.7 s）、单支撑、tilt 177°、B3 1263 mm——中段失稳。
+- 严格 B3–B8（跟踪精度）仍未过；本节只声明稳定优先口径。
 
 ---
 
@@ -274,5 +292,5 @@ python tools/eval_unified.py --library whole_body_tracking/motions/f1_unified_li
 3. **B10 entry**：失败来自 blend 后接触不一致（3–24%），不是跌倒/CoM；需在 entry 窗口内提升接触一致性。
 4. **B8**：已按 §6 v1.2 修订；walk 仍差（robot 3.06 vs ref 4.07）。
 5. **run**：jog（≤1.2 m/s，A2c 10k，2.0 s blend）标准口径 **success 100%、fall 0%、entry/exit 100%、drift 0.0216 m（B1/B2/B10 通过）**；B3 128 mm、B5 0.80、B6 17.8%、B7 0.111、B8 未过；fast run 1.65–2.1 m/s 不可行。
-6. **长时程**：训练 episode 20 s；>60 s 漂移仍导致 walk/dance 部分段跌倒。
+6. **长时程**：训练 episode 10 s（v5c2 配置；v5e/v5f 为 20 s）；>60 s 漂移仍导致 walk/dance 部分段跌倒。
 7. **账号/额度**：id84（v5e 15k）与 id81（v5f 15k）已完成；id82（A2c）已完成；id83（v5d）已停；其余账号额度耗尽。用户已选择 require_research（ht-66342e97d9874089 已回执）；v5e/v5f 结果已记录，奖励路线停止。

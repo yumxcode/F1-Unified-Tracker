@@ -68,7 +68,8 @@ def main() -> None:
                     # means the evaluator is not the reference version
                     for f in ("entry_ok", "entry_blend_end_frame", "fall_reason",
                               "body_pos_err_abs_median_m", "entry_first_lift_frame",
-                              "slip_stance_mean_mps", "tilt_max_deg"):
+                              "slip_stance_mean_mps", "tilt_max_deg",
+                              "fall_step", "fall_time_s", "fall_ref_phase"):
                         if f not in d:
                             raise SystemExit(f"missing field {f!r} in {out_json}")
                     d["skill"] = name_to_skill[name]

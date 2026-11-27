@@ -205,8 +205,6 @@ def main() -> None:
     fell = False
     fall_step = None
     fall_reason = None
-    low_z = 0
-    high_tilt = 0
     n_steps = (end - start) if args.max_steps <= 0 else min(args.max_steps, end - start)
     t0 = time.time()
     recorder = None
@@ -304,20 +302,11 @@ def main() -> None:
             metrics["slip"].append(slip)
             metrics["slip_stance"].append(slip if (ref_contact[0] or ref_contact[1]) else np.nan)
 
-        # a fall must be sustained (>=0.5 s) so a transient stumble that
-        # recovers is not counted as a fall
-        if data.qpos[2] < 0.55 * pm.F1_INIT_HEIGHT:
-            low_z += 1
-        else:
-            low_z = 0
-        if tilt_deg > 45.0:
-            high_tilt += 1
-        else:
-            high_tilt = 0
-        if fall_step is None and (low_z >= 25 or high_tilt >= 25):
+        # frozen STANDARDS B2: root z < 0.55 x standing OR root tilt > 45 deg
+        if fall_step is None and (data.qpos[2] < 0.55 * pm.F1_INIT_HEIGHT or tilt_deg > 45.0):
             fell = True
             fall_step = step
-            fall_reason = "tilt" if high_tilt >= 25 else "height"
+            fall_reason = "tilt" if tilt_deg > 45.0 else "height"
         if recorder is not None:
             recorder[0].update_scene(data, camera=recorder[1])
             recorder[2].append_data(recorder[0].render())
@@ -387,6 +376,11 @@ def main() -> None:
         "seconds": round(n_steps / 50.0, 2),
         "falls": bool(fell),
         "fall_reason": fall_reason,
+        "fall_step": fall_step,
+        "fall_time_s": round(fall_step / 50.0, 2) if fall_step is not None else None,
+        "fall_ref_phase": (None if fall_step is None else (
+            "double" if (lib["foot_contact"][start + fall_step] > 0.5).all()
+            else ("flight" if not (lib["foot_contact"][start + fall_step] > 0.5).any() else "single"))),
         "tilt_max_deg": round(float(np.max(metrics["tilt"])), 2),
         "success": bool(success),
         "entry_ok": bool(entry_ok),
