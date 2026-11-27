@@ -79,6 +79,8 @@ A12 贴地率（通过段）：95.5–100%，p50 0.001 m。
 
 ## 3. sim2sim Tier-B 结果
 
+> **评测器口径说明（2026-11-27）**：标准评测器（play_unified v1.3：--seed/--action_noise、entry 子原因、B1 anchor、B3 中位数、B7 支撑帧、blend_end 由 idle_mask 推导）曾因 `git reset --hard` 丢失，已恢复并提交（commit 5704988）。**本节以下数字若标注"恢复口径"，均出自恢复后的评测器**；此前正文中的 walk 88.9%/B3 185/B6 21.6/entry 33.3、jog 100% 等出自丢失前的旧评测器，与恢复口径不可直接比较（旧版 success/fall/entry 判据不同）。恢复口径回归：v5c2 原库 walk 77.8%/fall 22.2%/B3 188 mm/B6 22.9%/B7 0.258/entry 22.2%/exit 72.2%/drift 0.060；run 20.8%；dance 50%；idle 全过。jog_A2c 恢复口径 run **100%/0%/entry 100/exit 100/drift 0.0222**（B1/B2/B10 通过，B3 125/B5 0.80/B6 17.7/B7 0.109/B8 3.07 vs 7.53 未过）。v5c2 在 slow07 库（blend_end=200）：walk 75/run 25/dance 50，entry 16.7/0/0，drift 0.0097/0.018/0.005。
+
 > **口径说明（2026-11-26）**：§3.1–3.3 的数字来自旧评测实现（每 clip 单次、B3 均值、B7 全帧、B1 最大相对误差、B2 仅 root z、B10 无 CoM），只能作为预实验。**标准口径（STANDARDS v1.2）的零训练复评见 §3.7**：3 seed×2 回放、B3 中位数、B7 支撑帧、B1 0.5 m anchor、B2 三判据、B10 CoM。
 
 ### 3.1 四段协议（idle/walk/run/dance，站立起步→技能→停止）

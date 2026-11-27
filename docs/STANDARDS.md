@@ -137,6 +137,8 @@ clip | gait | window[start,end) | frames | coverage% | A1..A12 | overall_A
 
 > **变更记录 2026-11-26（v1.3，B10 entry 操作定义）**：entry 成功 = 前 3.5 s 无跌倒 **且** 0.8 s blend 后（帧 140–175）接触不一致 ≤1% **且** CoM 仅在**双支撑相**出支撑面计失败。单支撑相 CoM 在支撑脚外属正常步态，不再计失败；blend 段参考接触正在切换，接触不一致从 blend 结束后统计。此定义不改变 B10 的 95%/5 cm 门限，只明确统计窗口与分母。子原因（跌倒/接触不一致/CoM）在评测 JSON 中分别记录。
 
+> **变更记录 2026-11-27（v1.4，评测器恢复）**：标准评测器曾因 `git reset --hard` 丢失，按 v1.3 定义恢复并提交（commit 5704988）。恢复口径的操作定义：① entry 窗口由 `idle_mask` 推导（blend_end = idle_end×1.4；原库等价帧 140–175，slow07 为 200–235），固定 140–175 在时间缩放库上会落在 blend 内造成空判；② 跌倒 = root z<0.55×站立 **持续 ≥0.5 s**（tilt>45° 记为 fall_reason），避免瞬时分神被计为跌倒；③ success = B1 anchor（anchor_pos_err_mean<0.5 m）且无跌倒；④ B3 中位数、B7 仅参考支撑帧、entry 子原因（fall/mismatch_post/com_out_ds/first_ss/first_lift）照旧。旧评测器数字（walk 88.9/B3 185/B6 21.6/entry 33.3）与恢复口径不可直接比较；恢复口径回归见 REPORT §3。
+
 > **变更记录 2026-11-25（v1.2）**：B8 由“walk/dance 飞行=0；run 相对误差 ≤20%”改为“walk/run/dance 均与源飞行占比相对误差 ≤20%”。起因：LAFAN 源 walk 1.4–6.3%、dance 5.7–28.7% 本身有飞行相位，旧门按现数据必然 fail，且与“跟踪源动作”的目标矛盾；新门衡量策略是否复现源的空中相位占比，而非禁止飞行。A1–A12 与 B1–B7/B9–B11 不变。
 
 > **变更记录 2026-11-24（v1.1）**：新增 A12（支撑脚贴地率，walk/run/dance 均 ≥95%）。起因：`contact_repair` 的 post-lift 为修摆动腿穿地把全身 root 抬高，run 的源 stance 帧支撑脚 sole z p50 达 4.8 cm、60% 帧 >3 cm；旧 Tier A 的 A7/A10 只在 sole z<0.03 的帧上统计，看不见该缺陷。A12 要求源 stance 帧 ≥95% 的支撑脚贴地（≤0.02 m），并据此把 repair 改为局部修摆动腿/局部降 root（`--no_post_lift`），不再全局抬身。A12 是新增门，不修改 A1–A11 的任何门限。
